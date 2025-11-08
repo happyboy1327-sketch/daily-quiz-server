@@ -146,13 +146,18 @@ app.use(express.json());
 /**
  * GET /api/quiz : 정답 인덱스가 제거된 퀴즈 목록 (ID, 해설 포함)을 반환합니다.
  */
-app.get('/api/quiz', (req, res) => {
-    if (MASTER_QUIZ_DATA.length === 0) {
-        return res.status(503).json({ 
-            errorCode: "DATA_UNAVAILABLE",
-            message: "Quiz data is currently loading or unavailable. Please wait for initial data fetch." 
-        });
-    }
+// 💡 필수 수정: 루트 경로 (/) 라우트 추가
+app.get('/', (req, res) => {
+    // Vercel이 서버가 작동하고 있음을 확인할 수 있도록 간단한 JSON 응답을 보냅니다.
+    res.status(200).json({ 
+        status: "OK", 
+        message: "Quiz API Server is running. Use /api/quiz to get questions." 
+    });
+});
+
+/**
+ * GET /api/quiz : 정답 인덱스가 제거된 퀴즈 목록 (ID, 해설 포함)을 반환합니다.
+ */
 
     const K = 5; 
     
@@ -168,7 +173,7 @@ app.get('/api/quiz', (req, res) => {
              message: "Internal server error occurred during data retrieval." 
          });
     }
-});
+;
 
 /**
  * 💡 GET /api/answer-key : 클라이언트가 정답을 확인할 수 있도록 정답 키 매핑을 반환합니다.
