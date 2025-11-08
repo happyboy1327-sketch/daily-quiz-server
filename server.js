@@ -3,9 +3,10 @@ const express = require('express');
 const cors = require('cors');
 const seedrandom = require('seedrandom'); 
 const axios = require('axios'); 
+const path = require('path'); // 💡 정적 파일 처리를 위한 path 모듈 추가
 const app = express();
 
-// 💡 환경 변수에서 API 키를 안전하게 불러옵니다. (필수: Vercel 설정 확인)
+// 💡 환경 변수에서 API 키를 안전하게 불러옵니다. (Vercel 대시보드에서 설정된 키 사용)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
@@ -16,7 +17,7 @@ let MASTER_QUIZ_DATA = [];
 let LAST_FETCH_TIME = 0; // 마지막 데이터 로드 시간 (타임스탬프)
 
 // ==========================================================
-// 퀴즈 생성 프롬프트 및 설정 (동일)
+// 퀴즈 생성 프롬프트 및 설정
 // ==========================================================
 const QUIZ_GENERATION_PROMPT = {
     contents: [
@@ -24,7 +25,7 @@ const QUIZ_GENERATION_PROMPT = {
             role: "user",
             parts: [
                 {
-                    text: `당신은 상식 퀴즈를 생성하는 전문가입니다. **절대 이전에 생성한 질문을 재사용하지 마세요.** 이전 요청과는 완전히 다른 새로운 지식 분야(예: 과학, 역사, 대중문화, 코딩, 스포츠 등)에서 5개의 독특하고 새로운 상식 퀴즈 질문을 생성하세요. 아래 JSON 형식에 정확히 맞추어 질문, choices(보기는 3개 이상), explanation(해설), 그리고 정답의 인덱스(0부터 시작)인 correctAnswerIndex를 포함해야 합니다. 다른 설명 없이 JSON 배열만을 반환해야 합니다. 응답은 JSON Markdown 형식으로 제공되어야 합니다. [REQUEST_ID: ${Date.now()}]`, 
+                    text: `당신은 상식 퀴즈를 생성하는 전문가입니다. **절대 이전에 생성한 질문을 재사용하지 마세요.** 이전 요청과는 완전히 다른 새로운 지식 분야(예: 과학, 역사, 한글 맞춤법, 코딩, 디지털 리터러시, 스포츠, 경제, 지리, 정치, 사회 등)에서 5개의 독특하고 새로운 상식 퀴즈 질문을 생성하세요. 아래 JSON 형식에 정확히 맞추어 질문, choices(보기는 3개 이상), explanation(해설), 그리고 정답의 인덱스(0부터 시작)인 correctAnswerIndex를 포함해야 합니다. 다른 설명 없이 JSON 배열만을 반환해야 합니다. 응답은 JSON Markdown 형식으로 제공되어야 합니다. [REQUEST_ID: ${Date.now()}]`, 
                 }
             ]
         }
@@ -36,7 +37,7 @@ const QUIZ_GENERATION_PROMPT = {
 };
 
 // ==========================================================
-// 1. 핵심 유틸리티 함수 (동일)
+// 1. 핵심 유틸리티 함수
 // ==========================================================
 
 function getDailySeed() {
@@ -78,20 +79,21 @@ function sanitizeQuizData(questions) {
     });
 }
 
-
 // ==========================================================
-// 2. 외부 데이터 로딩 및 갱신 함수 (LAST_FETCH_TIME 업데이트)
+// 2. 외부 데이터 로딩 및 갱신 함수
 // ==========================================================
 
 async function fetchNewQuizData() {
     console.log(`[DATA] Gemini API를 통해 새로운 퀴즈 데이터 로딩을 시작합니다...`);
     
-    // ... (API 호출 로직은 동일) ...
-    
+    const uniqueId = Date.now(); 
+    const currentPrompt = JSON.parse(JSON.stringify(QUIZ_GENERATION_PROMPT));
+    currentPrompt.contents[0].parts[0].text = currentPrompt.contents[0].parts[0].text.replace(/\[REQUEST_ID: \d+\]/, `[REQUEST_ID: ${uniqueId}]`);
+
     try {
         const response = await axios.post(
             GEMINI_API_URL, 
-            QUIZ_GENERATION_PROMPT
+            currentPrompt
         );
         
         const generatedContent = response.data;
@@ -110,7 +112,7 @@ async function fetchNewQuizData() {
             MASTER_QUIZ_DATA = assignQuizIds(newQuizData); 
             // 💡 성공 시 마지막 갱신 시간 업데이트
             LAST_FETCH_TIME = Date.now(); 
-            console.log(`[DATA] 퀴즈 데이터 갱신 완료. 총 ${MASTER_QUIZ_DATA.length}개의 새로운 문제가 로드되었습니다. (다음 갱신: ${new Date(LAST_FETCH_TIME + ONE_HOUR).toLocaleString()})`);
+            console.log(`[DATA] 퀴즈 데이터 갱신 완료. 총 ${MASTER_QUIZ_DATA.length}개의 새로운 문제가 로드되었습니다.`);
             return true;
         } else {
             throw new Error("Gemini API에서 유효한 퀴즈 배열을 가져오지 못했습니다.");
@@ -132,25 +134,20 @@ app.use(express.json());
 
 // 💡 갱신 필요 여부를 확인하고 필요하면 데이터 로드 시도
 async function ensureDataFreshness() {
+    // Vercel의 경우, 함수가 재시작되면 MASTER_QUIZ_DATA가 비어있고 LAST_FETCH_TIME이 0입니다.
     const isDataStale = (Date.now() - LAST_FETCH_TIME) > ONE_HOUR;
 
     if (MASTER_QUIZ_DATA.length === 0 || isDataStale) {
         // 데이터가 없거나 1시간이 지났으면 갱신 시도
         console.log(`[CHECK] Data is stale or missing. Attempting refresh...`);
-        const success = await fetchNewQuizData();
-        
-        if (!success) {
-            console.error(`[CHECK] Data refresh failed. Serving existing data or returning 503 if empty.`);
-        }
+        await fetchNewQuizData();
     }
 }
 
-// 💡 루트 경로 (/) 라우트: 서버 상태 확인용
+// 💡 루트 경로 (/) 라우트: index.html 파일 제공 (정적 호스팅 역할)
 app.get('/', (req, res) => {
-    res.status(200).json({ 
-        status: "OK", 
-        message: "Quiz API Server is running. Use /api/quiz to get questions." 
-    });
+    // Vercel 환경에서 index.html 파일을 클라이언트에게 제공합니다.
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 
@@ -168,7 +165,6 @@ app.get('/api/quiz', async (req, res) => {
         });
     }
     
-    // ... (퀴즈 추출 로직은 동일)
     const K = 5; 
     
     try {
@@ -197,7 +193,6 @@ app.get('/api/answer-key', async (req, res) => {
         return res.status(503).json({ error: "Data unavailable" });
     }
 
-    // ... (정답 키 추출 로직은 동일)
     const K = 5;
     
     try {
@@ -221,6 +216,4 @@ app.get('/api/answer-key', async (req, res) => {
 // ==========================================================
 // 4. Vercel 서버리스 모듈 내보내기 (필수)
 // ==========================================================
-
-// 💡 app.listen을 제거하고 Express 앱 객체만 내보냅니다.
 module.exports = app;

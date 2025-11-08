@@ -150,12 +150,16 @@
 
     <script>
         // JavaScript 시작
-        const QUIZ_API_URL = 'http://localhost:8080/api/quiz';
-        const ANSWER_KEY_API_URL = 'http://localhost:8080/api/answer-key'; // 💡 정답 키 API
+        
+        // 💡 BASE_URL을 제거하고 상대 경로를 사용합니다. 
+        // Vercel이 index.html을 서빙하므로, API 요청은 자동으로 같은 도메인으로 전송됩니다.
+        const QUIZ_API_URL = '/api/quiz';
+        const ANSWER_KEY_API_URL = '/api/answer-key'; 
+
         const STORAGE_KEY = 'wrong_answers'; 
 
-        let currentQuizData = []; // 현재 퀴즈 배열 (메인 모드)
-        let correctAnswerMap = {}; // { id: index, ... } 형태의 정답 매핑
+        let currentQuizData = []; 
+        let correctAnswerMap = {}; 
         let currentQuestionIndex = 0;
         let score = 0;
 
@@ -211,12 +215,12 @@
             loadingDiv.style.display = 'block';
 
             try {
-                // 1. 퀴즈 질문 목록 (ID, 해설 포함, 정답 인덱스 없음) 가져오기
+                // 1. 퀴즈 질문 목록 가져오기 (상대 경로 사용)
                 const quizResponse = await fetch(QUIZ_API_URL);
                 if (!quizResponse.ok) throw new Error(`Quiz data failed: ${quizResponse.status}`);
                 currentQuizData = await quizResponse.json();
                 
-                // 2. 퀴즈 정답 키 목록 가져오기
+                // 2. 퀴즈 정답 키 목록 가져오기 (상대 경로 사용)
                 const answerResponse = await fetch(ANSWER_KEY_API_URL);
                 if (!answerResponse.ok) throw new Error(`Answer key failed: ${answerResponse.status}`);
                 correctAnswerMap = await answerResponse.json(); 
@@ -226,7 +230,6 @@
                     const id = q.id;
                     return {
                         ...q,
-                        // 💡 서버에서 받은 정답 키를 퀴즈 ID를 이용해 매칭
                         correctAnswerIndex: correctAnswerMap[id] 
                     };
                 });
@@ -239,7 +242,8 @@
 
             } catch (error) {
                 loadingDiv.style.display = 'none';
-                quizContainer.innerHTML = `<p style="color: red;">퀴즈 데이터 로딩 실패: ${error.message}. 서버(http://localhost:8080)가 실행 중인지 확인하세요.</p>`;
+                // 💡 서버가 Vercel에서 작동하고 있으므로 로컬 서버 안내 문구를 수정합니다.
+                quizContainer.innerHTML = `<p style="color: red;">퀴즈 데이터 로딩 실패. Vercel 서버 문제일 수 있습니다: ${error.message}</p>`;
                 showHomeButtons();
             }
         }
@@ -301,7 +305,7 @@
                 feedbackDiv.innerHTML = '<span style="color: green;">✅ 정답입니다!</span>';
             } else {
                 feedbackDiv.innerHTML = '<span style="color: red;">❌ 오답입니다.</span>';
-                // 💡 오답 시 Local Storage에 저장 (실제 정답 인덱스 전달)
+                // 💡 오답 시 Local Storage에 저장
                 addWrongAnswer(question, selectedIndex, actualCorrectIndex);
             }
 
@@ -377,7 +381,8 @@
         }
         
         showHomeButtons(); 
-        quizContainer.innerHTML = '<p>상식 퀴즈를 시작하려면 "퀴즈 시작" 버튼을 누르세요. 서버가 8080 포트에서 실행 중인지 확인해 주세요.</p>';
+        // 💡 Vercel 배포 후에는 로컬 서버 안내 문구 제거
+        quizContainer.innerHTML = '<p>상식 퀴즈를 시작하려면 "퀴즈 시작" 버튼을 누르세요. 서버가 Vercel에 정상 배포되었습니다.🚀</p>';
 
         // JavaScript 끝
     </script>
