@@ -36,7 +36,7 @@ const QUIZ_GENERATION_PROMPT = {
 4.  **[난이도 조절]:** 난이도는 **중급에서 상급(Medium-High)** 사이로 설정하여, 단순 암기가 아닌 사고력과 깊이 있는 이해를 요하도록 문제를 구성해야 합니다.
 5.  **[자세한 해설]:** 해설(explanation)은 **매우 자세하게** 작성되어야 하며, 정답의 근거뿐만 아니라 **오답 보기들이 왜 틀렸는지까지** 명확하게 설명해야 합니다.
 6.  **[JSON 포맷]:** 아래 JSON 형식에 정확히 맞추어 질문, choices(보기는 3개 이상), explanation(해설), 그리고 정답의 인덱스(0부터 시작)인 correctAnswerIndex를 포함해야 합니다.
-7.  **[정답 인덱스 일치 필터링]:** 해설(explanation) 내에 명시되는 정답 번호(예: '정답은 N번입니다.')의 N과 JSON 필드 "correctAnswerIndex" (0부터 시작)는 반드시 일치해야 합니다. (예: 해설에 '정답은 2번입니다.'라고 명시했다면, "correctAnswerIndex"는 1이 되어야 합니다.)
+7.  **[정답 인덱스 무결성 - 최강화]:** 해설(explanation)의 **첫 문장**은 반드시 '정답은 N번(0부터 시작하는 인덱스는 X)입니다.' 형태로 N과 X를 모두 명시해야 합니다. **이 X 값**이 JSON 필드 **correctAnswerIndex**와 **정확히 일치**해야 합니다. (예: 해설 첫 문장: '정답은 2번(0부터 시작하는 인덱스는 1)입니다.' -> **correctAnswerIndex**는 1이어야 함). **이 두 값의 불일치는 심각한 오류로 간주되며, 반드시 X와 "correctAnswerIndex"를 일치시켜야 합니다.**
 
 # Output Format
 다른 설명 없이 **JSON 배열만을 반환**해야 합니다. 응답은 JSON Markdown 형식으로 제공되어야 합니다. [REQUEST_ID: ${Date.now()}]
