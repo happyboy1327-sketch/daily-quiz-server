@@ -94,7 +94,7 @@ function getKRandomQuestions(K, masterData) {
 function sanitizeQuizData(questions) {
     // 클라이언트에게 전송하기 전에 정답 인덱스(correctAnswerIndex)와 해설을 제거합니다.
     return questions.map(q => {
-        const { correctAnswerIndex, explanation, ...safeQuestion } = q;
+        const { correctAnswerIndex, ...safeQuestion } = q;
         return safeQuestion; 
     });
 }
