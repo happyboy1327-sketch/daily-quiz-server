@@ -73,6 +73,7 @@ function shuffleArray(array, seed) {
 }
 
 function assignQuizIds(quizData) {
+    // 퀴즈 데이터에 고유 ID를 부여합니다.
     return quizData.map((q, index) => ({
         ...q,
         id: index + 1 
@@ -81,15 +82,19 @@ function assignQuizIds(quizData) {
 
 function getKRandomQuestions(K, masterData) {
     const seed = getDailySeed();
+    // 💡 퀴즈 ID가 부여된 마스터 데이터를 복사합니다.
     const dataCopy = [...masterData]; 
     const count = Math.min(K, dataCopy.length);
+    // 💡 매일의 시드(Seed)를 기반으로 퀴즈 순서를 섞습니다.
     const shuffledCopy = shuffleArray(dataCopy, seed);
+    // 💡 섞인 배열에서 K개(5개)를 가져옵니다.
     return shuffledCopy.slice(0, count);
 }
 
 function sanitizeQuizData(questions) {
+    // 클라이언트에게 전송하기 전에 정답 인덱스(correctAnswerIndex)와 해설을 제거합니다.
     return questions.map(q => {
-        const { correctAnswerIndex, ...safeQuestion } = q;
+        const { correctAnswerIndex, explanation, ...safeQuestion } = q;
         return safeQuestion; 
     });
 }
@@ -139,6 +144,7 @@ async function fetchNewQuizData() {
             const newQuizData = JSON.parse(cleanedJsonText);
             
             if (Array.isArray(newQuizData) && newQuizData.length > 0) {
+                // 💡 새로 로드된 데이터에 ID를 부여합니다. 이 ID는 데이터의 고유성을 보장합니다.
                 MASTER_QUIZ_DATA = assignQuizIds(newQuizData); 
                 LAST_FETCH_TIME = Date.now(); 
                 console.log(`[DATA] 퀴즈 데이터 갱신 완료. 총 ${MASTER_QUIZ_DATA.length}개의 새로운 문제가 로드되었습니다.`);
@@ -198,6 +204,7 @@ app.get('/', (req, res) => {
 
 /**
  * GET /api/quiz
+ * 퀴즈 질문(정답 및 해설 제외) 목록을 반환합니다.
  */
 app.get('/api/quiz', async (req, res) => {
     // 💡 요청이 올 때마다 데이터 갱신 필요 여부 확인 및 갱신 시도
@@ -215,7 +222,12 @@ app.get('/api/quiz', async (req, res) => {
     
     try {
         const todaysQuestions = getKRandomQuestions(K, MASTER_QUIZ_DATA);
-        const safePayload = sanitizeQuizData(todaysQuestions);
+        
+        // 💡 중요: 클라이언트에 보낼 때 퀴즈 순서의 일관성을 위해 ID 순으로 다시 정렬합니다.
+        // 이렇게 하면 /api/quiz와 /api/quiz/answer-key에서 동일한 순서의 퀴즈를 보장합니다.
+        const sortedQuestions = todaysQuestions.sort((a, b) => a.id - b.id);
+
+        const safePayload = sanitizeQuizData(sortedQuestions);
         
         return res.status(200).json(safePayload);
     } catch (error) {
@@ -229,9 +241,10 @@ app.get('/api/quiz', async (req, res) => {
 
 
 /**
- * GET /api/answer-key
+ * GET /api/quiz/answer-key
+ * 퀴즈에 대한 정답 인덱스 목록을 반환합니다. (기존 /api/answer-key에서 경로 변경)
  */
-app.get('/api/answer-key', async (req, res) => {
+app.get('/api/quiz/answer-key', async (req, res) => {
     // 💡 요청이 올 때마다 데이터 갱신 필요 여부 확인 및 갱신 시도
     await ensureDataFreshness();
 
@@ -244,7 +257,11 @@ app.get('/api/answer-key', async (req, res) => {
     try {
         const todaysQuestions = getKRandomQuestions(K, MASTER_QUIZ_DATA); 
         
-        const answerKey = todaysQuestions.reduce((acc, q) => {
+        // 💡 중요: 정답 키를 생성할 때도 순서 일관성을 위해 ID 순으로 다시 정렬합니다.
+        const sortedQuestions = todaysQuestions.sort((a, b) => a.id - b.id);
+
+        const answerKey = sortedQuestions.reduce((acc, q) => {
+            // 💡 JSON 필드의 correctAnswerIndex를 사용합니다.
             if (typeof q.id === 'number' && typeof q.correctAnswerIndex === 'number') {
                 acc[q.id] = q.correctAnswerIndex;
             }
