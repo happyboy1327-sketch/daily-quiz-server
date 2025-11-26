@@ -128,7 +128,7 @@ async function fetchNewQuizData() {
             const response = await axios.post(
                 GEMINI_API_URL, 
                 currentPrompt,
-                { timeout: 80000 } 
+                { timeout: 90000 } 
             );
             
             const generatedContent = response.data;
@@ -160,7 +160,7 @@ async function fetchNewQuizData() {
             
             if (error.code === 'ECONNABORTED') {
                  // 💡 타임아웃 메시지를 80초에 맞춰 수정
-                 console.error("[TIMEOUT] Axios 요청이 80초 타임아웃되었습니다. Vercel 함수 제한 시간 초과 가능성 있음.");
+                 console.error("[TIMEOUT] Axios 요청이 90초 타임아웃되었습니다. Vercel 함수 제한 시간 초과 가능성 있음.");
             } else if (error.response) {
                  console.error(`[API FAIL] Gemini API 응답 상태 코드: ${error.response.status}`);
             }
@@ -244,7 +244,7 @@ app.get('/api/quiz', async (req, res) => {
  * GET /api/quiz/answer-key
  * 퀴즈에 대한 정답 인덱스 목록을 반환합니다. (기존 /api/answer-key에서 경로 변경)
  */
-app.get('/api/quiz/answer-key', async (req, res) => {
+app.get('/api/answer-key', async (req, res) => {
     // 💡 요청이 올 때마다 데이터 갱신 필요 여부 확인 및 갱신 시도
     await ensureDataFreshness();
 
