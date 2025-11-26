@@ -105,24 +105,25 @@ async function fetchNewQuizData() {
     const currentPrompt = JSON.parse(JSON.stringify(QUIZ_GENERATION_PROMPT));
     currentPrompt.contents[0].parts[0].text = currentPrompt.contents[0].parts[0].text.replace(/\[REQUEST_ID: \d+\]/, `[REQUEST_ID: ${uniqueId}]`);
 
-    // 💡 재시도 횟수 설정
-    const MAX_RETRIES = 1; 
+    // 💡 재시도 횟수 설정: 2회 (총 3번 시도)
+    const MAX_RETRIES = 2; 
     let success = false;
     let lastError = null;
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
         if (attempt > 0) {
             console.log(`[DATA] API 호출 재시도 중... (시도 ${attempt + 1}/${MAX_RETRIES + 1})`);
-            // 잠시 대기 (선택적)
-            await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); 
+            // 💡 지수 백오프: 1초, 2초 대기
+            const delay = Math.pow(2, attempt) * 1000;
+            await new Promise(resolve => setTimeout(resolve, delay)); 
         }
 
         try {
-            // 💡 8초 타임아웃 설정 (Vercel 기본 10초보다 짧게 설정하여 타임아웃 오류를 정확히 파악)
+            // 💡 80초 타임아웃 설정 (요청에 따라 80000ms로 설정)
             const response = await axios.post(
                 GEMINI_API_URL, 
                 currentPrompt,
-                { timeout: 8000 } 
+                { timeout: 80000 } 
             );
             
             const generatedContent = response.data;
@@ -152,7 +153,8 @@ async function fetchNewQuizData() {
             console.error(`[DATA ERROR] 퀴즈 데이터를 가져오는 데 실패했습니다 (시도 ${attempt + 1}/${MAX_RETRIES + 1}). 오류: ${error.message}`);
             
             if (error.code === 'ECONNABORTED') {
-                 console.error("[TIMEOUT] Axios 요청이 8초 타임아웃되었습니다. Vercel 함수 제한 시간 초과 가능성 있음.");
+                 // 💡 타임아웃 메시지를 80초에 맞춰 수정
+                 console.error("[TIMEOUT] Axios 요청이 80초 타임아웃되었습니다. Vercel 함수 제한 시간 초과 가능성 있음.");
             } else if (error.response) {
                  console.error(`[API FAIL] Gemini API 응답 상태 코드: ${error.response.status}`);
             }
