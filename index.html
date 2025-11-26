@@ -18,7 +18,7 @@
             min-height: 100vh;
         }
         .container {
-            background: #fff;
+            background: #e7f2f3;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -27,7 +27,7 @@
             text-align: center;
         }
         h1 {
-            color: #4a90e2;
+            color: #d01c67;
             margin-bottom: 25px;
             font-size: 1.8em;
         }
@@ -137,7 +137,7 @@
     <div class="container">
         <h1 id="page-title">오늘의 상식 퀴즈</h1>
         
-        <div id="loading" style="display: none; color: #4a90e2;">데이터 로딩 중...</div>
+        <div id="loading" style="display: none; color: #d01c67;">데이터 로딩 중...</div>
         
         <div id="quiz-container">
             </div>
@@ -382,7 +382,7 @@
         
         showHomeButtons(); 
         // 💡 Vercel 배포 후에는 로컬 서버 안내 문구 제거
-        quizContainer.innerHTML = '<p>상식 퀴즈를 시작하려면 "퀴즈 시작" 버튼을 누르세요. 서버가 Vercel에 정상 배포되었습니다.🚀</p>';
+        quizContainer.innerHTML = '<p>상식 퀴즈를 시작하려면 "퀴즈 시작" 버튼을 누르세요.</p>';
 
         // JavaScript 끝
     </script>
