@@ -105,38 +105,66 @@ async function fetchNewQuizData() {
     const currentPrompt = JSON.parse(JSON.stringify(QUIZ_GENERATION_PROMPT));
     currentPrompt.contents[0].parts[0].text = currentPrompt.contents[0].parts[0].text.replace(/\[REQUEST_ID: \d+\]/, `[REQUEST_ID: ${uniqueId}]`);
 
-    try {
-        const response = await axios.post(
-            GEMINI_API_URL, 
-            currentPrompt
-        );
-        
-        const generatedContent = response.data;
-        let quizJsonText = '';
-        
-        if (generatedContent.candidates && generatedContent.candidates.length > 0) {
-            quizJsonText = generatedContent.candidates[0].content.parts[0].text;
-        } else {
-             throw new Error("Gemini API 응답에서 유효한 후보를 찾을 수 없습니다.");
+    // 💡 재시도 횟수 설정
+    const MAX_RETRIES = 1; 
+    let success = false;
+    let lastError = null;
+
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        if (attempt > 0) {
+            console.log(`[DATA] API 호출 재시도 중... (시도 ${attempt + 1}/${MAX_RETRIES + 1})`);
+            // 잠시 대기 (선택적)
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); 
         }
 
-        const cleanedJsonText = quizJsonText.replace(/```json|```/g, '').trim();
-        const newQuizData = JSON.parse(cleanedJsonText);
-        
-        if (Array.isArray(newQuizData) && newQuizData.length > 0) {
-            MASTER_QUIZ_DATA = assignQuizIds(newQuizData); 
-            // 💡 성공 시 마지막 갱신 시간 업데이트
-            LAST_FETCH_TIME = Date.now(); 
-            console.log(`[DATA] 퀴즈 데이터 갱신 완료. 총 ${MASTER_QUIZ_DATA.length}개의 새로운 문제가 로드되었습니다.`);
-            return true;
-        } else {
-            throw new Error("Gemini API에서 유효한 퀴즈 배열을 가져오지 못했습니다.");
+        try {
+            // 💡 8초 타임아웃 설정 (Vercel 기본 10초보다 짧게 설정하여 타임아웃 오류를 정확히 파악)
+            const response = await axios.post(
+                GEMINI_API_URL, 
+                currentPrompt,
+                { timeout: 8000 } 
+            );
+            
+            const generatedContent = response.data;
+            let quizJsonText = '';
+            
+            if (generatedContent.candidates && generatedContent.candidates.length > 0) {
+                quizJsonText = generatedContent.candidates[0].content.parts[0].text;
+            } else {
+                 throw new Error("Gemini API 응답에서 유효한 후보를 찾을 수 없습니다.");
+            }
+
+            const cleanedJsonText = quizJsonText.replace(/```json|```/g, '').trim();
+            const newQuizData = JSON.parse(cleanedJsonText);
+            
+            if (Array.isArray(newQuizData) && newQuizData.length > 0) {
+                MASTER_QUIZ_DATA = assignQuizIds(newQuizData); 
+                LAST_FETCH_TIME = Date.now(); 
+                console.log(`[DATA] 퀴즈 데이터 갱신 완료. 총 ${MASTER_QUIZ_DATA.length}개의 새로운 문제가 로드되었습니다.`);
+                success = true;
+                break; // 성공하면 루프 탈출
+            } else {
+                throw new Error("Gemini API에서 유효한 퀴즈 배열을 가져오지 못했습니다.");
+            }
+            
+        } catch (error) {
+            lastError = error;
+            console.error(`[DATA ERROR] 퀴즈 데이터를 가져오는 데 실패했습니다 (시도 ${attempt + 1}/${MAX_RETRIES + 1}). 오류: ${error.message}`);
+            
+            if (error.code === 'ECONNABORTED') {
+                 console.error("[TIMEOUT] Axios 요청이 8초 타임아웃되었습니다. Vercel 함수 제한 시간 초과 가능성 있음.");
+            } else if (error.response) {
+                 console.error(`[API FAIL] Gemini API 응답 상태 코드: ${error.response.status}`);
+            }
         }
-        
-    } catch (error) {
-        console.error('[DATA ERROR] 퀴즈 데이터를 가져오는 데 실패했습니다. 오류:', error.message);
-        return false;
     }
+    
+    if (!success) {
+        // 모든 재시도 실패 시 최종 오류를 출력
+        console.error('[DATA FAIL] 모든 시도에서 퀴즈 데이터 로딩에 실패했습니다.');
+    }
+    
+    return success;
 }
 
 
@@ -174,9 +202,10 @@ app.get('/api/quiz', async (req, res) => {
     await ensureDataFreshness();
 
     if (MASTER_QUIZ_DATA.length === 0) {
+        // 💡 퀴즈 데이터 로딩 실패 시 503 오류를 반환합니다.
         return res.status(503).json({ 
             errorCode: "DATA_UNAVAILABLE",
-            message: "Quiz data is currently loading or unavailable. Please try again shortly." 
+            message: "Quiz data is currently loading or unavailable. Please try again shortly. This may indicate a temporary issue with the LLM API or a Vercel timeout." 
         });
     }
     
@@ -192,7 +221,7 @@ app.get('/api/quiz', async (req, res) => {
         return res.status(500).json({ 
              errorCode: "SERVER_ERROR", 
              message: "Internal server error occurred during data retrieval." 
-         });
+          });
     }
 });
 
