@@ -26,53 +26,27 @@ const QUIZ_GENERATION_PROMPT = {
             parts: [
                 {
                     text: `
-# Role and Task
-당신은 상식 퀴즈를 생성하는 전문가이자 엄격한 사실 검증가입니다. 아래의 필수 준수 사항을 모두 지켜 5개의 독특하고 새로운 상식 퀴즈 질문을 생성해야 합니다.
+다양한 분야(과학, 역사, 한글 맞춤법, 코딩, 스포츠, 경제, 지리, 정치, 문화예술 등)에서 중하급-중급 난이도의 상식 퀴즈 5개를 생성하세요.
 
-# Essential Constraints
-1.  **[중복 문제 방지/다양성]:** **절대 이전에 생성한 질문과 답을 재사용하지 마십시오.** 이전 요청과는 완전히 다른 새로운 지식 분야(환경, 과학, 역사, 한글 맞춤법, 코딩, 디지털 리터러시, 스포츠, 경제, 지리, 정치, 사회, 문화예술 등)에서 퀴즈를 생성하여 다양성을 확보해야 합니다.
-2.  **[지식 분야는 순환식으로 낼 것]:** **퀴즈 요청이 들어올 때마다** 이전에 출제된 지식 분야를 피하고, 다양한 주제를 각 문제마다 다른 주제로 순환식으로 다루어야 합니다. 예를 들어, 오늘 환경, 코딩, 역사, 스포츠, 경제 관련 문제가 출제되었다면, 다음 요청에서는 과학, 지리, 정치, 문화예술, 한글 맞춤법 등 다른 분야에서 문제를 출제해야 합니다. 모든 지식 분야를 다 써야 하며, 그 후에 다시 처음부터 순환합니다.
-3.  **[정확성 검증 - 국립국어원]:** 모든 질문과 해설은 **100% 정확한 사실**에 기반해야 합니다. 특히 한글 맞춤법 및 어문 규범 관련 문제는 **국립국어원 표준 규정**을 엄격히 준수하여 논란의 여지가 없어야 합니다. **특히 한글 맞춤법은 띄어쓰기 뿐만 아니라 사이시옷, 외래어 표기법, 된소리 규칙 등 폭넓게 출제되어야 합니다.**
-4.  **[난이도 조절]:** 난이도는 **중급에서 상급(Medium-High)** 사이로 설정하여, 단순 암기가 아닌 사고력과 깊이 있는 이해를 요하도록 문제를 구성해야 합니다.
-5.  **[자세한 해설]:** 해설(explanation)은 **매우 자세하게** 작성되어야 하며, 정답의 근거뿐만 아니라 **오답 보기들이 왜 틀렸는지까지** 명확하게 설명해야 합니다.
-6.  **[JSON 포맷]:** 아래 JSON 형식에 정확히 맞추어 질문, choices(보기는 4개), explanation(해설), 그리고 정답의 인덱스(0부터 시작)인 correctAnswerIndex를 포함해야 합니다.
-7.  **[정답 인덱스 무결성 규칙 - 매우 중요 - 절대 위반 금지]:**
-    - correctAnswerIndex는 **0부터 시작하는 배열 인덱스**입니다.
-    - 예시: 첫 번째 보기가 정답이면 correctAnswerIndex = 0, 두 번째 보기가 정답이면 correctAnswerIndex = 1, 세 번째 보기가 정답이면 correctAnswerIndex = 2, 네 번째 보기가 정답이면 correctAnswerIndex = 3
-    
-    **CRITICAL: 다음 단계를 반드시 따르세요:**
-    STEP 1: 먼저 정답이 무엇인지 결정합니다.
-    STEP 2: 그 정답이 choices 배열의 몇 번째 인덱스인지 확인합니다 (0부터 시작).
-    STEP 3: correctAnswerIndex에 그 인덱스 번호를 입력합니다.
-    STEP 4: explanation의 첫 문장에 "정답: [choices[correctAnswerIndex]의 정확한 텍스트]" 를 작성합니다.
-    
-    **예시:**
-    만약 choices = ["A", "B", "C", "D"]이고 정답이 "B"라면:
-    - correctAnswerIndex = 1 (B는 인덱스 1)
-    - explanation = "정답: B. 이유는..."
-    
-    만약 choices = ["슈바르츠실트 반지름", "사건의 지평선", "중력 렌즈 효과", "로슈 한계"]이고 
-    정답이 "중력 렌즈 효과"라면:
-    - correctAnswerIndex = 2 (중력 렌즈 효과는 인덱스 2)
-    - explanation = "정답: 중력 렌즈 효과. 이유는..."
-    
-    **절대 금지사항:**
-    - ❌ correctAnswerIndex와 explanation의 정답이 불일치
-    - ❌ "정답은 N번입니다" 같은 번호 표기
-    - ❌ explanation에 다른 보기의 텍스트를 정답으로 표기
+**필수 규칙:**
+1. 각 문제는 서로 다른 분야에서 출제
+2. 한글 맞춤법 문제는 국립국어원 표준 규정 준수 (띄어쓰기, 사이시옷, 외래어 표기법 등)
+3. 보기는 정확히 4개
+4. correctAnswerIndex는 0부터 시작 (첫 번째=0, 두 번째=1, 세 번째=2, 네 번째=3)
+5. explanation은 반드시 "정답: [정답보기텍스트]. [이유...]" 형식으로 시작
+6. 모든 오답 보기도 해설에서 왜 틀렸는지 설명
 
-# JSON Output Format Example
+**JSON 형식 예시:**
 [
   {
     "question": "질문 내용",
     "choices": ["보기1", "보기2", "보기3", "보기4"],
     "correctAnswerIndex": 1,
-    "explanation": "정답: 보기2. 이 보기가 정답인 이유는... 보기1은 틀렸습니다. 왜냐하면... 보기3은... 보기4는..."
+    "explanation": "정답: 보기2. 이유는... 보기1은 틀렸습니다. 왜냐하면... 보기3은... 보기4는..."
   }
 ]
 
-# Output Format
-다른 설명 없이 **JSON 배열만을 반환**해야 합니다. 응답은 JSON Markdown 형식으로 제공되어야 합니다. [REQUEST_ID: ${Date.now()}]
+JSON 배열만 반환하세요. [REQUEST_ID: ${Date.now()}]
 `,
                 }
             ]
@@ -87,6 +61,33 @@ const QUIZ_GENERATION_PROMPT = {
 // ==========================================================
 // 1. 핵심 유틸리티 함수
 // ==========================================================
+
+/**
+ * 퀴즈 데이터를 자동으로 수정합니다 (해설 기반으로 정답 인덱스 보정)
+ * @param {Object} quiz - 수정할 퀴즈 객체
+ * @returns {Object} 수정된 퀴즈 객체
+ */
+function autoFixQuiz(quiz) {
+    // 해설에서 "정답:" 다음 텍스트 추출
+    const explanationMatch = quiz.explanation.match(/정답:\s*([^.]+)/);
+    if (!explanationMatch) {
+        return quiz; // 형식이 맞지 않으면 그대로 반환
+    }
+    
+    const explanationAnswer = explanationMatch[1].trim();
+    
+    // choices에서 해설의 정답과 일치하는 항목 찾기
+    const correctIndex = quiz.choices.findIndex(choice => 
+        choice && choice.trim() === explanationAnswer
+    );
+    
+    if (correctIndex !== -1 && correctIndex !== quiz.correctAnswerIndex) {
+        console.log(`[AUTO-FIX] 정답 인덱스 자동 수정: ${quiz.correctAnswerIndex} → ${correctIndex} ("${explanationAnswer}")`);
+        quiz.correctAnswerIndex = correctIndex;
+    }
+    
+    return quiz;
+}
 
 /**
  * 개별 퀴즈 문제가 올바른지 검증합니다.
@@ -110,32 +111,7 @@ function validateSingleQuiz(quiz, index) {
     
     // correctAnswerIndex 범위 확인
     if (quiz.correctAnswerIndex < 0 || quiz.correctAnswerIndex >= quiz.choices.length) {
-        errors.push(`correctAnswerIndex(${quiz.correctAnswerIndex})가 범위 초과 (0-${quiz.choices.length - 1})`);
-        return { isValid: false, errors }; // 범위 초과면 즉시 반환
-    }
-    
-    // 💡 CRITICAL: 해설의 정답과 correctAnswerIndex가 일치하는지 엄격하게 확인
-    const correctChoice = quiz.choices[quiz.correctAnswerIndex];
-    
-    if (!correctChoice) {
-        errors.push(`correctAnswerIndex(${quiz.correctAnswerIndex})에 해당하는 보기가 없음`);
-        return { isValid: false, errors };
-    }
-    
-    // 해설에서 "정답:" 다음에 나오는 텍스트 추출
-    const explanationMatch = quiz.explanation.match(/정답:\s*([^.]+)/);
-    if (!explanationMatch) {
-        errors.push(`해설이 "정답: [보기텍스트]" 형식이 아님`);
-        return { isValid: false, errors };
-    }
-    
-    const explanationAnswer = explanationMatch[1].trim();
-    const correctChoiceTrimmed = correctChoice.trim();
-    
-    // 💡 해설의 정답 텍스트와 실제 정답 보기가 정확히 일치하는지 확인
-    if (explanationAnswer !== correctChoiceTrimmed) {
-        errors.push(`정답 불일치 - correctAnswerIndex(${quiz.correctAnswerIndex})는 "${correctChoiceTrimmed}"인데 해설은 "${explanationAnswer}"`);
-        return { isValid: false, errors };
+        errors.push(`correctAnswerIndex(${quiz.correctAnswerIndex})가 범위 초과`);
     }
     
     // 빈 보기가 있는지 확인
@@ -164,12 +140,18 @@ function filterValidQuizzes(quizData) {
     const validQuizzes = [];
     const allErrors = [];
     let invalidCount = 0;
+    let fixedCount = 0;
     
     quizData.forEach((quiz, index) => {
-        const validation = validateSingleQuiz(quiz, index);
+        // 💡 먼저 자동 수정 시도
+        const fixedQuiz = autoFixQuiz(quiz);
+        const validation = validateSingleQuiz(fixedQuiz, index);
         
         if (validation.isValid) {
-            validQuizzes.push(quiz);
+            validQuizzes.push(fixedQuiz);
+            if (fixedQuiz !== quiz) {
+                fixedCount++;
+            }
         } else {
             invalidCount++;
             allErrors.push(`문제 ${index + 1}: ${validation.errors.join(', ')}`);
@@ -179,6 +161,7 @@ function filterValidQuizzes(quizData) {
     return {
         validQuizzes,
         invalidCount,
+        fixedCount,
         errors: allErrors
     };
 }
@@ -267,6 +250,10 @@ async function fetchNewQuizData() {
             
             // 💡 필터링 검증 로직: 유효한 문제만 추출
             const filterResult = filterValidQuizzes(newQuizData);
+            
+            if (filterResult.fixedCount > 0) {
+                console.log(`[AUTO-FIX] ✅ ${filterResult.fixedCount}개의 문제 자동 수정 완료`);
+            }
             
             if (filterResult.invalidCount > 0) {
                 console.warn(`[VALIDATION WARNING] ${filterResult.invalidCount}개의 문제가 검증 실패로 제외되었습니다:`);
