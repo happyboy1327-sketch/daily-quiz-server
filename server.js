@@ -36,12 +36,30 @@ const QUIZ_GENERATION_PROMPT = {
 4.  **[난이도 조절]:** 난이도는 **중급에서 상급(Medium-High)** 사이로 설정하여, 단순 암기가 아닌 사고력과 깊이 있는 이해를 요하도록 문제를 구성해야 합니다.
 5.  **[자세한 해설]:** 해설(explanation)은 **매우 자세하게** 작성되어야 하며, 정답의 근거뿐만 아니라 **오답 보기들이 왜 틀렸는지까지** 명확하게 설명해야 합니다.
 6.  **[JSON 포맷]:** 아래 JSON 형식에 정확히 맞추어 질문, choices(보기는 4개), explanation(해설), 그리고 정답의 인덱스(0부터 시작)인 correctAnswerIndex를 포함해야 합니다.
-7.  **[정답 인덱스 무결성 규칙 - 매우 중요]:**
+7.  **[정답 인덱스 무결성 규칙 - 매우 중요 - 절대 위반 금지]:**
     - correctAnswerIndex는 **0부터 시작하는 배열 인덱스**입니다.
     - 예시: 첫 번째 보기가 정답이면 correctAnswerIndex = 0, 두 번째 보기가 정답이면 correctAnswerIndex = 1, 세 번째 보기가 정답이면 correctAnswerIndex = 2, 네 번째 보기가 정답이면 correctAnswerIndex = 3
-    - 해설(explanation)의 첫 문장은 **반드시 "정답: [정답 보기 텍스트]"** 형식으로 시작해야 합니다.
-    - 예시: 만약 choices[1]이 정답이라면, explanation은 "정답: [choices[1]의 텍스트]. [상세 설명...]" 형식으로 작성해야 합니다.
-    - **절대로 "정답은 N번입니다" 형식을 사용하지 마세요.** 보기 텍스트를 직접 명시하세요.
+    
+    **CRITICAL: 다음 단계를 반드시 따르세요:**
+    STEP 1: 먼저 정답이 무엇인지 결정합니다.
+    STEP 2: 그 정답이 choices 배열의 몇 번째 인덱스인지 확인합니다 (0부터 시작).
+    STEP 3: correctAnswerIndex에 그 인덱스 번호를 입력합니다.
+    STEP 4: explanation의 첫 문장에 "정답: [choices[correctAnswerIndex]의 정확한 텍스트]" 를 작성합니다.
+    
+    **예시:**
+    만약 choices = ["A", "B", "C", "D"]이고 정답이 "B"라면:
+    - correctAnswerIndex = 1 (B는 인덱스 1)
+    - explanation = "정답: B. 이유는..."
+    
+    만약 choices = ["슈바르츠실트 반지름", "사건의 지평선", "중력 렌즈 효과", "로슈 한계"]이고 
+    정답이 "중력 렌즈 효과"라면:
+    - correctAnswerIndex = 2 (중력 렌즈 효과는 인덱스 2)
+    - explanation = "정답: 중력 렌즈 효과. 이유는..."
+    
+    **절대 금지사항:**
+    - ❌ correctAnswerIndex와 explanation의 정답이 불일치
+    - ❌ "정답은 N번입니다" 같은 번호 표기
+    - ❌ explanation에 다른 보기의 텍스트를 정답으로 표기
 
 # JSON Output Format Example
 [
@@ -93,12 +111,31 @@ function validateSingleQuiz(quiz, index) {
     // correctAnswerIndex 범위 확인
     if (quiz.correctAnswerIndex < 0 || quiz.correctAnswerIndex >= quiz.choices.length) {
         errors.push(`correctAnswerIndex(${quiz.correctAnswerIndex})가 범위 초과 (0-${quiz.choices.length - 1})`);
+        return { isValid: false, errors }; // 범위 초과면 즉시 반환
     }
     
-    // 해설에 정답 보기 텍스트가 포함되어 있는지 확인
+    // 💡 CRITICAL: 해설의 정답과 correctAnswerIndex가 일치하는지 엄격하게 확인
     const correctChoice = quiz.choices[quiz.correctAnswerIndex];
-    if (correctChoice && !quiz.explanation.includes(correctChoice)) {
-        errors.push(`해설에 정답 텍스트 미포함`);
+    
+    if (!correctChoice) {
+        errors.push(`correctAnswerIndex(${quiz.correctAnswerIndex})에 해당하는 보기가 없음`);
+        return { isValid: false, errors };
+    }
+    
+    // 해설에서 "정답:" 다음에 나오는 텍스트 추출
+    const explanationMatch = quiz.explanation.match(/정답:\s*([^.]+)/);
+    if (!explanationMatch) {
+        errors.push(`해설이 "정답: [보기텍스트]" 형식이 아님`);
+        return { isValid: false, errors };
+    }
+    
+    const explanationAnswer = explanationMatch[1].trim();
+    const correctChoiceTrimmed = correctChoice.trim();
+    
+    // 💡 해설의 정답 텍스트와 실제 정답 보기가 정확히 일치하는지 확인
+    if (explanationAnswer !== correctChoiceTrimmed) {
+        errors.push(`정답 불일치 - correctAnswerIndex(${quiz.correctAnswerIndex})는 "${correctChoiceTrimmed}"인데 해설은 "${explanationAnswer}"`);
+        return { isValid: false, errors };
     }
     
     // 빈 보기가 있는지 확인
