@@ -34,7 +34,7 @@ const QUIZ_GENERATION_PROMPT = {
 3. 보기는 정확히 4개
 4. 문제와 정답이 반드시 개연성 있고 말이 되도록 하기. Ex) 문제-소크라테스를 제외한 학자 중... 답-소크라테스 ←절대 금지
 5. correctAnswerIndex는 0부터 시작 (첫 번째=0, 두 번째=1, 세 번째=2, 네 번째=3)
-6. explanation은 반드시 "정답: [정답보기텍스트]. [이유...]" 형식으로 시작
+6. explanation은 반드시 "정답은 [정답보기텍스트]입니다. [이유...]" 형식으로 시작
 7. 모든 오답 보기도 해설에서 왜 틀렸는지 설명
 
 **JSON 형식 예시:**
@@ -43,7 +43,7 @@ const QUIZ_GENERATION_PROMPT = {
     "question": "질문 내용",
     "choices": ["보기1", "보기2", "보기3", "보기4"],
     "correctAnswerIndex": 1,
-    "explanation": "정답: 보기2. 이유는... 보기1은 틀렸습니다. 왜냐하면... 보기3은... 보기4는..."
+    "explanation": "정답은 보기2입니다. 이유는... 보기1은 틀렸습니다. 왜냐하면... 보기3은... 보기4는..."
   }
 ]
 
@@ -55,7 +55,7 @@ JSON 배열만 반환하세요. [REQUEST_ID: ${Date.now()}]
     ],
     generationConfig: { 
         responseMimeType: "application/json",
-        temperature: 0.9, 
+        temperature: 0.8, 
     }
 };
 
