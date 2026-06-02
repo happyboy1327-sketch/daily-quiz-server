@@ -35,7 +35,7 @@ const QUIZ_GENERATION_PROMPT = {
 4. 문제와 정답이 반드시 개연성 있고 말이 되도록 하기. Ex) 문제-소크라테스를 제외한 학자 중... 답-소크라테스 ←절대 금지
 5. correctAnswerIndex는 0부터 시작 (첫 번째=0, 두 번째=1, 세 번째=2, 네 번째=3)
 6. explanation은 반드시 "정답은 [정답보기텍스트]입니다. [이유...]" 형식으로 시작
-7. 모든 오답 보기도 해설에서 왜 틀렸는지 설명
+7. explanation은 2~3문장 이내로 간결하게 작성
 
 **JSON 형식 예시:**
 [
@@ -234,7 +234,7 @@ async function fetchNewQuizData() {
             const response = await axios.post(
                 GEMINI_API_URL, 
                 currentPrompt,
-                { timeout: 90000 } 
+                { timeout: 70000 } 
             );
             
             const generatedContent = response.data;
