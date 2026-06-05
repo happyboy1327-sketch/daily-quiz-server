@@ -317,15 +317,24 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.get('/api/quiz', async (req, res) => {
-    await ensureDataFreshness();
+// 전역 변수로 로딩 상태 관리
+let IS_LOADING = false; 
 
-    if (MASTER_QUIZ_DATA.length === 0) {
-        return res.status(503).json({ 
-            errorCode: "DATA_UNAVAILABLE",
-            message: "Quiz data is currently loading or unavailable. Please try again shortly. This may indicate a temporary issue with the LLM API or a Vercel timeout." 
-        });
+app.get('/api/quiz', async (req, res) => {
+    // 1. 데이터가 없고 로딩 중이 아니면 백그라운드에서 실행 시작
+    if (MASTER_QUIZ_DATA.length === 0 && !IS_LOADING) {
+        IS_LOADING = true;
+        fetchNewQuizData().finally(() => { IS_LOADING = false; });
     }
+
+    // 2. 데이터가 없으면 로딩 중임을 즉시 응답 (서버는 멈추지 않음)
+    if (MASTER_QUIZ_DATA.length === 0) {
+        return res.status(202).json({ message: "퀴즈 생성 중입니다. 잠시 후 다시 시도하세요." });
+    }
+    
+    // 3. 데이터가 있으면 즉시 반환
+    res.json(MASTER_QUIZ_DATA.map(({ correctAnswerIndex, explanation, ...rest }) => rest));
+});
     
     const K = 5; 
     
