@@ -313,6 +313,8 @@ async function ensureDataFreshness() {
     }
 }
 
+console.log("URL:", GEMINI_API_URL);
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -337,6 +339,9 @@ app.get('/api/quiz', async (req, res) => {
         return res.status(200).json(safePayload);
     } catch (error) {
         console.error("Quiz API Error:", error);
+        console.error(
+  JSON.stringify(error.response?.data, null, 2)
+);
         return res.status(500).json({ 
              errorCode: "SERVER_ERROR", 
              message: "Internal server error occurred during data retrieval." 
