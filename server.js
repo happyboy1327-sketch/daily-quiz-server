@@ -9,7 +9,7 @@ const app = express();
 // 💡 환경 변수에서 API 키를 안전하게 불러옵니다. (Vercel 대시보드에서 설정된 키 사용)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 const ONE_HOUR = 3600000; // 1시간 (밀리초)
 
 // 💡 데이터 및 갱신 시간 저장 공간
@@ -55,7 +55,7 @@ JSON 배열만 반환하세요. [REQUEST_ID: ${Date.now()}]
     ],
     generationConfig: { 
         responseMimeType: "application/json",
-        temperature: 0.5, 
+        temperature: 0.8, 
     }
 };
 
@@ -234,7 +234,7 @@ async function fetchNewQuizData() {
             const response = await axios.post(
                 GEMINI_API_URL, 
                 currentPrompt,
-                { timeout: 6500 } 
+                { timeout: 70000 } 
             );
             
             const generatedContent = response.data;
@@ -313,8 +313,6 @@ async function ensureDataFreshness() {
     }
 }
 
-console.log("URL:", GEMINI_API_URL);
-
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -338,17 +336,7 @@ app.get('/api/quiz', async (req, res) => {
         
         return res.status(200).json(safePayload);
     } catch (error) {
-    lastError = error;
-
-    console.error(
-        "[ERROR BODY]",
-        JSON.stringify(error.response?.data, null, 2)
-    );
-
-    console.error(
-        `[DATA ERROR] 퀴즈 데이터를 가져오는 데 실패했습니다 (시도 ${attempt + 1}/${MAX_RETRIES + 1}). 오류: ${error.message}`
-    );
-    }
+        console.error("Quiz API Error:", error);
         return res.status(500).json({ 
              errorCode: "SERVER_ERROR", 
              message: "Internal server error occurred during data retrieval." 
@@ -381,11 +369,6 @@ app.get('/api/answer-key', async (req, res) => {
         console.error("Answer Key API Error:", error);
         return res.status(500).json({ error: "Internal server error" });
     }
-});
-
-app.get('/api/test-key', (req, res) => {
-    const key = process.env.GEMINI_API_KEY;
-    res.send(`Key length: ${key ? key.length : 0}, First 5 chars: ${key ? key.substring(0, 5) : 'none'}`);
 });
 
 // ==========================================================
