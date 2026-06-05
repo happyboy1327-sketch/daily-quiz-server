@@ -9,7 +9,7 @@ const app = express();
 // 💡 환경 변수에서 API 키를 안전하게 불러옵니다. (Vercel 대시보드에서 설정된 키 사용)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 const ONE_HOUR = 3600000; // 1시간 (밀리초)
 
 // 💡 데이터 및 갱신 시간 저장 공간
