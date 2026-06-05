@@ -338,10 +338,17 @@ app.get('/api/quiz', async (req, res) => {
         
         return res.status(200).json(safePayload);
     } catch (error) {
-        console.error("Quiz API Error:", error);
-        console.error(
-  JSON.stringify(error.response?.data, null, 2)
-);
+    lastError = error;
+
+    console.error(
+        "[ERROR BODY]",
+        JSON.stringify(error.response?.data, null, 2)
+    );
+
+    console.error(
+        `[DATA ERROR] 퀴즈 데이터를 가져오는 데 실패했습니다 (시도 ${attempt + 1}/${MAX_RETRIES + 1}). 오류: ${error.message}`
+    );
+    }
         return res.status(500).json({ 
              errorCode: "SERVER_ERROR", 
              message: "Internal server error occurred during data retrieval." 
