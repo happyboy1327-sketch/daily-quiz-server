@@ -371,6 +371,11 @@ app.get('/api/answer-key', async (req, res) => {
     }
 });
 
+app.get('/api/test-key', (req, res) => {
+    const key = process.env.GEMINI_API_KEY;
+    res.send(`Key length: ${key ? key.length : 0}, First 5 chars: ${key ? key.substring(0, 5) : 'none'}`);
+});
+
 // ==========================================================
 // 4. Vercel 서버리스 모듈 내보내기 (필수)
 // ==========================================================
