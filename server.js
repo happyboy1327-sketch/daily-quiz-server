@@ -55,7 +55,7 @@ JSON 배열만 반환하세요. [REQUEST_ID: ${Date.now()}]
     ],
     generationConfig: { 
         responseMimeType: "application/json",
-        temperature: 0.8, 
+        temperature: 0.7, 
     }
 };
 
@@ -234,7 +234,7 @@ async function fetchNewQuizData() {
             const response = await axios.post(
                 GEMINI_API_URL, 
                 currentPrompt,
-                { timeout: 70000 } 
+                { timeout: 7000 } 
             );
             
             const generatedContent = response.data;
