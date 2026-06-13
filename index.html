@@ -184,10 +184,17 @@
         }
 
         /** 오답을 Local Storage에 추가합니다. (해설, 실제 정답 인덱스 포함) */
-        function addWrongAnswer(questionData, selectedIndex, actualCorrectIndex) {
-         const wrongAnswers = getWrongAnswers();
+    
 
-         const newWrongAnswer = {
+       function clearWrongAnswers() {
+            localStorage.removeItem(STORAGE_KEY);
+            alert('복습 문제가 모두 삭제되었습니다.');
+            showReviewMode(); 
+        }
+  function addWrongAnswer(questionData, selectedIndex, actualCorrectIndex) {
+    const wrongAnswers = getWrongAnswers();
+
+    const newWrongAnswer = {
         id: questionData.id,
         question: questionData.question,
         choices: questionData.choices,
@@ -197,22 +204,18 @@
         savedTime: new Date().toLocaleString()
     };
 
-         const isDuplicate = wrongAnswers.some(
-            item => item.id === newWrongAnswer.id
-    );
+    const isDuplicate = wrongAnswers.some(item => {
+        if (item.id && questionData.id) {
+            return item.id === questionData.id;
+        }
+        return item.question === questionData.question;
+    });
 
     if (!isDuplicate) {
         wrongAnswers.push(newWrongAnswer);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswers));
     }
         }
-
-        function clearWrongAnswers() {
-            localStorage.removeItem(STORAGE_KEY);
-            alert('복습 문제가 모두 삭제되었습니다.');
-            showReviewMode(); 
-        }
-
         // ==========================================================
         // 메인 퀴즈 모드 로직
         // ==========================================================
