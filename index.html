@@ -245,7 +245,10 @@
 
                 // 3. 데이터 매칭
                 currentQuizData = currentQuizData.map(q => {
-                    return { ...q, correctAnswerIndex: correctAnswerMap[q.id] };
+                return {
+                ...q,
+                correctAnswerIndex: Number(correctAnswerMap[q.id])
+                   };
                 });
                 
                 // 4. 성공 시 처리
