@@ -16,6 +16,8 @@ const ONE_HOUR = 3600000; // 1시간 (밀리초)
 let MASTER_QUIZ_DATA = [];
 let LAST_FETCH_TIME = 0; // 마지막 데이터 로드 시간 (타임스탬프)
 
+let LAST_TOPICS = [];
+
 // ==========================================================
 // 퀴즈 생성 프롬프트 및 설정
 // ==========================================================
@@ -186,6 +188,38 @@ function shuffleArray(array, seed) {
     return array;
 }
 
+const TOPICS = [
+    "문화예술",
+    "환경",
+    "과학",
+    "역사",
+    "디지털 리터러시",
+    "인권 리터러시",
+    "한글 맞춤법",
+    "코딩",
+    "안전 및 건강상식",
+    "경제",
+    "지리",
+    "정치",
+    "심리학"
+];
+
+function getSelectedTopics() {
+    const availableTopics = TOPICS.filter(
+        topic => !LAST_TOPICS.includes(topic)
+    );
+
+    const topicPool =
+        availableTopics.length >= 5
+            ? availableTopics
+            : TOPICS;
+
+    return shuffleArray(
+        [...topicPool],
+        Date.now().toString()
+    ).slice(0, 5);
+}
+
 function assignQuizIds(quizData) {
     // 퀴즈 데이터에 고유 ID를 부여합니다.
     return quizData.map((q, index) => ({
@@ -216,10 +250,32 @@ function sanitizeQuizData(questions) {
 
 async function fetchNewQuizData() {
     console.log(`[DATA] Gemini API를 통해 새로운 퀴즈 데이터 로딩을 시작합니다...`);
+
+    const uniqueId = Date.now();
+
+    const selectedTopics = getSelectedTopics();
     
-    const uniqueId = Date.now(); 
-    const currentPrompt = JSON.parse(JSON.stringify(QUIZ_GENERATION_PROMPT));
-    currentPrompt.contents[0].parts[0].text = currentPrompt.contents[0].parts[0].text.replace(/\[REQUEST_ID: \d+\]/, `[REQUEST_ID: ${uniqueId}]`);
+    const currentPrompt =
+        JSON.parse(JSON.stringify(QUIZ_GENERATION_PROMPT));
+    
+    currentPrompt.contents[0].parts[0].text =
+        currentPrompt.contents[0].parts[0].text.replace(
+            '위 분야에서 중하급-중급 난이도의 상식 퀴즈 5개를 생성하세요.',
+            `
+    다음 5개 분야에서만 각각 정확히 1문제씩 출제하세요.
+    
+    ${selectedTopics.join(', ')}
+    
+    총 5문제를 생성하세요.
+    `
+        );
+    
+    currentPrompt.contents[0].parts[0].text =
+        currentPrompt.contents[0].parts[0].text.replace(
+            /\[REQUEST_ID: \d+\]/,
+            `[REQUEST_ID: ${uniqueId}]`
+        );
+
 
     const MAX_RETRIES = 2; 
     let success = false;
@@ -265,7 +321,8 @@ async function fetchNewQuizData() {
             
             // 💡 최소 3개 이상의 유효한 문제가 있어야 성공으로 간주
             if (filterResult.validQuizzes.length >= 3) {
-                MASTER_QUIZ_DATA = assignQuizIds(filterResult.validQuizzes); 
+                MASTER_QUIZ_DATA = assignQuizIds(filterResult.validQuizzes);
+                LAST_TOPICS = [...selectedTopics];
                 LAST_FETCH_TIME = Date.now(); 
                 console.log(`[DATA] ✅ 퀴즈 데이터 갱신 완료. 총 ${MASTER_QUIZ_DATA.length}개의 문제가 로드되었습니다.`);
                 if (filterResult.invalidCount === 0) {
