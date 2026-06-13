@@ -185,22 +185,26 @@
 
         /** 오답을 Local Storage에 추가합니다. (해설, 실제 정답 인덱스 포함) */
         function addWrongAnswer(questionData, selectedIndex, actualCorrectIndex) {
-            const wrongAnswers = getWrongAnswers();
-            
-            const newWrongAnswer = {
-                question: questionData.question,
-                choices: questionData.choices,
-                explanation: questionData.explanation, 
-                correctAnswerIndex: actualCorrectIndex, // 💡 실제 정답 인덱스 저장
-                userAnswerIndex: selectedIndex,
-                savedTime: new Date().toLocaleString()
-            };
+         const wrongAnswers = getWrongAnswers();
 
-            const isDuplicate = wrongAnswers.some(item => item.question === newWrongAnswer.question);
-            if (!isDuplicate) {
-                wrongAnswers.push(newWrongAnswer);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswers));
-            }
+         const newWrongAnswer = {
+        id: questionData.id,
+        question: questionData.question,
+        choices: questionData.choices,
+        explanation: questionData.explanation,
+        correctAnswerIndex: Number(actualCorrectIndex),
+        userAnswerIndex: Number(selectedIndex),
+        savedTime: new Date().toLocaleString()
+    };
+
+         const isDuplicate = wrongAnswers.some(
+            item => item.id === newWrongAnswer.id
+    );
+
+    if (!isDuplicate) {
+        wrongAnswers.push(newWrongAnswer);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswers));
+    }
         }
 
         function clearWrongAnswers() {
@@ -291,7 +295,7 @@
         /** 사용자의 답변을 확인하고 처리합니다. */
         function checkAnswer(selectedIndex) {
             const question = currentQuizData[currentQuestionIndex];
-            const actualCorrectIndex = question.correctAnswerIndex; 
+            const actualCorrectIndex = Number(question.correctAnswerIndex);
             const isCorrect = (selectedIndex === actualCorrectIndex);
             
             const choicesContainer = document.getElementById('choices-container');
@@ -334,7 +338,7 @@
             quizContainer.innerHTML = `
                 <h2>퀴즈 종료!</h2>
                 <p id="result-message">최종 점수: ${score} / ${currentQuizData.length}</p>
-                <p>틀린 문제는 복습 모드에 자동 저장되었습니다. 나중에 다시 풀어보세요! 💪</p>
+                <p>틀린 문제는 복습 모드에 자동 저장되었습니다.</p>
             `;
             showHomeButtons();
         }
