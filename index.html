@@ -194,28 +194,18 @@
   function addWrongAnswer(questionData, selectedIndex, actualCorrectIndex) {
     const wrongAnswers = getWrongAnswers();
 
-    const newWrongAnswer = {
+    wrongAnswers.push({
         id: questionData.id,
         question: questionData.question,
         choices: questionData.choices,
         explanation: questionData.explanation,
-        correctAnswerIndex: Number(actualCorrectIndex),
-        userAnswerIndex: Number(selectedIndex),
+        correctAnswerIndex: actualCorrectIndex,
+        userAnswerIndex: selectedIndex,
         savedTime: new Date().toLocaleString()
-    };
-
-    const isDuplicate = wrongAnswers.some(item => {
-        if (item.id && questionData.id) {
-            return item.id === questionData.id;
-        }
-        return item.question === questionData.question;
     });
 
-    if (!isDuplicate) {
-        wrongAnswers.push(newWrongAnswer);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswers));
-    }
-        }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswers));
+  }
         // ==========================================================
         // 메인 퀴즈 모드 로직
         // ==========================================================
