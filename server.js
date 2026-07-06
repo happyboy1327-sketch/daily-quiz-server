@@ -63,6 +63,13 @@ JSON 배열만 반환하세요. [REQUEST_ID: ${Date.now()}]
     }
 };
 
+
+        invalidCount,
+        fixedCount,
+        errors: allErrors
+    };
+}
+
 // ==========================================================
 // 1. 핵심 유틸리티 함수
 // ==========================================================
@@ -73,8 +80,10 @@ JSON 배열만 반환하세요. [REQUEST_ID: ${Date.now()}]
  * @returns {Object} 수정된 퀴즈 객체
  */
 function autoFixQuiz(quiz) {
-    // 해설에서 "정답:" 다음 텍스트 추출
-    const explanationMatch = quiz.explanation.match(/정답:\s*([^.]+)/);
+    if (!quiz.explanation || !Array.isArray(quiz.choices)) return quiz;
+
+    // 💡 프롬프트 규칙("정답은 [텍스트]입니다.")에 맞게 정규식 매칭 수정
+    const explanationMatch = quiz.explanation.match(/정답은\s+['"‘“]?([^'”’.]+)['"’”?]?입니다/);
     if (!explanationMatch) {
         return quiz; // 형식이 맞지 않으면 그대로 반환
     }
@@ -82,9 +91,17 @@ function autoFixQuiz(quiz) {
     const explanationAnswer = explanationMatch[1].trim();
     
     // choices에서 해설의 정답과 일치하는 항목 찾기
-    const correctIndex = quiz.choices.findIndex(choice => 
+    let correctIndex = quiz.choices.findIndex(choice => 
         choice && choice.trim() === explanationAnswer
     );
+    
+    // AI가 텍스트 대신 "보기2" 처럼 숫자로 적었을 경우를 위한 보정 로직
+    if (correctIndex === -1) {
+        const viewMatch = explanationAnswer.match(/보기\s*([1-4])/);
+        if (viewMatch) {
+            correctIndex = parseInt(viewMatch[1], 10) - 1;
+        }
+    }
     
     if (correctIndex !== -1 && correctIndex !== quiz.correctAnswerIndex) {
         console.log(`[AUTO-FIX] 정답 인덱스 자동 수정: ${quiz.correctAnswerIndex} → ${correctIndex} ("${explanationAnswer}")`);
@@ -109,8 +126,8 @@ function validateSingleQuiz(quiz, index) {
         return { isValid: false, errors };
     }
     
-    // choices 배열 확인 (최소 3개, 최대 5개)
-    if (quiz.choices.length < 3 || quiz.choices.length > 5) {
+    // 💡 프롬프트 필수 규칙 3번("보기는 정확히 4개")에 맞게 조건 수정
+    if (quiz.choices.length !== 4) {
         errors.push(`보기 개수가 올바르지 않음 (현재: ${quiz.choices.length}개)`);
     }
     
@@ -125,6 +142,11 @@ function validateSingleQuiz(quiz, index) {
             errors.push(`보기 ${choiceIndex + 1}이 비어있음`);
         }
     });
+
+    // 해설 시작 형식 검증 추가
+    if (!/^정답은\s+.+?입니다/.test(quiz.explanation.trim())) {
+        errors.push(`해설 시작 형식 불일치 ("정답은 ... 입니다."로 시작해야 함)`);
+    }
     
     return {
         isValid: errors.length === 0,
@@ -148,13 +170,15 @@ function filterValidQuizzes(quizData) {
     let fixedCount = 0;
     
     quizData.forEach((quiz, index) => {
-        // 💡 먼저 자동 수정 시도
+        const originalIndex = quiz.correctAnswerIndex; // 변경 여부 감지용 원본 백업
+        
+        // 먼저 자동 수정 시도
         const fixedQuiz = autoFixQuiz(quiz);
         const validation = validateSingleQuiz(fixedQuiz, index);
         
         if (validation.isValid) {
             validQuizzes.push(fixedQuiz);
-            if (fixedQuiz !== quiz) {
+            if (fixedQuiz.correctAnswerIndex !== originalIndex) {
                 fixedCount++;
             }
         } else {
@@ -243,6 +267,7 @@ function sanitizeQuizData(questions) {
         return safeQuestion; 
     });
 }
+
 
 // ==========================================================
 // 2. 외부 데이터 로딩 및 갱신 함수
