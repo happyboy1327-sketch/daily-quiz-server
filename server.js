@@ -64,7 +64,7 @@ JSON 배열만 반환하세요. [REQUEST_ID: ${Date.now()}]
     ],
     generationConfig: { 
         responseMimeType: "application/json",
-        temperature: 0.4
+        temperature: 0.4,
     }
 };
 
