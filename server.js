@@ -19,7 +19,7 @@ let LAST_FETCH_TIME = 0; // 마지막 데이터 로드 시간 (타임스탬프)
 let LAST_TOPICS = [];
 
 // ==========================================================
-// 퀴즈 생성 프롬프트 및 설정
+// 퀴즈 생성 프롬프트 및 설정 (수정됨)
 // ==========================================================
 const QUIZ_GENERATION_PROMPT = {
     contents: [
@@ -33,13 +33,18 @@ const QUIZ_GENERATION_PROMPT = {
 
 **필수 규칙:**
 1. **각 문제는 위 분야들 중 랜덤으로 5개를 중복 없게 위에 나열된 순서에 상관없이 선택하여 출제한다. 단, 이전 세트에서 이미 출제된 분야는 나머지 모든 분야가 출제될 때까지 다시 선택하지 않는다.** 
-또한, 한 분야에서 같은 소재의 문제 출제를 지양하고 여러 다양한 소재를 활용하여 출제할 것. ex) 안전 및 건강 상식 분야에서 심폐소생술 뿐만 아니라 허리 건강, 재난 등의 다양한 소재를 쓸 것. 역사 분야에서도 다양한 시대배경에서 출제 요망.
-2. 한글 맞춤법 문제는 2026년 현행 국립국어원 표준 규정 준수 (띄어쓰기, 사이시옷, 외래어 표기법 등). 오답이랑 해설 불일치하지 말 것. 잘못된 예) 해당 선택지는 띄어쓰기 자체는 올바르지만 오답 처리. 이미 붙여 써있지만. 해설에서는 붙여쓰는게 맞다고 씀.
-3. 보기는 정확히 4개
-4. 문제와 정답이 반드시 일치하고 말이 되도록 하기. Ex) 문제-소크라테스를 제외한 학자 중... 답-소크라테스 ←절대 금지
-5. correctAnswerIndex는 0부터 시작 (첫 번째=0, 두 번째=1, 세 번째=2, 네 번째=3)
-6. explanation은 반드시 "정답은 [정답보기텍스트]입니다. [이유...]" 형식으로 시작
-7. explanation은 4문장 이내로 간결하게 작성하되, 각 오답 이유도 간단히 설명하기
+2. **한 분야에서 같은 소재의 문제 출제를 지양하고 여러 다양한 소재를 활용하여 출제할 것.** **ex) 안전 및 건강 상식 분야에서 심폐소생술 뿐만 아니라 허리 건강, 재난 등의 다양한 소재를 쓸 것. 역사 분야에서도 다양한 시대배경에서 출제 요망.**
+
+3. **[중요] 한글 맞춤법/띄어쓰기 문항 출제 규칙:**
+- 2026년 현행 국립국어원 표준 규정(띄어쓰기, 사이시옷, 외래어 표기법 등)을 철저히 준수하세요.
+- **선택지(choices)와 해설(explanation)의 논리가 완벽히 일치해야 합니다.**
+- 예를 들어, 띄어쓰기 오류를 오답 보기로 만들고 싶다면 **선택지 텍스트 자체를 실제로 띄어 써야 합니다.** (예: 정답이 붙여 쓰는 '어젯밤'이라면, 오답 보기는 반드시 '어제 밤'과 같이 확실히 띄어 써진 형태여야 함. 이미 붙여 써놓고 해설에서 '붙여 써야 하므로 오답'이라고 말하는 논리 모순을 절대 금지합니다.)
+
+4. 보기는 정확히 4개
+5. 문제와 정답이 반드시 일치하고 말이 되도록 하기. Ex) 문제-소크라테스를 제외한 학자 중... 답-소크라테스 ←절대 금지
+6. correctAnswerIndex는 0부터 시작 (첫 번째=0, 두 번째=1, 세 번째=2, 네 번째=3)
+7. explanation은 반드시 "정답은 [정답보기텍스트]입니다. [이유...]" 형식으로 시작
+8. explanation은 4문장 이내로 간결하게 작성하되, 각 오답 이유도 간단히 설명하기
 
 **JSON 형식 예시:**
 [
@@ -59,7 +64,7 @@ JSON 배열만 반환하세요. [REQUEST_ID: ${Date.now()}]
     ],
     generationConfig: { 
         responseMimeType: "application/json",
-        temperature: 0.8, 
+        temperature: 0.4
     }
 };
 
@@ -239,7 +244,6 @@ function getSelectedTopics() {
 }
 
 function assignQuizIds(quizData) {
-    // 퀴즈 데이터에 고유 ID를 부여합니다.
     return quizData.map((q, index) => ({
         ...q,
         id: index + 1 
@@ -255,7 +259,6 @@ function getKRandomQuestions(K, masterData) {
 }
 
 function sanitizeQuizData(questions) {
-    // 클라이언트에게 전송하기 전에 정답 인덱스(correctAnswerIndex)와 해설을 제거합니다.
     return questions.map(q => {
         const { correctAnswerIndex, ...safeQuestion } = q;
         return safeQuestion; 
@@ -271,11 +274,8 @@ async function fetchNewQuizData() {
     console.log(`[DATA] Gemini API를 통해 새로운 퀴즈 데이터 로딩을 시작합니다...`);
 
     const uniqueId = Date.now();
-
     const selectedTopics = getSelectedTopics();
-    
-    const currentPrompt =
-        JSON.parse(JSON.stringify(QUIZ_GENERATION_PROMPT));
+    const currentPrompt = JSON.parse(JSON.stringify(QUIZ_GENERATION_PROMPT));
     
     currentPrompt.contents[0].parts[0].text =
         currentPrompt.contents[0].parts[0].text.replace(
@@ -294,7 +294,6 @@ async function fetchNewQuizData() {
             /\[REQUEST_ID: \d+\]/,
             `[REQUEST_ID: ${uniqueId}]`
         );
-
 
     const MAX_RETRIES = 2; 
     let success = false;
@@ -326,7 +325,6 @@ async function fetchNewQuizData() {
             const cleanedJsonText = quizJsonText.replace(/```json|```/g, '').trim();
             const newQuizData = JSON.parse(cleanedJsonText);
             
-            // 💡 필터링 검증 로직: 유효한 문제만 추출
             const filterResult = filterValidQuizzes(newQuizData);
             
             if (filterResult.fixedCount > 0) {
@@ -338,17 +336,11 @@ async function fetchNewQuizData() {
                 filterResult.errors.forEach(err => console.warn(`  ⚠️  ${err}`));
             }
             
-            // 💡 최소 3개 이상의 유효한 문제가 있어야 성공으로 간주
             if (filterResult.validQuizzes.length >= 3) {
                 MASTER_QUIZ_DATA = assignQuizIds(filterResult.validQuizzes);
                 LAST_TOPICS = [...selectedTopics];
                 LAST_FETCH_TIME = Date.now(); 
                 console.log(`[DATA] ✅ 퀴즈 데이터 갱신 완료. 총 ${MASTER_QUIZ_DATA.length}개의 문제가 로드되었습니다.`);
-                if (filterResult.invalidCount === 0) {
-                    console.log(`[VALIDATION] ✅ 모든 퀴즈 데이터가 검증을 통과했습니다.`);
-                } else {
-                    console.log(`[VALIDATION] ⚠️  ${filterResult.validQuizzes.length}개 문제만 사용 (${filterResult.invalidCount}개 제외됨)`);
-                }
                 success = true;
                 break;
             } else {
@@ -358,12 +350,6 @@ async function fetchNewQuizData() {
         } catch (error) {
             lastError = error;
             console.error(`[DATA ERROR] 퀴즈 데이터를 가져오는 데 실패했습니다 (시도 ${attempt + 1}/${MAX_RETRIES + 1}). 오류: ${error.message}`);
-            
-            if (error.code === 'ECONNABORTED') {
-                 console.error("[TIMEOUT] Axios 요청이 90초 타임아웃되었습니다. Vercel 함수 제한 시간 초과 가능성 있음.");
-            } else if (error.response) {
-                 console.error(`[API FAIL] Gemini API 응답 상태 코드: ${error.response.status}`);
-            }
         }
     }
     
@@ -401,7 +387,7 @@ app.get('/api/quiz', async (req, res) => {
     if (MASTER_QUIZ_DATA.length === 0) {
         return res.status(503).json({ 
             errorCode: "DATA_UNAVAILABLE",
-            message: "Quiz data is currently loading or unavailable. Please try again shortly. This may indicate a temporary issue with the LLM API or a Vercel timeout." 
+            message: "Quiz data is currently loading or unavailable." 
         });
     }
     
@@ -415,10 +401,7 @@ app.get('/api/quiz', async (req, res) => {
         return res.status(200).json(safePayload);
     } catch (error) {
         console.error("Quiz API Error:", error);
-        return res.status(500).json({ 
-             errorCode: "SERVER_ERROR", 
-             message: "Internal server error occurred during data retrieval." 
-          });
+        return res.status(500).json({ errorCode: "SERVER_ERROR" });
     }
 });
 
@@ -444,12 +427,8 @@ app.get('/api/answer-key', async (req, res) => {
         
         return res.status(200).json(answerKey);
     } catch (error) {
-        console.error("Answer Key API Error:", error);
         return res.status(500).json({ error: "Internal server error" });
     }
 });
 
-// ==========================================================
-// 4. Vercel 서버리스 모듈 내보내기 (필수)
-// ==========================================================
 module.exports = app;
