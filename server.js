@@ -33,8 +33,10 @@ const QUIZ_GENERATION_PROMPT = {
 
 **필수 규칙:**
 1. **각 문제는 위 분야들 중 랜덤으로 5개를 중복 없게 위에 나열된 순서에 상관없이 선택하여 출제한다. 단, 이전 세트에서 이미 출제된 분야는 나머지 모든 분야가 출제될 때까지 다시 선택하지 않는다.** 
-2. **한 분야에서 같은 소재의 문제 출제를 지양하고 여러 다양한 소재를 활용하여 출제할 것.** **ex) 안전 및 건강 상식 분야에서 심폐소생술 뿐만 아니라 허리 건강, 재난 등의 다양한 소재를 쓸 것. 역사 분야에서도 다양한 시대배경에서 출제 요망.**
-
+// 기존 규칙 2번 대신 아래 문구로 교체
+2. **[소재 다변화 및 1순위 대표 키워드 출제 금지]**
+- 각 분야를 대표하는 가장 흔하고 뻔한 단골 소재(예: 역사=세종대왕/훈민정음, 안전/건강=CPR/심폐소생술, 문화예술=모나리자/고흐, 디지털=피싱/백신 등)는 **출제를 엄격히 금지**하며 약 30% 확률로만 흔한 소재로 내세요.
+- 반드시 각 분야의 **세부 하위 영역**(예: 역사의 경우 세계사, 문화재, 근현대 사건 / 과학의 경우 천문학, 생물학, 화학 / 경제의 경우 생활 금융, 조세, 무역 등)에서 생소하면서도 유익한 소재를 발굴하여 출제하세요.
 3. **[중요] 한글 맞춤법/띄어쓰기 문항 출제 규칙:**
 - 2026년 현행 국립국어원 표준 규정(띄어쓰기, 사이시옷, 외래어 표기법 등)을 철저히 준수하세요.
 - **선택지(choices)와 해설(explanation)의 논리가 완벽히 일치해야 합니다.**
@@ -277,17 +279,22 @@ async function fetchNewQuizData() {
     const selectedTopics = getSelectedTopics();
     const currentPrompt = JSON.parse(JSON.stringify(QUIZ_GENERATION_PROMPT));
     
-    currentPrompt.contents[0].parts[0].text =
-        currentPrompt.contents[0].parts[0].text.replace(
-            '위 분야에서 중하급-중급 난이도의 상식 퀴즈 5개를 생성하세요.',
-            `
-    다음 5개 분야에서만 각각 정확히 1문제씩 출제하세요.
-    
-    ${selectedTopics.join(', ')}
-    
-    총 5문제를 생성하세요.
-    `
-        );
+    // 기존 fetchNewQuizData 내 replace 부분
+currentPrompt.contents[0].parts[0].text =
+    currentPrompt.contents[0].parts[0].text.replace(
+        '위 분야에서 중하급-중급 난이도의 상식 퀴즈 5개를 생성하세요.',
+        `
+다음 5개 분야에서만 각각 정확히 1문제씩 출제하세요.
+
+${selectedTopics.join(', ')}
+
+[이번 회차 출제 가이드]
+- 각 분야의 '실생활 적용 사례', '기초 개념 정의', '유래 및 역사적 배경', '최신 트렌드/용어' 중 매번 서로 다른 관점의 소재를 골라 출제하세요.
+- 각 문제마다 서로 중복되지 않는 다채로운 어휘와 소재를 사용해야 합니다.
+
+총 5문제를 생성하세요.
+`
+    );
     
     currentPrompt.contents[0].parts[0].text =
         currentPrompt.contents[0].parts[0].text.replace(
