@@ -135,7 +135,7 @@ ${quiz.explanation}
                 }
             },
             {
-                timeout: 30000
+                timeout: 20000
             }
         );
 
