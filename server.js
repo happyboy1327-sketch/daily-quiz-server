@@ -259,39 +259,57 @@ async function filterValidQuizzes(quizData) {
     const topics = quizData.map(q => q.topic);
 
     if (topics.includes(undefined) || topics.includes("")) {
-    return {
-        validQuizzes: [],
-        invalidCount: quizData.length,
-        fixedCount: 0,
-        errors: ["topic 누락"]
-    };
+        return {
+            validQuizzes: [],
+            invalidCount: quizData.length,
+            fixedCount: 0,
+            errors: ["topic 누락"]
+        };
     }
 
-if (new Set(topics).size !== topics.length) {
-    return {
-        validQuizzes: [],
-        invalidCount: quizData.length,
-        fixedCount: 0,
-        errors: ["출제 분야 중복"]
-    };
-}
+    if (new Set(topics).size !== topics.length) {
+        return {
+            validQuizzes: [],
+            invalidCount: quizData.length,
+            fixedCount: 0,
+            errors: ["출제 분야 중복"]
+        };
+    }
     
-    for (let index = 0; index < quizData.length; index++) {
-    const quiz = quizData[index];
-        const originalIndex = quiz.correctAnswerIndex;
-        const fixedQuiz = autoFixQuiz(quiz);
-        const validation = await validateSingleQuiz(fixedQuiz, index);
-        
+    const results = await Promise.all(
+        quizData.map(async (quiz, index) => {
+            const originalIndex = quiz.correctAnswerIndex;
+            const fixedQuiz = autoFixQuiz(quiz);
+            const validation = await validateSingleQuiz(fixedQuiz, index);
+
+            return {
+                fixedQuiz,
+                validation,
+                originalIndex,
+                index
+            };
+        })
+    );
+
+    for (const { fixedQuiz, validation, originalIndex, index } of results) {
         if (validation.isValid) {
             validQuizzes.push(fixedQuiz);
-            if (fixedQuiz.correctAnswerIndex !== originalIndex) fixedCount++;
+            if (fixedQuiz.correctAnswerIndex !== originalIndex) {
+                fixedCount++;
+            }
         } else {
             invalidCount++;
             allErrors.push(`문제 ${index + 1}: ${validation.errors.join(', ')}`);
         }
+    }
+
+    // 💥 누락되었던 최종 결과 반환 및 함수 닫기 중괄호
+    return {
+        validQuizzes,
+        invalidCount,
+        fixedCount,
+        errors: allErrors
     };
-    
-    return { validQuizzes, invalidCount, fixedCount, errors: allErrors };
 }
 
 function getDailySeed() {
