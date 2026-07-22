@@ -441,7 +441,7 @@ app.get('/api/quiz', async (req, res) => {
     }
 });
 
-app.get('/api/quiz', async (req, res) => {
+app.get('/api/answer-key', async (req, res) => {
     console.log("1");
     await ensureDataFreshness();
     console.log("2");
