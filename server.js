@@ -467,7 +467,7 @@ app.get('/api/answer-key', async (req, res) => {
             return acc;
         }, {});
         
-        return res.status(200).json(result);
+        return res.status(200).json(answerKey);
     } catch (e) {
         console.log("ERROR", e);
         return res.status(500).json({ errorCode: "SERVER_ERROR" });
