@@ -83,41 +83,77 @@ function autoFixQuiz(quiz) {
     return quiz;
 }
 
-function validateSingleQuiz(quiz, index) {
+async function validateSingleQuiz(quiz, index) {
     const errors = [];
+
     if (!quiz.question || !Array.isArray(quiz.choices) || typeof quiz.correctAnswerIndex !== 'number' || !quiz.explanation) {
         return { isValid: false, errors: ['필수 필드 누락'] };
     }
-    
-    if (quiz.choices.length !== 4) errors.push(`보기 개수 오류 (${quiz.choices.length}개)`);
-    if (quiz.correctAnswerIndex < 0 || quiz.correctAnswerIndex >= quiz.choices.length) errors.push(`correctAnswerIndex 범위 초과`);
-    
+
+    if (quiz.choices.length !== 4) {
+        errors.push(`보기 개수 오류 (${quiz.choices.length}개)`);
+    }
+
+    if (quiz.correctAnswerIndex < 0 || quiz.correctAnswerIndex >= quiz.choices.length) {
+        errors.push(`correctAnswerIndex 범위 초과`);
+    }
+
     quiz.choices.forEach((choice, choiceIndex) => {
-        if (!choice || choice.trim() === '') errors.push(`보기 ${choiceIndex + 1} 비어있음`);
+        if (!choice || choice.trim() === '') {
+            errors.push(`보기 ${choiceIndex + 1} 비어있음`);
+        }
     });
 
     if (!/^정답은\s+.+?입니다/.test(quiz.explanation.trim())) {
         errors.push(`해설 시작 형식 불일치`);
     }
-    const explanationMatch = quiz.explanation.match(/정답은\s+['"‘“]?(.+?)['"’”]?(?:입니다|입니다\.)/);
 
-if (explanationMatch) {
-    const explanationAnswer = explanationMatch[1].trim();
-
-    const explanationIndex = quiz.choices.findIndex(
-        choice => choice.trim() === explanationAnswer
+    // 해설 정답과 실제 정답 번호 비교
+    const explanationMatch = quiz.explanation.match(
+        /정답은\s+['"‘“]?(.+?)['"’”]?(?:입니다|입니다\.)/
     );
 
-    if (explanationIndex === -1) {
-        errors.push(`해설 정답이 보기와 불일치`);
-    } else if (explanationIndex !== quiz.correctAnswerIndex) {
-        errors.push(`정답 번호와 해설 불일치`);
+    if (explanationMatch) {
+        const explanationAnswer = explanationMatch[1].trim();
+
+        const explanationIndex = quiz.choices.findIndex(
+            choice => choice.trim() === explanationAnswer
+        );
+
+        if (explanationIndex === -1) {
+            errors.push(`해설 정답이 보기와 불일치`);
+        } else if (explanationIndex !== quiz.correctAnswerIndex) {
+            errors.push(`정답 번호와 해설 불일치`);
+        }
     }
+
+
+    // 로컬 검사에서 이미 오류 있으면 AI 호출 생략
+    if (errors.length > 0) {
+        return {
+            isValid: false,
+            errors
+        };
+    }
+
+
+    // AI 내용 검증
+    const qualityResult = await validateQuizQuality(quiz);
+
+    if (!qualityResult.valid) {
+        errors.push(
+            `AI 내용 검증 실패: ${qualityResult.reason || '알 수 없는 오류'}`
+        );
+    }
+
+
+    return {
+        isValid: errors.length === 0,
+        errors,
+        quality: qualityResult
+    };
 }
     
-    return { isValid: errors.length === 0, errors };
-}
-
 function filterValidQuizzes(quizData) {
     if (!Array.isArray(quizData) || quizData.length === 0) {
         return { validQuizzes: [], invalidCount: 0, errors: ['퀴즈 데이터가 배열이 아니거나 비어있습니다.'] };
@@ -128,10 +164,11 @@ function filterValidQuizzes(quizData) {
     let invalidCount = 0;
     let fixedCount = 0;
     
-    quizData.forEach((quiz, index) => {
+    for (let index = 0; index < quizData.length; index++) {
+    const quiz = quizData[index];
         const originalIndex = quiz.correctAnswerIndex;
         const fixedQuiz = autoFixQuiz(quiz);
-        const validation = validateSingleQuiz(fixedQuiz, index);
+        const validation = await validateSingleQuiz(fixedQuiz, index);
         
         if (validation.isValid) {
             validQuizzes.push(fixedQuiz);
@@ -140,7 +177,7 @@ function filterValidQuizzes(quizData) {
             invalidCount++;
             allErrors.push(`문제 ${index + 1}: ${validation.errors.join(', ')}`);
         }
-    });
+    };
     
     return { validQuizzes, invalidCount, fixedCount, errors: allErrors };
 }
