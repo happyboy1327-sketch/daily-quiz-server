@@ -276,31 +276,22 @@ if (new Set(topics).size !== topics.length) {
     };
 }
     
-  const results = await Promise.all(
-    quizData.map(async (quiz, index) => {
+    for (let index = 0; index < quizData.length; index++) {
+    const quiz = quizData[index];
         const originalIndex = quiz.correctAnswerIndex;
         const fixedQuiz = autoFixQuiz(quiz);
         const validation = await validateSingleQuiz(fixedQuiz, index);
-
-        return {
-            fixedQuiz,
-            validation,
-            originalIndex,
-            index
-        };
-    })
-);
-
-for (const { fixedQuiz, validation, originalIndex, index } of results) {
-    if (validation.isValid) {
-        validQuizzes.push(fixedQuiz);
-        if (fixedQuiz.correctAnswerIndex !== originalIndex) {
-            fixedCount++;
+        
+        if (validation.isValid) {
+            validQuizzes.push(fixedQuiz);
+            if (fixedQuiz.correctAnswerIndex !== originalIndex) fixedCount++;
+        } else {
+            invalidCount++;
+            allErrors.push(`문제 ${index + 1}: ${validation.errors.join(', ')}`);
         }
-    } else {
-        invalidCount++;
-        allErrors.push(`문제 ${index + 1}: ${validation.errors.join(', ')}`);
-    }
+    };
+    
+    return { validQuizzes, invalidCount, fixedCount, errors: allErrors };
 }
 
 function getDailySeed() {
