@@ -154,7 +154,7 @@ async function validateSingleQuiz(quiz, index) {
     };
 }
     
-function filterValidQuizzes(quizData) {
+async function filterValidQuizzes(quizData) {
     if (!Array.isArray(quizData) || quizData.length === 0) {
         return { validQuizzes: [], invalidCount: 0, errors: ['퀴즈 데이터가 배열이 아니거나 비어있습니다.'] };
     }
@@ -271,7 +271,7 @@ async function fetchNewQuizData() {
             const cleanedJsonText = quizJsonText.replace(/```json|```/g, '').trim();
             const newQuizData = JSON.parse(cleanedJsonText);
             
-            const filterResult = filterValidQuizzes(newQuizData);
+            const filterResult = await filterValidQuizzes(newQuizData);
             
             if (filterResult.fixedCount > 0) console.log(`[AUTO-FIX] ✅ ${filterResult.fixedCount}개 자동 수정 완료`);
             if (filterResult.invalidCount > 0) console.warn(`[WARNING] ${filterResult.invalidCount}개 문제 검증 제외`);
