@@ -174,7 +174,7 @@ return result;
 async function validateSingleQuiz(quiz, index) {
     const errors = [];
 
-    if (!quiz.question || !Array.isArray(quiz.choices) || typeof quiz.correctAnswerIndex !== 'number' || !quiz.explanation) {
+    if (!quiz.topic || !quiz.question || !Array.isArray(quiz.choices) || typeof quiz.correctAnswerIndex !== 'number' || !quiz.explanation) {
         return { isValid: false, errors: ['필수 필드 누락'] };
     }
 
