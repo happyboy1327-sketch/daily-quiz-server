@@ -33,14 +33,18 @@ const QUIZ_GENERATION_PROMPT = {
 4. 보기는 정확히 4개. 문제와 정답은 반드시 논리적으로 일치.
 5. correctAnswerIndex는 0부터 시작 (0, 1, 2, 3).
 6. explanation은 "정답은 [정답보기텍스트]입니다."로 시작하여, 정답 이유와 오답 보기가 틀린 핵심 이유를 포함해 4문장 이내로 요약 작성하세요.
+7. 각 문제는 반드시 topic 필드에 출제 분야를 정확히 기입하세요.
 **JSON 형식 예시:**
 [
+  [
   {
+    "topic": "과학",
     "question": "질문 내용",
     "choices": ["보기1", "보기2", "보기3", "보기4"],
     "correctAnswerIndex": 1,
-    "explanation": "정답은 보기2입니다. 이유는... 보기1은... 보기3은... 보기4는..."
+    "explanation": "정답은 보기2입니다..."
   }
+]
 ]
 
 JSON 배열만 반환하세요. [REQUEST_ID: ${Date.now()}]`
@@ -251,6 +255,26 @@ async function filterValidQuizzes(quizData) {
     const allErrors = [];
     let invalidCount = 0;
     let fixedCount = 0;
+
+    const topics = quizData.map(q => q.topic);
+
+    if (topics.includes(undefined) || topics.includes("")) {
+    return {
+        validQuizzes: [],
+        invalidCount: quizData.length,
+        fixedCount: 0,
+        errors: ["topic 누락"]
+    };
+    }
+
+if (new Set(topics).size !== topics.length) {
+    return {
+        validQuizzes: [],
+        invalidCount: quizData.length,
+        fixedCount: 0,
+        errors: ["출제 분야 중복"]
+    };
+}
     
     for (let index = 0; index < quizData.length; index++) {
     const quiz = quizData[index];
@@ -358,7 +382,7 @@ async function fetchNewQuizData() {
             const quizJsonText = generatedContent.candidates[0].content.parts[0].text;
             const cleanedJsonText = quizJsonText.replace(/```json|```/g, '').trim();
             const newQuizData = JSON.parse(cleanedJsonText);
-            console.log(newQuizData.map(q => q.topic));
+            
             
             const filterResult = await filterValidQuizzes(newQuizData);
             
