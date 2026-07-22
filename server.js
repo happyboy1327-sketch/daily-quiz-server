@@ -196,7 +196,7 @@ async function fetchNewQuizData() {
     console.log(`[DATA] Gemini API를 통해 새로운 퀴즈 데이터 로딩을 시작합니다...`);
 
     const uniqueId = Date.now();
-    const selectedTopics = getSelectedTopics();
+    const selectedTopic = "맞춤법";
     const currentPrompt = JSON.parse(JSON.stringify(QUIZ_GENERATION_PROMPT));
     
     currentPrompt.contents[0].parts[0].text = currentPrompt.contents[0].parts[0].text.replace(
