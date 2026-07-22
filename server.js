@@ -441,27 +441,35 @@ app.get('/api/quiz', async (req, res) => {
     }
 });
 
-app.get('/api/answer-key', async (req, res) => {
+app.get('/api/quiz', async (req, res) => {
+    console.log("1");
     await ensureDataFreshness();
+    console.log("2");
 
     if (MASTER_QUIZ_DATA.length === 0) {
-        return res.status(503).json({ error: "Data unavailable" });
+        console.log("3");
+        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
-    
+
     try {
-        const todaysQuestions = getKRandomQuestions(5, MASTER_QUIZ_DATA); 
+        console.log("4");
+
+        const todaysQuestions = getKRandomQuestions(5, MASTER_QUIZ_DATA);
+
+        console.log("5");
+
         const sortedQuestions = todaysQuestions.sort((a, b) => a.id - b.id);
 
-        const answerKey = sortedQuestions.reduce((acc, q) => {
-            if (typeof q.id === 'number' && typeof q.correctAnswerIndex === 'number') {
-                acc[q.id] = q.correctAnswerIndex;
-            }
-            return acc;
-        }, {});
-        
-        return res.status(200).json(answerKey);
-    } catch (error) {
-        return res.status(500).json({ error: "Internal server error" });
+        console.log("6");
+
+        const result = sanitizeQuizData(sortedQuestions);
+
+        console.log("7");
+
+        return res.status(200).json(result);
+    } catch (e) {
+        console.log("ERROR", e);
+        return res.status(500).json({ errorCode: "SERVER_ERROR" });
     }
 });
 
