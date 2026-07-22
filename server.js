@@ -342,6 +342,7 @@ async function fetchNewQuizData() {
             const quizJsonText = generatedContent.candidates[0].content.parts[0].text;
             const cleanedJsonText = quizJsonText.replace(/```json|```/g, '').trim();
             const newQuizData = JSON.parse(cleanedJsonText);
+            console.log(newQuizData.map(q => q.topic));
             
             const filterResult = await filterValidQuizzes(newQuizData);
             
