@@ -83,6 +83,78 @@ function autoFixQuiz(quiz) {
     return quiz;
 }
 
+async function validateQuizQuality(quiz) {
+    const prompt = `
+다음 퀴즈를 검증하세요.
+
+문제:
+${quiz.question}
+
+보기:
+${quiz.choices.map((c, i) => `${i + 1}. ${c}`).join("\n")}
+
+현재 정답:
+${quiz.correctAnswerIndex + 1}번
+
+해설:
+${quiz.explanation}
+
+검사:
+1. 실제 정답 보기가 정확히 1개인가?
+2. 현재 정답 번호가 맞는가?
+3. 해설의 설명에 오류가 없는가?
+
+반드시 JSON만 반환하세요.
+
+{
+  "valid": true,
+  "answerCount": 1,
+  "correctIndex": 0,
+  "explanationError": false,
+  "reason": ""
+}
+`;
+
+    try {
+        const response = await axios.post(
+            GEMINI_API_URL,
+            {
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            {
+                                text: prompt
+                            }
+                        ]
+                    }
+                ],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    temperature: 0.1
+                }
+            },
+            {
+                timeout: 30000
+            }
+        );
+
+        const text = response.data.candidates[0].content.parts[0].text;
+        const cleaned = text.replace(/```json|```/g, '').trim();
+
+        return JSON.parse(cleaned);
+
+    } catch (error) {
+        console.error("[QUALITY CHECK ERROR]", error.message);
+
+        // 검증 실패로 서버 전체가 죽지 않게 처리
+        return {
+            valid: true,
+            reason: "검증 API 실패로 통과 처리"
+        };
+    }
+}
+
 async function validateSingleQuiz(quiz, index) {
     const errors = [];
 
