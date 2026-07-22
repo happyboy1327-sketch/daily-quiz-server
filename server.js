@@ -99,6 +99,21 @@ function validateSingleQuiz(quiz, index) {
     if (!/^정답은\s+.+?입니다/.test(quiz.explanation.trim())) {
         errors.push(`해설 시작 형식 불일치`);
     }
+    const explanationMatch = quiz.explanation.match(/정답은\s+['"‘“]?(.+?)['"’”]?(?:입니다|입니다\.)/);
+
+if (explanationMatch) {
+    const explanationAnswer = explanationMatch[1].trim();
+
+    const explanationIndex = quiz.choices.findIndex(
+        choice => choice.trim() === explanationAnswer
+    );
+
+    if (explanationIndex === -1) {
+        errors.push(`해설 정답이 보기와 불일치`);
+    } else if (explanationIndex !== quiz.correctAnswerIndex) {
+        errors.push(`정답 번호와 해설 불일치`);
+    }
+}
     
     return { isValid: errors.length === 0, errors };
 }
