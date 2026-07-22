@@ -140,9 +140,21 @@ ${quiz.explanation}
         );
 
         const text = response.data.candidates[0].content.parts[0].text;
-        const cleaned = text.replace(/```json|```/g, '').trim();
 
-        return JSON.parse(cleaned);
+console.log("===== GEMINI RAW =====");
+console.log(text);
+
+const cleaned = text.replace(/```json|```/g, '').trim();
+
+console.log("===== CLEANED =====");
+console.log(cleaned);
+
+const result = JSON.parse(cleaned);
+
+console.log("===== PARSED RESULT =====");
+console.log(result);
+
+return result;
 
     } catch (error) {
         console.error("[QUALITY CHECK ERROR]", error.message);
@@ -211,6 +223,10 @@ async function validateSingleQuiz(quiz, index) {
 
     // AI 내용 검증
     const qualityResult = await validateQuizQuality(quiz);
+
+    console.log("===== QUALITY RESULT =====");
+    console.log(qualityResult);
+    console.log("치명적 오류이니 꼭 해결하세요.");
 
     if (!qualityResult.valid) {
         errors.push(
