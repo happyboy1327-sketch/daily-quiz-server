@@ -397,18 +397,15 @@ async function fetchNewQuizData() {
     const selectedTopics = getSelectedTopics();
     const currentPrompt = JSON.parse(JSON.stringify(QUIZ_GENERATION_PROMPT));
     
-    currentPrompt.contents[0].parts[0].text = currentPrompt.contents[0].parts[0].text.replace(
-        '위 분야에서 중하급-중급 난이도의 상식 퀴즈 5개를 생성하세요.',
-        `다음 5개 분야에서만 각각 정확히 1문제씩 총 5문제를 생성하세요: ${selectedTopics.join(', ')}
+    
+    currentPrompt.contents[0].parts[0].text =
+    currentPrompt.contents[0].parts[0].text.replace(
+        '퀴즈 출제 분야는 문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학으로 총 13가지 분야에서 중하급-중급 난이도의 상식 퀴즈 5개를 생성하여라.',
+        `다음 5개 분야에서만 각각 정확히 1문제씩 총 5문제를 생성하여라: ${selectedTopics.join(', ')}
 
 [이번 회차 출제 가이드]
 - 실생활 사례, 기초 개념, 역사적 배경, 최신 용어 등 매번 다채로운 관점의 소재를 골라 출제하세요.
 - 분야별 대표 키워드 대신 세부 주제와 풍부한 단어를 활용하세요.`
-    );
-    
-    currentPrompt.contents[0].parts[0].text = currentPrompt.contents[0].parts[0].text.replace(
-        /\[REQUEST_ID: \d+\]/,
-        `[REQUEST_ID: ${uniqueId}]`
     );
 
     const MAX_RETRIES = 2; 
