@@ -143,8 +143,6 @@ ${quiz.explanation}
 
 {
   "valid": true,
-  "answerCount": 1,
-  "correctAnswerIndex": 0,
   "explanationError": false,
   "reason": ""
 }
