@@ -147,7 +147,7 @@ ${quiz.explanation}
 {
   "valid": true,
   "answerCount": 1,
-  "correctIndex": 0,
+  "correctAnswerIndex": 0,
   "explanationError": false,
   "reason": ""
 }
