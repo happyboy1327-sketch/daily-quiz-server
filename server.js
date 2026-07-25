@@ -101,23 +101,56 @@ JSON 배열만 반환하세요.
 // ==========================================================
 
 function autoFixQuiz(quiz) {
-    if (!quiz.explanation || !Array.isArray(quiz.choices)) return quiz;
+    if (!Array.isArray(quiz.choices)) return quiz;
 
-    const explanationMatch = quiz.explanation.match(/정답은\s+['"‘“]?([^'”’.]+)['"’”?]?입니다/);
+    // 1순위: correctAnswerText 기준 보정
+    if (quiz.correctAnswerText) {
+        const textIndex = quiz.choices.findIndex(
+            choice => choice && choice.trim() === quiz.correctAnswerText.trim()
+        );
+
+        if (textIndex !== -1 && textIndex !== quiz.correctAnswerIndex) {
+            console.log(
+                `[AUTO-FIX] correctAnswerText 기준 수정: ${quiz.correctAnswerIndex} → ${textIndex}`
+            );
+
+            quiz.correctAnswerIndex = textIndex;
+        }
+
+        return quiz;
+    }
+
+    // 기존 explanation 보정 로직 (하위 호환)
+    if (!quiz.explanation) return quiz;
+
+    const explanationMatch = quiz.explanation.match(
+        /정답은\s+['"‘“]?([^'”’.]+)['"’”?]?입니다/
+    );
+
     if (!explanationMatch) return quiz;
-    
+
     const explanationAnswer = explanationMatch[1].trim();
-    let correctIndex = quiz.choices.findIndex(choice => choice && choice.trim() === explanationAnswer);
-    
+
+    let correctIndex = quiz.choices.findIndex(
+        choice => choice && choice.trim() === explanationAnswer
+    );
+
     if (correctIndex === -1) {
         const viewMatch = explanationAnswer.match(/보기\s*([1-4])/);
-        if (viewMatch) correctIndex = parseInt(viewMatch[1], 10) - 1;
+
+        if (viewMatch) {
+            correctIndex = parseInt(viewMatch[1], 10) - 1;
+        }
     }
-    
+
     if (correctIndex !== -1 && correctIndex !== quiz.correctAnswerIndex) {
-        console.log(`[AUTO-FIX] 정답 인덱스 자동 수정: ${quiz.correctAnswerIndex} → ${correctIndex} ("${explanationAnswer}")`);
+        console.log(
+            `[AUTO-FIX] explanation 기준 수정: ${quiz.correctAnswerIndex} → ${correctIndex}`
+        );
+
         quiz.correctAnswerIndex = correctIndex;
     }
+
     return quiz;
 }
 
