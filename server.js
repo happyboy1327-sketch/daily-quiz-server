@@ -31,10 +31,10 @@ const QUIZ_GENERATION_PROMPT = {
 2. 각 분야의 뻔한 소재(예: 역사=세종대왕, 건강=CPR, 예술=모나리자)는 우선적으로 피하고,세부 영역(세계사, 천문학, 생활금융 등)에서 다양한 소재를 선택할 것.
 3. 한글 맞춤법 문제는 2026년 현행 국립국어원 표준 규정을 기준으로 작성하고, 띄어쓰기, 외래어 표기법, 사이시옷 등 실제 활용 가능한 내용을 다룰 것.
 4. 보기(choices)는 반드시 정확히 4개 작성하라.
-5. 정답 관리를 위해 반드시 아래 3개 필드를 완벽히 일치시켜라.
-- correctAnswerText: choices 배열의 정답 보기와 동일한 문자열. 순서도 correctAnswerIndex와 0부터 일치.
-- correctAnswerIndex: correctAnswerText의 choices 배열 위치(0~3).
-- explanation: 반드시 첫 문장을 아래 형식으로 시작하여라. "정답은 [correctAnswerText]입니다. 이유는 ..입니다."
+5. 정답 관리를 위해 반드시 아래 3개 필드를 일치시켜라.
+- correctAnswerText: choices 배열의 정답 보기와 동일한 문자열. correctAnswerIndex가 0이면 첫 번째 보기의 문자열, 3이면 네 번째 보기의 문자열을 가리킨다.
+- correctAnswerIndex: correctAnswerText가 위치한 choices 배열 index(0~3).
+- explanation: 반드시 첫 문장을 "정답은 [correctAnswerText]입니다." 형식으로 시작.
 
 6. explanation은 최대 4문장으로 작성하고 다음 내용을 포함하세요.
 - 정답인 이유
