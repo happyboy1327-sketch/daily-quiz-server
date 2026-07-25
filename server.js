@@ -57,7 +57,7 @@ JSON 배열만 반환하세요. [REQUEST_ID: ${Date.now()}]`
         temperature: 0.4,
         // 💡 생각 토큰을 적정 수준(1,024 토큰)으로 제어하여 비용과 맞춤법 논리 품질을 동시에 확보
         thinkingConfig: {
-            thinkingBudget: 1024
+            thinkingBudget: 768
         }
     }
 };
