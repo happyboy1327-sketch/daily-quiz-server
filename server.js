@@ -406,6 +406,12 @@ async function fetchNewQuizData() {
 - 분야별 대표 키워드 대신 세부 주제와 풍부한 단어를 활용하세요.`
     );
 
+    currentPrompt.contents[0].parts[0].text =
+    currentPrompt.contents[0].parts[0].text.replace(
+        /\[REQUEST_ID: \d+\]/,
+        `[REQUEST_ID: ${uniqueId}]`
+    );
+
     const MAX_RETRIES = 2; 
     let success = false;
 
