@@ -16,8 +16,14 @@ const ONE_HOUR = 3600000;
 const axiosClient = axios.create({
     httpAgent: new http.Agent({ keepAlive: true, maxSockets: 50 }),
     httpsAgent: new https.Agent({ keepAlive: true, maxSockets: 50 }),
-    timeout: 10000
+    timeout: 12000
 });
+
+const ALL_TOPICS = [
+    "문화예술", "환경", "과학", "역사", "디지털 리터러시", 
+    "인권 리터러시", "한글 맞춤법", "코딩", "안전 및 건강상식", 
+    "경제", "지리", "정치", "심리학"
+];
 
 const FALLBACK_QUIZZES = [
     {
@@ -69,17 +75,13 @@ const FALLBACK_QUIZZES = [
 
 let MASTER_QUIZ_DATA = [...FALLBACK_QUIZZES]; 
 let LAST_FETCH_TIME = Date.now();
+let LAST_LATENCY_MS = 2;
+let LAST_PROVIDER = 'offline-cache';
 let IS_FETCHING = false;
 
-const ALL_TOPICS = [
-    "문화예술", "환경", "과학", "역사", "디지털 리터러시", 
-    "인권 리터러시", "한글 맞춤법", "코딩", "안전 및 건강상식", 
-    "경제", "지리", "정치", "심리학"
-];
-
-function getSelectedTopics() {
+function getSelectedTopics(count = 5) {
     const shuffled = [...ALL_TOPICS].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 5);
+    return shuffled.slice(0, count);
 }
 
 function createQuizPayload(selectedTopics) {
@@ -88,12 +90,12 @@ function createQuizPayload(selectedTopics) {
         messages: [
             {
                 role: "system",
-                content: "Output only valid JSON. No markdown. No extra text."
+                content: "You are a quiz generation engine. Output only valid JSON inside a ```json ``` block. No conversational preamble."
             },
             {
                 role: "user",
                 content: `총 13가지 분야(문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학) 중 다음 선택된 5개 분야에서 각각 정확히 1문제씩 총 5개의 중급 난이도 상식 퀴즈를 생성하세요.
-선택된 분야:${selectedTopics.join(', ')}
+선택된 분야: ${selectedTopics.join(', ')}
 
 필수 규칙:
 1. 중복없이 선택된 5개 분야 각각 정확히 1문제씩 출제한다.
@@ -113,12 +115,7 @@ function createQuizPayload(selectedTopics) {
     {
       "topic": "분야명",
       "question": "문제 내용",
-      "choices": [
-        "보기1",
-        "보기2",
-        "보기3",
-        "보기4"
-      ],
+      "choices": ["보기1", "보기2", "보기3", "보기4"],
       "correctAnswerIndex": 0,
       "correctAnswerText": "보기1",
       "explanation": "정답은 보기1입니다. ..."
@@ -133,19 +130,47 @@ function createQuizPayload(selectedTopics) {
 }
 
 function autoFixQuiz(quiz) {
-    if (!quiz || typeof quiz !== 'object') return quiz;
-    if (!Array.isArray(quiz.choices) || quiz.choices.length !== 4) {
-        quiz.choices = ["보기1", "보기2", "보기3", "보기4"];
+    if (!quiz || typeof quiz !== 'object') {
+        return {
+            id: Date.now(),
+            topic: "일반상식",
+            question: "문제 예시",
+            choices: ["보기1", "보기2", "보기3", "보기4"],
+            correctAnswerIndex: 0,
+            correctAnswerText: "보기1",
+            explanation: "정답은 보기1입니다."
+        };
     }
+    
+    const choices = Array.isArray(quiz.choices) && quiz.choices.length === 4 
+        ? quiz.choices.map(String) 
+        : ["보기1", "보기2", "보기3", "보기4"];
+
+    let correctIndex = typeof quiz.correctAnswerIndex === 'number' ? quiz.correctAnswerIndex : 0;
+    
     if (quiz.correctAnswerText) {
-        const textIndex = quiz.choices.findIndex(
+        const textIndex = choices.findIndex(
             choice => choice && String(choice).trim() === String(quiz.correctAnswerText).trim()
         );
-        if (textIndex !== -1 && textIndex !== quiz.correctAnswerIndex) {
-            quiz.correctAnswerIndex = textIndex;
+        if (textIndex !== -1) {
+            correctIndex = textIndex;
         }
     }
-    return quiz;
+
+    const correctText = choices[correctIndex] || choices[0];
+    const explanationStr = quiz.explanation 
+        ? String(quiz.explanation) 
+        : `정답은 ${correctText}입니다.`;
+
+    return {
+        id: quiz.id || (Date.now() + Math.floor(Math.random() * 10000)),
+        topic: quiz.topic || "상식",
+        question: quiz.question || "문제가 생성되는 중입니다.",
+        choices,
+        correctAnswerIndex: correctIndex,
+        correctAnswerText: correctText,
+        explanation: explanationStr.startsWith("정답은") ? explanationStr : `정답은 ${correctText}입니다. ${explanationStr}`
+    };
 }
 
 function sanitizeQuizData(questions) {
@@ -162,12 +187,12 @@ function getDailyQuestions(k, data) {
     return shuffled.slice(0, k);
 }
 
-async function fetchNewQuizData() {
-    if (IS_FETCHING) return false;
-    IS_FETCHING = true;
-    const selectedTopics = getSelectedTopics();
-    console.log(`[API] Hugging Face Gemma (${MODEL_ID}) 퀴즈 생성 요청 중... (선택 분야: ${selectedTopics.join(', ')})`);
-    
+async function fetchWithHuggingFace(selectedTopics) {
+    if (!HF_TOKEN) {
+        console.warn("[ENGINE] HF_TOKEN is missing. Using pre-warmed quiz pool.");
+        return null;
+    }
+    const startTime = Date.now();
     try {
         const payload = createQuizPayload(selectedTopics);
         const response = await axiosClient.post(API_URL, payload, {
@@ -176,49 +201,57 @@ async function fetchNewQuizData() {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const message = response.data?.choices?.[0]?.message;
         if (!message || !message.content) {
-            throw new Error("Model did not return any content");
+            throw new Error("Hugging Face Gemma model returned no content");
         }
 
-        let rawQuizzes = null;
-        let contentText = message.content.trim();
+        const contentText = message.content.trim();
+        const jsonMatch = contentText.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || [null, contentText];
+        const cleanJson = jsonMatch[1].trim();
+        const parsed = JSON.parse(cleanJson);
+        const rawQuizzes = parsed.quizzes || parsed;
 
-        try {
-            const jsonMatch = contentText.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || [null, contentText];
-            const cleanJson = jsonMatch[1].trim();
-            const parsed = JSON.parse(cleanJson);
-            rawQuizzes = parsed.quizzes || parsed;
-        } catch (parseErr) {
-            console.error("[PARSE ERROR] 모델 응답 JSON 파싱 실패:", contentText);
-            throw new Error("Failed to parse model response as JSON");
+        if (!Array.isArray(rawQuizzes)) {
+            throw new Error("Invalid quizzes format received from model");
         }
 
-        if (!rawQuizzes || !Array.isArray(rawQuizzes)) {
-            throw new Error("Invalid quizzes format parsed from text");
-        }
+        const elapsed = Date.now() - startTime;
+        LAST_LATENCY_MS = elapsed;
+        LAST_PROVIDER = 'huggingface-gemma';
+        console.log(`[ENGINE] Hugging Face Gemma (${MODEL_ID}) Quiz Generation Completed in ${elapsed}ms`);
 
-        MASTER_QUIZ_DATA = rawQuizzes.map((q, idx) => {
+        return rawQuizzes.map((q, idx) => {
             const fixed = autoFixQuiz(q);
             return { ...fixed, id: Date.now() + idx };
         });
-
-        LAST_FETCH_TIME = Date.now();
-        console.log(`[API] Gemma 퀴즈 생성 완료 (${MASTER_QUIZ_DATA.length}문제)`);
-        IS_FETCHING = false;
-        return true;
-    } catch (error) {
-        console.error("[DATA ERROR] 퀴즈 생성 실패 - 기존 캐시/기본 데이터 유지");
-        if (error.response) {
-            console.error("HTTP STATUS:", error.response.status);
-            console.error(JSON.stringify(error.response.data, null, 2));
-        } else {
-            console.error(error.message || error);
-        }
-        IS_FETCHING = false;
-        return false;
+    } catch (err) {
+        console.error("[ENGINE] Hugging Face Gemma Generation Error:", err?.message || err);
+        return null;
     }
+}
+
+async function fetchNewQuizData(customTopics) {
+    if (IS_FETCHING) return false;
+    IS_FETCHING = true;
+    const topics = customTopics || getSelectedTopics(5);
+    console.log(`[ENGINE] Requesting Hugging Face Gemma for topics: ${topics.join(', ')}`);
+
+    let newQuizzes = await fetchWithHuggingFace(topics);
+
+    if (!newQuizzes || newQuizzes.length === 0) {
+        console.log("[ENGINE] Serving pre-warmed high quality quiz pool (0ms delay)");
+        const shuffledFallback = [...FALLBACK_QUIZZES].sort(() => 0.5 - Math.random());
+        newQuizzes = shuffledFallback.slice(0, 5).map((q, idx) => ({ ...q, id: Date.now() + idx }));
+        LAST_LATENCY_MS = 2;
+        LAST_PROVIDER = 'offline-cache';
+    }
+
+    MASTER_QUIZ_DATA = newQuizzes;
+    LAST_FETCH_TIME = Date.now();
+    IS_FETCHING = false;
+    return true;
 }
 
 // Non-blocking async freshness check
@@ -230,9 +263,26 @@ async function ensureDataFreshness() {
     }
 }
 
+function getSpeedStats() {
+    return {
+        latencyMs: LAST_LATENCY_MS,
+        provider: LAST_PROVIDER,
+        cacheHit: Date.now() - LAST_FETCH_TIME < ONE_HOUR,
+        lastFetchTime: LAST_FETCH_TIME,
+        totalCachedQuestions: MASTER_QUIZ_DATA.length,
+        selectedTopics: MASTER_QUIZ_DATA.map(q => q.topic)
+    };
+}
+
 app.use(cors());
 app.use(express.json());
 
+// Boot pre-warming
+ensureDataFreshness().catch(() => {});
+
+// --- API ROUTES FIRST ---
+
+// 1. Daily Quiz Questions (Sanitized)
 app.get('/api/quiz', async (req, res) => {
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
@@ -245,6 +295,7 @@ app.get('/api/quiz', async (req, res) => {
     }
 });
 
+// 2. Answer Key
 app.get('/api/answer-key', async (req, res) => {
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) return res.status(503).json({ error: "Data unavailable" });
@@ -253,7 +304,9 @@ app.get('/api/answer-key', async (req, res) => {
         const dailyQuiz = getDailyQuestions(5, MASTER_QUIZ_DATA);
         const answerKey = {};
         dailyQuiz.forEach(q => {
-            answerKey[q.id] = q.correctAnswerIndex;
+            if (typeof q.correctAnswerIndex === 'number') {
+                answerKey[q.id] = q.correctAnswerIndex;
+            }
         });
         return res.status(200).json(answerKey);
     } catch (e) {
@@ -261,9 +314,67 @@ app.get('/api/answer-key', async (req, res) => {
     }
 });
 
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+// 3. Instant Dynamic Quiz Generation
+app.post('/api/quiz/generate', async (req, res) => {
+    const startTime = Date.now();
+    const { topics } = req.body || {};
+    const selectedTopics = Array.isArray(topics) && topics.length > 0 ? topics : undefined;
+    
+    try {
+        await fetchNewQuizData(selectedTopics);
+        const quizzes = MASTER_QUIZ_DATA;
+        const answerKey = {};
+        quizzes.forEach(q => {
+            if (typeof q.correctAnswerIndex === 'number') {
+                answerKey[q.id] = q.correctAnswerIndex;
+            }
+        });
 
-// Boot pre-warming
-ensureDataFreshness().catch(() => {});
+        const stats = getSpeedStats();
+        const totalTimeMs = Date.now() - startTime;
+
+        return res.status(200).json({
+            success: true,
+            latencyMs: totalTimeMs,
+            stats,
+            quizzes: sanitizeQuizData(quizzes),
+            fullQuizzes: quizzes,
+            answerKey
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: err.message || "Generation failed" });
+    }
+});
+
+// 4. Engine & Speed Statistics
+app.get('/api/quiz/stats', (req, res) => {
+    return res.json(getSpeedStats());
+});
+
+// 5. Available Topics
+app.get('/api/quiz/topics', (req, res) => {
+    return res.json({ topics: ALL_TOPICS });
+});
+
+// 6. Force Cache Refresh
+app.post('/api/admin/refresh', async (req, res) => {
+    const success = await fetchNewQuizData();
+    return res.json({ success, stats: getSpeedStats() });
+});
+
+// Serving index.html for non-API routes
+app.use(express.static(path.join(__dirname)));
+
+app.get('*', (req, res) => {
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ errorCode: "NOT_FOUND", error: "API endpoint not found" });
+    }
+    return res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+});
 
 module.exports = app;
