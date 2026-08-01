@@ -5,59 +5,46 @@ const path = require('path');
 const seedrandom = require('seedrandom');
 
 const app = express();
-const HF_TOKEN = process.env.HF_TOKEN; // Hugging Face 토큰
+const HF_TOKEN = process.env.HF_TOKEN; 
 
-// Hugging Face Inference API 설정
 const MODEL_ID = "google/gemma-4-26B-A4B-it";
-
 const API_URL = "https://router.huggingface.co/v1/chat/completions";
-
 const ONE_HOUR = 3600000; 
 
 let MASTER_QUIZ_DATA = []; 
 let LAST_FETCH_TIME = 0;
 
-// 전체 13가지 분야 정의
 const ALL_TOPICS = [
     "문화예술", "환경", "과학", "역사", "디지털 리터러시", 
     "인권 리터러시", "한글 맞춤법", "코딩", "안전 및 건강상식", 
     "경제", "지리", "정치", "심리학"
 ];
 
-// 13개 중 5개 분야를 무작위로 동적 선택하는 함수
 function getSelectedTopics() {
     const shuffled = [...ALL_TOPICS].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 5);
 }
 
-// ==========================================================
-// 1. 동적 토픽 및 Function Calling 페이로드 생성
-// ==========================================================
+// 사용자가 제공한 툴 구조 그대로 유지
 function createQuizPayload(selectedTopics) {
     return {
         model: MODEL_ID,
         temperature: 0.1,
         max_tokens: 2500,
-        messages: [
-            {
-                role: "system",
-                content: "You are a strict JSON-only quiz generator. You must always output valid JSON and nothing else. Do not include markdown code blocks like ```json if possible, or ensure it is cleanly parseable."
-            },
-         {
+        messages: [{
             role: "user",
-            content: `총 13가지 분야(문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학) 중 다음 **선택된 5개 분야**에서 각각 정확히 1문제씩 총 5개의 중하급-중급 난이도 상식 퀴즈를 생성해 주세요.
+            content: `총 13가지 분야(문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학) 중 다음 **선택된 5개 분야**에서 각각 정확히 1문제씩 총 5개의 상식 퀴즈를 생성해 주세요.
 
 **선택된 5개 분야:** ${selectedTopics.join(', ')}
 
 **필수 규칙**
 1. 위 5개 분야 각각에 대해 정확히 1문제씩 출제할 것.
-2. 뻔한 소재를 피하고 세부 영역에서 다양하게 선택할 것.
-3. 한글 맞춤법은 2026년 현행 표준 규정 기준.
-4. 코딩 문제는 반드시 문제 본문에 마크다운 코드 블록을 포함할 것.
-5. 보기(choices)는 정확히 4개 작성해야 하며 정답은 하나일 것.
-6. correctAnswerText는 choices의 요소와 정확히 일치해야 하며, correctAnswerIndex는 그 인덱스(0-3)여야 함.
-7. explanation은 반드시 "정답은 [correctAnswerText]입니다."로 시작하고 최대 4문장으로 작성해야 하며, 정답이 맞는 이유와 나머지 선택지는 오답인 이유를 포함해야 함.
-8. topic 필드는 위에서 선택된 5개 분야명 중 하나를 사용할 것.`
+2. 한글 맞춤법은 2026년 현행 표준 규정 기준.
+3. 코딩 문제는 반드시 문제 본문에 마크다운 코드 블록을 포함할 것.
+4. 보기(choices)는 정확히 4개 작성.
+5. correctAnswerText는 choices의 요소와 정확히 일치해야 하며, correctAnswerIndex는 그 인덱스(0-3)여야 함.
+6. explanation은 "정답은 [correctAnswerText]입니다."로 시작하고, 오답들이 왜 틀렸는지를 포함하여 상세히 작성할 것.
+7. topic 필드는 위에서 선택된 5개 분야명 중 하나를 사용할 것.`
         }],
         tools: [{
             type: "function",
@@ -96,10 +83,6 @@ function createQuizPayload(selectedTopics) {
     };
 }
 
-// ==========================================================
-// 2. 핵심 유틸리티 함수
-// ==========================================================
-
 function autoFixQuiz(quiz) {
     if (!Array.isArray(quiz.choices)) return quiz;
     if (quiz.correctAnswerText) {
@@ -127,10 +110,7 @@ function getDailyQuestions(k, data) {
     return shuffled.slice(0, k);
 }
 
-// ==========================================================
-// 3. 데이터 로딩 로직 (Hugging Face API 연동)
-// ==========================================================
-
+// 툴콜과 텍스트 응답을 모두 방어하는 무적 파싱 함수
 async function fetchNewQuizData() {
     const selectedTopics = getSelectedTopics();
     console.log(`[API] Hugging Face 퀴즈 생성 요청 중... (선택 분야: ${selectedTopics.join(', ')})`);
@@ -145,19 +125,36 @@ async function fetchNewQuizData() {
         });
         
         const message = response.data.choices[0].message;
-        if (!message.tool_calls || message.tool_calls.length === 0) {
-            throw new Error("Model did not return a tool call");
+        let rawQuizzes = null;
+
+        // 1. 모델이 정상적으로 Tool Call을 반환한 경우
+        if (message.tool_calls && message.tool_calls.length > 0) {
+            try {
+                const toolCall = message.tool_calls[0];
+                const args = typeof toolCall.function.arguments === 'string' 
+                    ? JSON.parse(toolCall.function.arguments) 
+                    : toolCall.function.arguments;
+                rawQuizzes = args.quizzes;
+            } catch (e) {
+                console.error("[TOOL PARSE ERROR] 툴콜 인자 파싱 실패:", e);
+            }
         }
 
-        const toolCall = message.tool_calls[0];
-        const args = typeof toolCall.function.arguments === 'string' 
-            ? JSON.parse(toolCall.function.arguments) 
-            : toolCall.function.arguments;
-
-        const rawQuizzes = args.quizzes;
+        // 2. 만약 툴콜이 없거나 파싱에 실패했다면 message.content(일반 텍스트)에서 JSON 추출 (Fallback)
+        if (!rawQuizzes && message.content) {
+            try {
+                let contentText = message.content.trim();
+                const jsonMatch = contentText.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || [null, contentText];
+                const cleanJson = jsonMatch[1].trim();
+                const parsed = JSON.parse(cleanJson);
+                rawQuizzes = parsed.quizzes || parsed;
+            } catch (parseError) {
+                console.error("[FALLBACK PARSE ERROR] 텍스트 JSON 파싱 실패:", message.content);
+            }
+        }
 
         if (!rawQuizzes || !Array.isArray(rawQuizzes)) {
-            throw new Error("Invalid quizzes format in tool call arguments");
+            throw new Error("Model response could not be parsed as quiz data from tools or content.");
         }
 
         MASTER_QUIZ_DATA = rawQuizzes.map((q, idx) => {
@@ -185,10 +182,6 @@ async function ensureDataFreshness() {
         await fetchNewQuizData();
     }
 }
-
-// ==========================================================
-// 4. 라우트 설정
-// ==========================================================
 
 app.use(cors());
 app.use(express.json());
@@ -223,9 +216,5 @@ app.get('/api/answer-key', async (req, res) => {
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-app.listen(3000, async () => {
-    console.log('Hugging Face Daily Quiz Server running on port 3000');
-    await fetchNewQuizData(); 
-});
 
 module.exports = app;
