@@ -44,7 +44,8 @@ const QUIZ_GENERATION_PROMPT = {
 7. topic 필드는 반드시 실제 출제 분야명 중 하나를 사용하세요.
 8. 문제, 보기, 정답, 해설 사이에 모순이 절대 없어야 합니다.
 
-JSON 배열만 반환하세요.
+응답은 아래 형식을 엄격히 준수한 JSON 배열이어야 하며, 다른 설명 없이 JSON 배열만 반환하세요:
+[{"topic":"string", "question":"string", "choices":["string","string","string","string"], "correctAnswerIndex":0, "correctAnswerText":"string", "explanation":"string"}]
 
 [REQUEST_ID: ${Date.now()}]`
                 }
