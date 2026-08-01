@@ -1,5 +1,4 @@
 const express = require('express');
-const { GoogleGenAI } = require('@google/genai');
 const cors = require('cors');
 const path = require('path');
 const seedrandom = require('seedrandom');
