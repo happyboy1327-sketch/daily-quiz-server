@@ -40,11 +40,7 @@ app.use(express.urlencoded({
 // ======================================================
 // Frontend 연결
 // ======================================================
-app.use(
-    express.static(
-        path.join(__dirname, "public")
-    )
-);
+app.use(express.static(__dirname));
 
 // ======================================================
 // Gemma REST API 설정
