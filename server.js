@@ -57,10 +57,6 @@ const QUIZ_GENERATION_PROMPT = {
         responseMimeType: "application/json",
 
         temperature: 0.3,
-
-        thinkingConfig: {
-            thinkingLevel: "HIGH"
-        }
     }
 };
 // ==========================================================
