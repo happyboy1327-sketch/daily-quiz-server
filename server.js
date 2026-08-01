@@ -7,7 +7,7 @@ const path = require('path');
 const app = express();
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/google/gemma-4-E2B-it:generateContent?key=${GEMINI_API_KEY}`;
 const ONE_HOUR = 3600000;
 
 let MASTER_QUIZ_DATA = [];
