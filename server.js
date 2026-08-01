@@ -109,7 +109,7 @@ async function fetchNewQuizData() {
     
     try {
         const payload = createQuizPayload(selectedTopics);
-        const response = await axios.post(API_URL, payload, {
+        const response = await axiosClient.post(API_URL, payload, {
             headers: {
                 'Authorization': `Bearer ${HF_TOKEN}`,
                 'Content-Type': 'application/json'
