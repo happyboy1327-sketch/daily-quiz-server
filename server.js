@@ -20,7 +20,7 @@ let MASTER_QUIZ_DATA = [];
 let LAST_FETCH_TIME = 0;
 
 // ==========================================================
-// 1. 퀴즈 생성 프롬프트 (정확히 5문제)
+// 1. 퀴즈 생성 프롬프트 및 JSON 스키마 강제 적용
 // ==========================================================
 const QUIZ_GENERATION_PROMPT = {
     contents: [{
@@ -36,14 +36,31 @@ const QUIZ_GENERATION_PROMPT = {
 5. 보기(choices)는 정확히 4개 작성.
 6. correctAnswerText는 choices의 요소와 정확히 일치해야 하며, correctAnswerIndex는 그 인덱스(0-3)여야 함.
 7. explanation은 반드시 "정답은 [correctAnswerText]입니다."로 시작하고 최대 4문장으로 작성.
-8. topic 필드는 제시된 13가지 분야명 중 하나를 사용할 것.
-
-응답은 반드시 아래 JSON 배열 형식으로만 반환하고, 다른 설명 없이 JSON만 출력하라:
-[{"topic":"string", "question":"string", "choices":["string","string","string","string"], "correctAnswerIndex":0, "correctAnswerText":"string", "explanation":"string"}]`
+8. topic 필드는 제시된 13가지 분야명 중 하나를 사용할 것.`
         }]
     }],
     generationConfig: {
         temperature: 0.3,
+        // API 레벨에서 JSON 출력을 강제하는 핵심 설정
+        responseMimeType: "application/json",
+        responseSchema: {
+            type: "ARRAY",
+            items: {
+                type: "OBJECT",
+                properties: {
+                    topic: { type: "STRING" },
+                    question: { type: "STRING" },
+                    choices: { 
+                        type: "ARRAY", 
+                        items: { type: "STRING" } 
+                    },
+                    correctAnswerIndex: { type: "INTEGER" },
+                    correctAnswerText: { type: "STRING" },
+                    explanation: { type: "STRING" }
+                },
+                required: ["topic", "question", "choices", "correctAnswerIndex", "correctAnswerText", "explanation"]
+            }
+        }
     }
 };
 
@@ -51,26 +68,29 @@ const QUIZ_GENERATION_PROMPT = {
 // 2. 핵심 유틸리티 함수
 // ==========================================================
 
-// Gemma의 마크다운 찌꺼기 제거 후 JSON 파싱
-// 주의: 코딩 문제는 question 필드 안에 ```python 같은 코드펜스를 포함하므로,
-// 단순히 "첫 ``` ~ 다음 ```"를 찾는 방식은 그 내부 코드펜스에서 잘못 끊길 수 있음.
-// 따라서 코드펜스를 찾지 않고, 배열의 시작 '['과 마지막 ']' 사이를 그대로 추출한다.
+// 모델이 순수 JSON만 반환하므로 로직을 단순화하되, 만약을 대비한 방어 코드 유지
 function extractJson(text) {
     try {
-        const trimmed = text.trim();
-        const start = trimmed.indexOf('[');
-        const end = trimmed.lastIndexOf(']');
+        // 1차 시도: API가 순수 JSON을 줬을 것이라 가정하고 바로 파싱
+        return JSON.parse(text);
+    } catch (e1) {
+        // 2차 시도: 혹시라도 마크다운 찌꺼기가 섞여 있을 경우를 대비한 백업(Fallback)
+        try {
+            const trimmed = text.trim();
+            const start = trimmed.indexOf('[');
+            const end = trimmed.lastIndexOf(']');
 
-        if (start === -1 || end === -1 || end <= start) {
-            throw new Error("JSON 배열의 시작/끝 대괄호를 찾지 못했습니다.");
+            if (start === -1 || end === -1 || end <= start) {
+                throw new Error("JSON 배열의 시작/끝 대괄호를 찾지 못했습니다.");
+            }
+
+            const jsonString = trimmed.slice(start, end + 1);
+            return JSON.parse(jsonString);
+        } catch (e2) {
+            console.error("[PARSE ERROR] JSON 파싱 실패:", e2.message);
+            console.error("[PARSE ERROR] 원본 응답 일부:", text.slice(0, 300));
+            return null;
         }
-
-        const jsonString = trimmed.slice(start, end + 1);
-        return JSON.parse(jsonString);
-    } catch (e) {
-        console.error("[PARSE ERROR] JSON 파싱 실패:", e.message);
-        console.error("[PARSE ERROR] 원본 응답 일부:", text.slice(0, 300));
-        return null;
     }
 }
 
@@ -99,7 +119,7 @@ function isValidQuiz(quiz) {
     );
 }
 
-// seedrandom 기반 시드 고정 Fisher-Yates 셔플 (Array.sort 랜덤 비교자보다 균일한 분포)
+// seedrandom 기반 시드 고정 Fisher-Yates 셔플
 function seededShuffle(arr, rng) {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
@@ -142,7 +162,7 @@ function getCachedDailyQuiz() {
 // ==========================================================
 
 async function fetchNewQuizData() {
-    console.log(`[API] Gemma 2 퀴즈 5문제 생성 요청 중...`);
+    console.log(`[API] 퀴즈 5문제 생성 요청 중...`);
     try {
         const response = await axios.post(GEMINI_API_URL, QUIZ_GENERATION_PROMPT);
         const responseText = response.data.candidates[0].content.parts[0].text;
@@ -162,9 +182,13 @@ async function fetchNewQuizData() {
         // 새 문제가 들어왔으므로 캐시된 오늘의 퀴즈 세트를 무효화
         CACHED_DAILY_QUIZ = null;
         CACHED_DAILY_KEY = null;
+        console.log(`[API] 퀴즈 생성 성공! (${cleaned.length}문제 확보)`);
         return true;
     } catch (error) {
         console.error(`[DATA ERROR] 퀴즈 생성 실패: ${error.message}`);
+        if (error.response) {
+            console.error(`[API DETAILS]`, JSON.stringify(error.response.data, null, 2));
+        }
         return false;
     }
 }
@@ -188,7 +212,7 @@ app.get('/api/quiz', async (req, res) => {
     if (MASTER_QUIZ_DATA.length === 0) return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     
     try {
-        // 오늘 날짜 기준으로 캐싱된 5문제 세트 사용 (answer-key와 항상 동일한 세트 보장)
+        // 오늘 날짜 기준으로 캐싱된 5문제 세트 사용
         const dailyQuiz = getCachedDailyQuiz();
         // HTML의 sanitize 로직에 맞춰 정답/해설 제외하고 전송
         return res.status(200).json(sanitizeQuizData(dailyQuiz));
@@ -197,7 +221,7 @@ app.get('/api/quiz', async (req, res) => {
     }
 });
 
-// 2. 정답 키 제공 API (HTML의 correctAnswerMap[q.id] 구조에 맞춤, 해설 포함)
+// 2. 정답 키 제공 API
 app.get('/api/answer-key', async (req, res) => {
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) return res.status(503).json({ error: "Data unavailable" });
