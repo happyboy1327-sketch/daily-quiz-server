@@ -5,11 +5,9 @@ const path = require('path');
 const seedrandom = require('seedrandom');
 
 const app = express();
-const HF_TOKEN = process.env.HF_TOKEN; // Hugging Face 토큰
+const HF_TOKEN = process.env.HF_TOKEN; 
 
-// Hugging Face Inference API 설정
 const MODEL_ID = "google/gemma-4-26B-A4B-it";
-
 const API_URL = "https://router.huggingface.co/v1/chat/completions";
 
 const ONE_HOUR = 3600000; 
@@ -17,28 +15,31 @@ const ONE_HOUR = 3600000;
 let MASTER_QUIZ_DATA = []; 
 let LAST_FETCH_TIME = 0;
 
-// 전체 13가지 분야 정의
 const ALL_TOPICS = [
     "문화예술", "환경", "과학", "역사", "디지털 리터러시", 
     "인권 리터러시", "한글 맞춤법", "코딩", "안전 및 건강상식", 
     "경제", "지리", "정치", "심리학"
 ];
 
-// 13개 중 5개 분야를 무작위로 동적 선택하는 함수
 function getSelectedTopics() {
     const shuffled = [...ALL_TOPICS].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 5);
 }
 
-// ==========================================================
-// 1. 동적 토픽 및 Function Calling 페이로드 생성
-// ==========================================================
+// 툴(Tools)을 완전히 제거하고 순수 JSON 텍스트 생성을 요구하는 페이로드
 function createQuizPayload(selectedTopics) {
     return {
         model: MODEL_ID,
-        messages: [{
-            role: "user",
-            content: `총 13가지 분야(문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학) 중 다음 **선택된 5개 분야**에서 각각 정확히 1문제씩 총 5개의 중하급-중급 난이도 상식 퀴즈를 생성해 주세요.
+        temperature: 0.1,
+        max_tokens: 3000,
+        messages: [
+            {
+                role: "system",
+                content: "You are a strict JSON-only quiz generator. You must output a valid JSON object matching the requested schema and nothing else. Do not wrap in conversational text."
+            },
+            {
+                role: "user",
+                content: `총 13가지 분야(문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학) 중 다음 **선택된 5개 분야**에서 각각 정확히 1문제씩 총 5개의 중하급-중급 난이도 상식 퀴즈를 생성해 주세요.
 
 **선택된 5개 분야:** ${selectedTopics.join(', ')}
 
@@ -50,48 +51,24 @@ function createQuizPayload(selectedTopics) {
 5. 보기(choices)는 정확히 4개 작성.
 6. correctAnswerText는 choices의 요소와 정확히 일치해야 하며, correctAnswerIndex는 그 인덱스(0-3)여야 함.
 7. explanation은 반드시 "정답은 [correctAnswerText]입니다."로 시작하고 최대 4문장으로, 정답이 맞는 이유와 나머지 선택지가 오답인 이유 작성.
-8. topic 필드는 위에서 선택된 5개 분야명 중 하나를 사용할 것.`
-        }],
-        tools: [{
-            type: "function",
-            function: {
-                name: "generate_quizzes",
-                description: "Generate a list of 5 trivia quiz questions based on the requested criteria.",
-                parameters: {
-                    type: "OBJECT",
-                    properties: {
-                        quizzes: {
-                            type: "ARRAY",
-                            description: "Array of 5 quiz objects",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    topic: { type: "STRING", description: "One of the 5 selected topics" },
-                                    question: { type: "STRING", description: "The quiz question text" },
-                                    choices: { 
-                                        type: "ARRAY", 
-                                        items: { type: "STRING" }, 
-                                        description: "Array of 4 choice options" 
-                                    },
-                                    correctAnswerIndex: { type: "INTEGER", description: "Index of the correct choice (0-3)" },
-                                    correctAnswerText: { type: "STRING", description: "Text of the correct choice" },
-                                    explanation: { type: "STRING", description: "Explanation starting with '정답은 [correctAnswerText]입니다.'" }
-                                },
-                                required: ["topic", "question", "choices", "correctAnswerIndex", "correctAnswerText", "explanation"]
-                            }
-                        }
-                    },
-                    required: ["quizzes"]
-                }
+8. topic 필드는 위에서 선택된 5개 분야명 중 하나를 사용할 것.
+9. 반드시 아래 형식의 순수 JSON 객체로만 응답할 것:
+{
+  "quizzes": [
+    {
+      "topic": "분야명",
+      "question": "문제 내용",
+      "choices": ["보기1", "보기2", "보기3", "보기4"],
+      "correctAnswerIndex": 0,
+      "correctAnswerText": "보기1",
+      "explanation": "정답은 보기1입니다. ..."
+    }
+  ]
+}`
             }
-        }],
-        tool_choice: "auto"
+        ]
     };
 }
-
-// ==========================================================
-// 2. 핵심 유틸리티 함수
-// ==========================================================
 
 function autoFixQuiz(quiz) {
     if (!Array.isArray(quiz.choices)) return quiz;
@@ -120,10 +97,6 @@ function getDailyQuestions(k, data) {
     return shuffled.slice(0, k);
 }
 
-// ==========================================================
-// 3. 데이터 로딩 로직 (Hugging Face API 연동)
-// ==========================================================
-
 async function fetchNewQuizData() {
     const selectedTopics = getSelectedTopics();
     console.log(`[API] Hugging Face 퀴즈 생성 요청 중... (선택 분야: ${selectedTopics.join(', ')})`);
@@ -138,19 +111,25 @@ async function fetchNewQuizData() {
         });
         
         const message = response.data.choices[0].message;
-        if (!message.tool_calls || message.tool_calls.length === 0) {
-            throw new Error("Model did not return a tool call");
+        if (!message || !message.content) {
+            throw new Error("Model did not return any content");
         }
 
-        const toolCall = message.tool_calls[0];
-        const args = typeof toolCall.function.arguments === 'string' 
-            ? JSON.parse(toolCall.function.arguments) 
-            : toolCall.function.arguments;
+        let rawQuizzes = null;
+        let contentText = message.content.trim();
 
-        const rawQuizzes = args.quizzes;
+        try {
+            const jsonMatch = contentText.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || [null, contentText];
+            const cleanJson = jsonMatch[1].trim();
+            const parsed = JSON.parse(cleanJson);
+            rawQuizzes = parsed.quizzes || parsed;
+        } catch (parseErr) {
+            console.error("[PARSE ERROR] 모델 응답 JSON 파싱 실패:", contentText);
+            throw new Error("Failed to parse model response as JSON");
+        }
 
         if (!rawQuizzes || !Array.isArray(rawQuizzes)) {
-            throw new Error("Invalid quizzes format in tool call arguments");
+            throw new Error("Invalid quizzes format parsed from text");
         }
 
         MASTER_QUIZ_DATA = rawQuizzes.map((q, idx) => {
@@ -178,10 +157,6 @@ async function ensureDataFreshness() {
         await fetchNewQuizData();
     }
 }
-
-// ==========================================================
-// 4. 라우트 설정
-// ==========================================================
 
 app.use(cors());
 app.use(express.json());
@@ -215,6 +190,5 @@ app.get('/api/answer-key', async (req, res) => {
 });
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-
 
 module.exports = app;
