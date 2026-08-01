@@ -1,360 +1,528 @@
-// ======================================================
-// server.js
-// Part 1 / 4
-// 상식 퀴즈 서버
-// ======================================================
-
-require("dotenv").config();
-
-const express = require("express");
-const axios = require("axios");
-const path = require("path");
+// server.js (Vercel 배포 및 1시간 갱신 로직 적용)
+const express = require('express');
+const cors = require('cors');
+const seedrandom = require('seedrandom'); 
+const axios = require('axios'); 
+const path = require('path');
 const app = express();
 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const ONE_HOUR = 3600000;
 
-// ======================================================
-// 기본 설정
-// ======================================================
-const PORT = process.env.PORT || 3000;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const MODEL = "gemma-4-26b-a4b-it";
+let MASTER_QUIZ_DATA = [];
+let LAST_FETCH_TIME = 0;
+let LAST_TOPICS = [];
 
-if (!GEMINI_API_KEY) {
-    console.error("❌ GEMINI_API_KEY가 없습니다.");
-    process.exit(1);
-}
+// ==========================================================
+// 퀴즈 생성 프롬프트 및 설정
+// ==========================================================
+const QUIZ_GENERATION_PROMPT = {
+    contents: [
+        {
+            role: "user",
+            parts: [
+                {
+                    text: `퀴즈 출제 분야는 문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학으로 총 13가지 분야에서 중하급-중급 난이도의 상식 퀴즈 5개를 생성하여라.
 
+**필수 규칙**
 
-// ======================================================
-// Middleware
-// ======================================================
+1. 지정된 분야 중 서로 다른 5개 분야를 선택하여 출제하여라.
+2. 각 분야의 뻔한 소재(예: 역사=세종대왕, 건강=CPR, 예술=모나리자)는 우선적으로 피하고,세부 영역(세계사, 천문학, 생활금융 등)에서 다양한 소재를 선택할 것.
+3. 한글 맞춤법 문제는 2026년 현행 국립국어원 표준 규정을 기준으로 작성하고, 띄어쓰기, 외래어 표기법, 사이시옷 등 실제 활용 가능한 내용을 다룰 것.
+4. 보기(choices)는 반드시 정확히 4개 작성하라.
+5. 정답 관리를 위해 반드시 아래 3개 필드를 일치시켜라.
+- correctAnswerText: choices 배열의 정답 보기와 동일한 문자열. correctAnswerIndex가 0이면 첫 번째 보기의 문자열, 3이면 네 번째 보기의 문자열을 가리킨다.
+- correctAnswerIndex: correctAnswerText가 위치한 choices 배열 index(0~3).
+- explanation: 반드시 첫 문장을 "정답은 [correctAnswerText]입니다." 형식으로 시작.
 
-app.use(express.json({
-    limit: "2mb"
-}));
+6. explanation은 최대 4문장으로 작성하고 다음 내용을 포함하세요.
+- 정답인 이유
+- 다른 선택지가 틀린 핵심 이유
 
-app.use(express.urlencoded({
-    extended: true
-}));
+7. topic 필드는 반드시 실제 출제 분야명 중 하나를 사용하세요.
+8. 문제, 보기, 정답, 해설 사이에 모순이 절대 없어야 합니다.
 
-// ======================================================
-// Frontend 연결
-// ======================================================
-app.use(express.static(__dirname));
+JSON 배열만 반환하세요.
 
-// ======================================================
-// Gemma REST API 설정
-// ======================================================
+[REQUEST_ID: ${Date.now()}]`
+                }
+            ]
+        }
+    ],
 
-const GEMMA_URL =
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    generationConfig: {
+        responseMimeType: "application/json",
 
-// ======================================================
-// 퀴즈 출제 분야
-// ======================================================
-const QUIZ_TOPICS = ["문화예술", "환경", "과학", "역사", "디지털 리터러시", "인권 리터러시", "한글 맞춤법",
-"코딩", "안전 및 건강상식", "경제", "지리", "정치", "심리학"
-];
+        temperature: 0.4,
 
-// ======================================================
-// 배열 섞기
-// ======================================================
+        thinkingConfig: {
+            thinkingBudget: 512
+        }
+    }
+};
+// ==========================================================
+// 1. 핵심 유틸리티 함수
+// ==========================================================
 
-function shuffle(array) {
-  const copied = [...array];
+function autoFixQuiz(quiz) {
+    if (!Array.isArray(quiz.choices)) return quiz;
 
-    for (
-        let i = copied.length - 1;
-        i > 0;
-        i--
-    ) {
+    // 1순위: correctAnswerText 기준 보정
+    if (quiz.correctAnswerText) {
+        const textIndex = quiz.choices.findIndex(
+            choice => choice && choice.trim() === quiz.correctAnswerText.trim()
+        );
 
-        const random =
-            Math.floor(
-                Math.random() * (i + 1)
+        if (textIndex !== -1 && textIndex !== quiz.correctAnswerIndex) {
+            console.log(
+                `[AUTO-FIX] correctAnswerText 기준 수정: ${quiz.correctAnswerIndex} → ${textIndex}`
             );
 
+            quiz.correctAnswerIndex = textIndex;
+        }
 
-        [
-            copied[i],
-            copied[random]
-        ] =
-        [
-            copied[random],
-            copied[i]
-        ];
-
+        return quiz;
     }
 
+    // 기존 explanation 보정 로직 (하위 호환)
+    if (!quiz.explanation) return quiz;
 
-    return copied;
+    const explanationMatch = quiz.explanation.match(
+        /정답은\s+['"‘“]?([^'”’.]+)['"’”?]?입니다/
+    );
 
+    if (!explanationMatch) return quiz;
+
+    const explanationAnswer = explanationMatch[1].trim();
+
+    let correctIndex = quiz.choices.findIndex(
+        choice => choice && choice.trim() === explanationAnswer
+    );
+
+    if (correctIndex === -1) {
+        const viewMatch = explanationAnswer.match(/보기\s*([1-4])/);
+
+        if (viewMatch) {
+            correctIndex = parseInt(viewMatch[1], 10) - 1;
+        }
+    }
+
+    if (correctIndex !== -1 && correctIndex !== quiz.correctAnswerIndex) {
+        console.log(
+            `[AUTO-FIX] explanation 기준 수정: ${quiz.correctAnswerIndex} → ${correctIndex}`
+        );
+
+        quiz.correctAnswerIndex = correctIndex;
+    }
+
+    return quiz;
 }
 
+async function validateQuizQuality(quiz) {
+    const prompt = `
+다음 퀴즈를 검증하세요.
 
-// ======================================================
-// 랜덤 5개 분야 선택
-// ======================================================
+문제:
+${quiz.question}
 
-function selectQuizTopics() {
+보기:
+${quiz.choices.map((c, i) => `${i + 1}. ${c}`).join("\n")}
 
-    return shuffle(QUIZ_TOPICS)
-        .slice(0, 5);
+현재 정답:
+${quiz.correctAnswerIndex + 1}번
 
-}
+해설:
+${quiz.explanation}
 
+검사:
+1. 문제·보기·정답·해설이 서로 일치하는가?
+2. 해설에 사실 오류가 있는가?
 
-// ======================================================
-// Gemma Prompt 생성
-// ======================================================
-
-function createQuizPrompt() {
-
-
-    const selectedTopics =
-        selectQuizTopics();
-
-
-
-    return `
-
-너는 대한민국 상식 퀴즈 출제 AI다.
-
-
-이번 출제 분야:
-
-${selectedTopics
-.map((topic, index) =>
-    `${index + 1}. ${topic}`
-)
-.join("\n")}
-
-
-
-출제 조건:
-
-- 총 5문제 생성
-- 선택된 5개 분야에서 각각 1문제씩 출제
-- 난이도: 중하급~중급
-- 일반인이 풀 수 있는 상식 수준
-- 문제는 서로 중복되지 않음
-- 객관식 4지선다
-- 정답 위치는 랜덤
-- 오답도 자연스럽게 구성
-- 해설 포함
-
-
-
-반드시 JSON 형식만 출력한다.
-
-
-출력 형식:
+반드시 JSON만 반환하세요.
 
 {
-  "questions":[
-    {
-      "topic":"",
-      "question":"",
-      "choices":[
-        "",
-        "",
-        "",
-        ""
-      ],
-      "answer":0,
-      "explanation":""
-    }
-  ]
+  "valid": true,
+  "explanationError": false,
+  "reason": ""
 }
-
-규칙:
-
-- answer는 0~3 숫자
-- JSON 외 설명 금지
-- 마크다운 금지
-- 코드블록 금지
-
 `;
-}
 
-// ======================================================
-// server.js
-// Part 2 / 4
-// ======================================================
-
-async function callGemma(prompt){
-    try{
-        const response= await axios.post(
-            GEMMA_URL,
+    try {
+        const response = await axios.post(
+            GEMINI_API_URL,
             {
-                contents:[
+                contents: [
                     {
-                        role:"user",
-                        parts:[
+                        role: "user",
+                        parts: [
                             {
-                                text:prompt
+                                text: prompt
                             }
                         ]
                     }
                 ],
-                generationConfig:{
-                    temperature:0.8,
-                    topP:0.9,
-                    maxOutputTokens:4096,
-                    responseMimeType:"application/json"
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    temperature: 0.1
                 }
             },
             {
-                headers:{
-                    "Content-Type":"application/json"
-                },
-                timeout:60000
+                timeout: 20000
             }
         );
-        return response.data.candidates[0].content.parts[0].text;
-    }catch(error){
-        console.error("Gemma API 오류:",error.response?.data||error.message);
-        throw new Error("퀴즈 생성 실패");
+
+        const text = response.data.candidates[0].content.parts[0].text;
+
+console.log("===== GEMINI RAW =====");
+console.log(text);
+
+const cleaned = text.replace(/```json|```/g, '').trim();
+
+console.log("===== CLEANED =====");
+console.log(cleaned);
+
+const result = JSON.parse(cleaned);
+
+console.log("===== PARSED RESULT =====");
+console.log(result);
+
+return result;
+
+    } catch (error) {
+        console.error("[QUALITY CHECK ERROR]", error.message);
+
+        // 검증 실패로 서버 전체가 죽지 않게 처리
+        return {
+            valid: true,
+            reason: "검증 API 실패로 통과 처리"
+        };
     }
 }
 
-function parseQuizJSON(text){
-    if(!text) throw new Error("빈 응답");
+async function validateSingleQuiz(quiz, index) {
+    const errors = [];
 
-    let json= text.trim()
-        .replace(/```json/g,"")
-        .replace(/```/g,"")
-        .trim();
+    if (!quiz.topic || !quiz.question || !Array.isArray(quiz.choices) || typeof quiz.correctAnswerIndex !== 'number' || !quiz.explanation) {
+        return { isValid: false, errors: ['필수 필드 누락'] };
+    }
 
-    const start= json.indexOf("{");
-    const end= json.lastIndexOf("}");
+    if (quiz.choices.length !== 4) {
+        errors.push(`보기 개수 오류 (${quiz.choices.length}개)`);
+    }
 
-    if(start===-1||end===-1)
-        throw new Error("JSON 형식 오류");
+    if (quiz.correctAnswerIndex < 0 || quiz.correctAnswerIndex >= quiz.choices.length) {
+        errors.push(`correctAnswerIndex 범위 초과`);
+    }
 
-    json=json.substring(start,end+1);
-
-    return JSON.parse(json);
-}
-
-function validateQuiz(data){
-    if(!data.questions||!Array.isArray(data.questions))
-        throw new Error("문제 데이터 오류");
-
-    if(data.questions.length!==5)
-        throw new Error("문제 개수 오류");
-
-    data.questions.forEach(q=>{
-        if(!q.topic||!q.question)
-            throw new Error("문제 내용 오류");
-
-        if(!Array.isArray(q.choices)||q.choices.length!==4)
-            throw new Error("보기 오류");
-
-        if(typeof q.answer!=="number"||q.answer<0||q.answer>3)
-            throw new Error("정답 오류");
+    quiz.choices.forEach((choice, choiceIndex) => {
+        if (!choice || choice.trim() === '') {
+            errors.push(`보기 ${choiceIndex + 1} 비어있음`);
+        }
     });
 
-    return data;
-};
+    // 수정 후 (마침표나 따옴표 유무에 구애받지 않도록 수정)
+if (!/^정답은\s*['"‘“]?[\s\S]+?['"‌​’”]?(?:입니다|입니다\.)/.test(quiz.explanation.trim())) {
+    errors.push(`해설 시작 형식 불일치`);
+}
 
-// ======================================================
-// server.js
-// Part 3 / 4
-// ======================================================
+    // 해설 정답과 실제 정답 번호 비교
+    const explanationMatch = quiz.explanation.match(
+        /정답은\s+['"‘“]?(.+?)['"’”]?(?:입니다|입니다\.)/
+    );
 
-let lastTopics=[];
+    if (explanationMatch) {
+        const explanationAnswer = explanationMatch[1].trim();
 
+        const explanationIndex = quiz.choices.findIndex(
+            choice => choice.trim() === explanationAnswer
+        );
 
-async function createQuizWithRetry(){
-
-    let retry=0;
-    let lastPrompt=null;
-
-    while(retry<3){
-
-        try{
-
-            if(!lastPrompt){
-                lastPrompt=createQuizPrompt();
-            }
-
-            const result=await callGemma(lastPrompt);
-
-            const quiz=parseQuizJSON(result);
-
-            validateQuiz(quiz);
-
-            return quiz;
-
-
-        }catch(error){
-
-            retry++;
-
-            console.log(
-              `퀴즈 생성 재시도 ${retry}/3`
-            );
-
-            if(retry>=3)
-                throw error;
+        if (explanationIndex === -1) {
+            errors.push(`해설 정답이 보기와 불일치`);
+        } else if (explanationIndex !== quiz.correctAnswerIndex) {
+            errors.push(`정답 번호와 해설 불일치`);
         }
     }
+
+
+    // 로컬 검사에서 이미 오류 있으면 AI 호출 생략
+    if (errors.length > 0) {
+        return {
+            isValid: false,
+            errors
+        };
+    }
+
+
+    // AI 내용 검증
+    const qualityResult = await validateQuizQuality(quiz);
+
+    console.log("===== QUALITY RESULT =====");
+    console.log(qualityResult);
+    console.log("치명적 오류이니 꼭 해결하세요.");
+
+    if (!qualityResult.valid) {
+        errors.push(
+            `AI 내용 검증 실패: ${qualityResult.reason || '알 수 없는 오류'}`
+        );
+    }
+
+
+    return {
+        isValid: errors.length === 0,
+        errors,
+        quality: qualityResult
+    };
+}
+    
+async function filterValidQuizzes(quizData) {
+    if (!Array.isArray(quizData) || quizData.length === 0) {
+        return { validQuizzes: [], invalidCount: 0, errors: ['퀴즈 데이터가 배열이 아니거나 비어있습니다.'] };
+    }
+    
+    const validQuizzes = [];
+    const allErrors = [];
+    let invalidCount = 0;
+    let fixedCount = 0;
+
+    const topics = quizData.map(q => q.topic);
+
+    if (topics.includes(undefined) || topics.includes("")) {
+        return {
+            validQuizzes: [],
+            invalidCount: quizData.length,
+            fixedCount: 0,
+            errors: ["topic 누락"]
+        };
+    }
+
+    if (new Set(topics).size !== topics.length) {
+        return {
+            validQuizzes: [],
+            invalidCount: quizData.length,
+            fixedCount: 0,
+            errors: ["출제 분야 중복"]
+        };
+    }
+    
+    const results = await Promise.all(
+        quizData.map(async (quiz, index) => {
+            const originalIndex = quiz.correctAnswerIndex;
+            const fixedQuiz = autoFixQuiz(quiz);
+            const validation = await validateSingleQuiz(fixedQuiz, index);
+
+            return {
+                fixedQuiz,
+                validation,
+                originalIndex,
+                index
+            };
+        })
+    );
+
+    for (const { fixedQuiz, validation, originalIndex, index } of results) {
+        if (validation.isValid) {
+            validQuizzes.push(fixedQuiz);
+            if (fixedQuiz.correctAnswerIndex !== originalIndex) {
+                fixedCount++;
+            }
+        } else {
+            invalidCount++;
+            console.log(`[DROP REASON] 문제 ${index + 1} 탈락 사유:`, validation.errors);
+            allErrors.push(`문제 ${index + 1}: ${validation.errors.join(', ')}`);
+        }
+    }
+
+    // 💥 누락되었던 최종 결과 반환 및 함수 닫기 중괄호
+    return {
+        validQuizzes,
+        invalidCount,
+        fixedCount,
+        errors: allErrors
+    };
 }
 
-app.get("/api/health",(req,res)=>{
-    res.json({
-        success:true,
-        server:"quiz-server",
-        status:"running"
+function getDailySeed() {
+    const today = new Date();
+    return `${today.getUTCFullYear()}${String(today.getUTCMonth() + 1).padStart(2, '0')}${String(today.getUTCDate()).padStart(2, '0')}`;
+}
+
+function shuffleArray(array, seed) {
+    const rng = seedrandom(seed); 
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1)); 
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+const TOPICS = [
+    "문화예술", "환경", "과학", "역사", "디지털 리터러시", "인권 리터러시", 
+    "한글 맞춤법", "코딩", "안전 및 건강상식", "경제", "지리", "정치", "심리학"
+];
+
+function getSelectedTopics() {
+    const availableTopics = TOPICS.filter(topic => !LAST_TOPICS.includes(topic));
+    const topicPool = availableTopics.length >= 5 ? availableTopics : TOPICS;
+    return shuffleArray([...topicPool], Date.now().toString()).slice(0, 5);
+}
+
+function assignQuizIds(quizData) {
+    return quizData.map((q, index) => ({ ...q, id: index + 1 }));
+}
+
+function getKRandomQuestions(K, masterData) {
+    const seed = getDailySeed();
+    const dataCopy = [...masterData]; 
+    const count = Math.min(K, dataCopy.length);
+    return shuffleArray(dataCopy, seed).slice(0, count);
+}
+
+function sanitizeQuizData(questions) {
+    return questions.map(q => {
+        const { correctAnswerIndex, ...safeQuestion } = q;
+        return safeQuestion; 
     });
-});
+}
 
-app.post("/api/quiz",async(req,res)=>{
-    try{
-        const quiz=await createQuizWithRetry();
+// ==========================================================
+// 2. 외부 데이터 로딩 및 갱신 함수
+// ==========================================================
 
-        res.json({
-            success:true,
-            count:quiz.questions.length,
-            questions:quiz.questions
-        });
+async function fetchNewQuizData() {
+    console.log(`[DATA] Gemini API를 통해 새로운 퀴즈 데이터 로딩을 시작합니다...`);
 
-    }catch(error){
-        res.status(500).json({
-            success:false,
-            message:"퀴즈 생성 중 오류 발생",
-            error:error.message
-        });
+    const uniqueId = Date.now();
+    const selectedTopics = getSelectedTopics();
+    const currentPrompt = JSON.parse(JSON.stringify(QUIZ_GENERATION_PROMPT));
+    
+    
+    currentPrompt.contents[0].parts[0].text =
+    currentPrompt.contents[0].parts[0].text.replace(
+        '퀴즈 출제 분야는 문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학으로 총 13가지 분야에서 중하급-중급 난이도의 상식 퀴즈 5개를 생성하여라.',
+        `다음 5개 분야에서만 각각 정확히 1문제씩 총 5문제를 생성하여라: ${selectedTopics.join(', ')}
+
+[이번 회차 출제 가이드]
+- 실생활 사례, 기초 개념, 역사적 배경, 최신 용어 등 매번 다채로운 관점의 소재를 골라 출제하세요.
+- 분야별 대표 키워드 대신 세부 주제와 풍부한 단어를 활용하세요.`
+    );
+
+    currentPrompt.contents[0].parts[0].text =
+    currentPrompt.contents[0].parts[0].text.replace(
+        /\[REQUEST_ID: \d+\]/,
+        `[REQUEST_ID: ${uniqueId}]`
+    );
+
+    const MAX_RETRIES = 2; 
+    let success = false;
+
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        if (attempt > 0) {
+            console.log(`[DATA] 재시도 중... (${attempt + 1}/${MAX_RETRIES + 1})`);
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000)); 
+        }
+
+        try {
+            const response = await axios.post(GEMINI_API_URL, currentPrompt, { timeout: 70000 });
+            const generatedContent = response.data;
+            
+            if (!generatedContent.candidates || generatedContent.candidates.length === 0) {
+                throw new Error("Gemini API 응답 결과가 없습니다.");
+            }
+
+            const quizJsonText = generatedContent.candidates[0].content.parts[0].text;
+            const cleanedJsonText = quizJsonText.replace(/```json|```/g, '').trim();
+            const newQuizData = JSON.parse(cleanedJsonText);
+            
+            
+            const filterResult = await filterValidQuizzes(newQuizData);
+            
+            if (filterResult.fixedCount > 0) console.log(`[AUTO-FIX] ✅ ${filterResult.fixedCount}개 자동 수정 완료`);
+            if (filterResult.invalidCount > 0) console.warn(`[WARNING] ${filterResult.invalidCount}개 문제 검증 제외`);
+            
+            if (filterResult.validQuizzes.length >= 3) {
+                MASTER_QUIZ_DATA = assignQuizIds(filterResult.validQuizzes);
+                LAST_TOPICS = [...selectedTopics];
+                LAST_FETCH_TIME = Date.now(); 
+                console.log(`[DATA] ✅ 퀴즈 데이터 갱신 완료 (${MASTER_QUIZ_DATA.length}개 로드)`);
+                success = true;
+                break;
+            } else {
+                throw new Error(`유효한 퀴즈 부족 (${filterResult.validQuizzes.length}개)`);
+            }
+        } catch (error) {
+            console.error(`[DATA ERROR] (시도 ${attempt + 1}): ${error.message}`);
+        }
+    }
+    
+    if (!success) console.error('[DATA FAIL] ❌ 퀴즈 데이터 로딩 최종 실패');
+    return success;
+}
+
+// ==========================================================
+// 3. 미들웨어 및 라우트 설정
+// ==========================================================
+
+app.use(cors());
+app.use(express.json());
+
+async function ensureDataFreshness() {
+    if (MASTER_QUIZ_DATA.length === 0 || (Date.now() - LAST_FETCH_TIME) > ONE_HOUR) {
+        console.log(`[CHECK] 데이터 갱신 필요. 실행 중...`);
+        await fetchNewQuizData();
+    }
+}
+
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+
+app.get('/api/quiz', async (req, res) => {
+    await ensureDataFreshness();
+
+    if (MASTER_QUIZ_DATA.length === 0) {
+        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE", message: "Quiz data is unavailable." });
+    }
+    
+    try {
+        const todaysQuestions = getKRandomQuestions(5, MASTER_QUIZ_DATA);
+        const sortedQuestions = todaysQuestions.sort((a, b) => a.id - b.id);
+        return res.status(200).json(sanitizeQuizData(sortedQuestions));
+    } catch (error) {
+        console.error("Quiz API Error:", error);
+        return res.status(500).json({ errorCode: "SERVER_ERROR" });
     }
 });
 
-app.get("*",(req,res)=>{
-    res.sendFile(
-        path.join(__dirname,"index.html")
-    );
+        
+app.get('/api/answer-key', async (req, res) => {
+    console.log("1");
+    await ensureDataFreshness();
+    console.log("2");
+
+
+    if (MASTER_QUIZ_DATA.length === 0) {
+        console.log("3");
+        return res.status(503).json({ error: "Data unavailable" });
+    }
+    
+    try {
+        console.log("4");
+        const todaysQuestions = getKRandomQuestions(5, MASTER_QUIZ_DATA); 
+        console.log("5");
+        const sortedQuestions = todaysQuestions.sort((a, b) => a.id - b.id);
+
+        const answerKey = sortedQuestions.reduce((acc, q) => {
+            if (typeof q.id === 'number' && typeof q.correctAnswerIndex === 'number') {
+                acc[q.id] = q.correctAnswerIndex;
+                console.log("정답 확인완료");
+            }
+            return acc;
+        }, {});
+        
+        return res.status(200).json(answerKey);
+    } catch (e) {
+        console.log("ERROR", e);
+        return res.status(500).json({ errorCode: "SERVER_ERROR" });
+    }
 });
-
-// ======================================================
-// server.js
-// Part 4 / 4
-// ======================================================
-
-app.use((err, req, res, next) => {
-    console.error(err);
-
-    res.status(500).json({
-        success: false,
-        message: "서버 내부 오류"
-    });
-});
-
-process.on("unhandledRejection", (error) => {
-    console.error("Unhandled Promise Error:", error);
-});
-
-process.on("uncaughtException", (error) => {
-    console.error("Uncaught Exception:", error);
-});
-
 module.exports = app;
