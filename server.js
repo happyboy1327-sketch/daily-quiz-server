@@ -1,15 +1,15 @@
 const express = require('express');
-const axios = require('axios');
+const { GoogleGenAI } = require('@google/genai');
 const cors = require('cors');
 const path = require('path');
 const seedrandom = require('seedrandom');
 
 const app = express();
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
-// Gemma 모델 설정
-const MODEL_ID = "models/gemma-4-26b-a4b-it"; 
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent?key=${GEMINI_API_KEY}`;
+// 공식 SDK 초기화 (process.env.GEMINI_API_KEY 자동 인식)
+const ai = new GoogleGenAI();
+
+const MODEL_NAME = "gemma-4-26b-a4b-it"; 
 const ONE_HOUR = 3600000; 
 
 let MASTER_QUIZ_DATA = []; 
@@ -29,14 +29,11 @@ function getSelectedTopics() {
 }
 
 // ==========================================================
-// 1. 동적 토픽을 반영하는 Function Calling 페이로드 생성 함수
+// 1. 동적 토픽 및 Function Calling 정의
 // ==========================================================
-function createQuizPayload(selectedTopics) {
+function getQuizGenerationConfig(selectedTopics) {
     return {
-        contents: [{
-            role: "user",
-            parts: [{
-                text: `총 13가지 분야(문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학) 중 다음 **선택된 5개 분야**에서 각각 정확히 1문제씩 총 5개의 중하급-중급 난이도 상식 퀴즈를 생성해 주세요.
+        contents: `총 13가지 분야(문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학) 중 다음 **선택된 5개 분야**에서 각각 정확히 1문제씩 총 5개의 중하급-중급 난이도 상식 퀴즈를 생성해 주세요.
 
 **선택된 5개 분야:** ${selectedTopics.join(', ')}
 
@@ -48,45 +45,45 @@ function createQuizPayload(selectedTopics) {
 5. 보기(choices)는 정확히 4개 작성.
 6. correctAnswerText는 choices의 요소와 정확히 일치해야 하며, correctAnswerIndex는 그 인덱스(0-3)여야 함.
 7. explanation은 반드시 "정답은 [correctAnswerText]입니다."로 시작하고 최대 4문장으로 작성.
-8. topic 필드는 위에서 선택된 5개 분야명 중 하나를 사용할 것.`
-            }]
-        }],
-        tools: [{
-            functionDeclarations: [{
-                name: "generate_quizzes",
-                description: "Generate a list of 5 trivia quiz questions based on the requested criteria.",
-                parameters: {
-                    type: "OBJECT",
-                    properties: {
-                        quizzes: {
-                            type: "ARRAY",
-                            description: "Array of 5 quiz objects",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    topic: { type: "STRING", description: "One of the 5 selected topics" },
-                                    question: { type: "STRING", description: "The quiz question text" },
-                                    choices: { 
-                                        type: "ARRAY", 
-                                        items: { type: "STRING" }, 
-                                        description: "Array of 4 choice options" 
+8. topic 필드는 위에서 선택된 5개 분야명 중 하나를 사용할 것.`,
+        config: {
+            tools: [{
+                functionDeclarations: [{
+                    name: "generate_quizzes",
+                    description: "Generate a list of 5 trivia quiz questions based on the requested criteria.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            quizzes: {
+                                type: "ARRAY",
+                                description: "Array of 5 quiz objects",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        topic: { type: "STRING", description: "One of the 5 selected topics" },
+                                        question: { type: "STRING", description: "The quiz question text" },
+                                        choices: { 
+                                            type: "ARRAY", 
+                                            items: { type: "STRING" }, 
+                                            description: "Array of 4 choice options" 
+                                        },
+                                        correctAnswerIndex: { type: "INTEGER", description: "Index of the correct choice (0-3)" },
+                                        correctAnswerText: { type: "STRING", description: "Text of the correct choice" },
+                                        explanation: { type: "STRING", description: "Explanation starting with '정답은 [correctAnswerText]입니다.'" }
                                     },
-                                    correctAnswerIndex: { type: "INTEGER", description: "Index of the correct choice (0-3)" },
-                                    correctAnswerText: { type: "STRING", description: "Text of the correct choice" },
-                                    explanation: { type: "STRING", description: "Explanation starting with '정답은 [correctAnswerText]입니다.'" }
-                                },
-                                required: ["topic", "question", "choices", "correctAnswerIndex", "correctAnswerText", "explanation"]
+                                    required: ["topic", "question", "choices", "correctAnswerIndex", "correctAnswerText", "explanation"]
+                                }
                             }
-                        }
-                    },
-                    required: ["quizzes"]
+                        },
+                        required: ["quizzes"]
+                    }
+                }]
+            }],
+            toolConfig: {
+                functionCallingConfig: {
+                    mode: "ANY",
+                    allowedFunctionNames: ["generate_quizzes"]
                 }
-            }]
-        }],
-        toolConfig: {
-            functionCallingConfig: {
-                mode: "ANY",
-                allowedFunctionNames: ["generate_quizzes"]
             }
         }
     };
@@ -109,14 +106,12 @@ function autoFixQuiz(quiz) {
     return quiz;
 }
 
-// HTML의 loadQuizData 함수가 요구하는 형태로 데이터 정제[cite: 1]
 function sanitizeQuizData(quizzes) {
     return quizzes.map(({ topic, question, choices, id }) => ({
         id, topic, question, choices
     }));
 }
 
-// seedrandom을 이용해 오늘 날짜 기준 동일한 문제 세트 추출[cite: 1]
 function getDailyQuestions(k, data) {
     const today = new Date().toISOString().split('T')[0];
     const rng = seedrandom(today); 
@@ -125,24 +120,27 @@ function getDailyQuestions(k, data) {
 }
 
 // ==========================================================
-// 3. 데이터 로딩 로직 (동적 토픽 기반 Function Calling 처리)
+// 3. 데이터 로딩 로직 (Google Gen AI SDK 활용)
 // ==========================================================
 
 async function fetchNewQuizData() {
     const selectedTopics = getSelectedTopics();
-    console.log(`[API] Gemma Function Calling을 통한 퀴즈 5문제 생성 요청 중... (선택 분야: ${selectedTopics.join(', ')})[cite: 1]`);
+    console.log(`[API] 퀴즈 생성 요청 중... (선택 분야: ${selectedTopics.join(', ')})`);
     
     try {
-        const payload = createQuizPayload(selectedTopics);
-        const response = await axios.post(GEMINI_API_URL, payload);
-        const candidate = response.data.candidates[0];
+        const { contents, config } = getQuizGenerationConfig(selectedTopics);
+        const response = await ai.models.generateContent({
+            model: MODEL_NAME,
+            contents: contents,
+            config: config
+        });
 
-        const functionCallPart = candidate.content.parts.find(p => p.functionCall);
-        if (!functionCallPart || !functionCallPart.functionCall) {
+        const functionCalls = response.functionCalls;
+        if (!functionCalls || functionCalls.length === 0) {
             throw new Error("Model did not return a function call");
         }
 
-        const args = functionCallPart.functionCall.args;
+        const args = functionCalls[0].args;
         const rawQuizzes = args.quizzes;
 
         if (!rawQuizzes || !Array.isArray(rawQuizzes)) {
@@ -158,13 +156,7 @@ async function fetchNewQuizData() {
         console.log(`[API] 퀴즈 생성 완료 (${MASTER_QUIZ_DATA.length}문제)`);
         return true;
     } catch (error) {
-        console.error("[DATA ERROR] 퀴즈 생성 실패");
-        if (error.response) {
-            console.error("HTTP STATUS:", error.response.status);
-            console.error(JSON.stringify(error.response.data, null, 2));
-        } else {
-            console.error(error.message || error);
-        }
+        console.error("[DATA ERROR] 퀴즈 생성 실패:", error.message || error);
         return false;
     }
 }
@@ -182,7 +174,6 @@ async function ensureDataFreshness() {
 app.use(cors());
 app.use(express.json());
 
-// 1. 문제 목록 제공 API[cite: 1]
 app.get('/api/quiz', async (req, res) => {
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
@@ -195,7 +186,6 @@ app.get('/api/quiz', async (req, res) => {
     }
 });
 
-// 2. 정답 키 제공 API[cite: 1]
 app.get('/api/answer-key', async (req, res) => {
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) return res.status(503).json({ error: "Data unavailable" });
@@ -214,5 +204,9 @@ app.get('/api/answer-key', async (req, res) => {
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
+app.listen(3000, async () => {
+    console.log('Gemma SDK Daily Quiz Server running on port 3000');
+    await fetchNewQuizData(); 
+});
 
 module.exports = app;
