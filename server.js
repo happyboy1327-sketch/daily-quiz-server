@@ -11,7 +11,7 @@ const app = express();
 // 구글 공식 엔드포인트 사용 예시 (API 키가 환경변수에 세팅되어 있는 경우)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 const MODEL_NAME = "gemma-4-26B-A4B-it"; 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;; // 또는 사용하는 오픈 API 엔드포인트 주소
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`; // 또는 사용하는 오픈 API 엔드포인트 주소
 
 const ONE_HOUR = 3600000; 
 
