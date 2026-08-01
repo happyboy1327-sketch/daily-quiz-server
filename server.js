@@ -347,8 +347,8 @@ app.post('/api/admin/refresh', async (req, res) => {
     return res.json({ success, stats: getSpeedStats() });
 });
 
-// Fallback route for SPA index.html
-app.get('*', (req, res) => {
+// Safe Express 4/5 Fallback route for SPA index.html
+app.use((req, res) => {
     if (req.path.startsWith('/api/')) {
         return res.status(404).json({ errorCode: "NOT_FOUND", error: "API endpoint not found" });
     }
