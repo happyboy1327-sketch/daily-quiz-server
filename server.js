@@ -8,7 +8,7 @@ const app = express();
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
 // Gemma 2 모델 설정
-const MODEL_NAME = "models/ gemma-4-26b-a4b-it"; 
+const MODEL_NAME = "gemma-4-26b-a4b-it"; 
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
 const ONE_HOUR = 3600000; 
 
@@ -39,7 +39,6 @@ const QUIZ_GENERATION_PROMPT = {
         }]
     }],
     generationConfig: {
-        responseMimeType: "application/json", 
         temperature: 0.3,
     }
 };
