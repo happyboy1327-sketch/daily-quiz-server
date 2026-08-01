@@ -221,9 +221,10 @@ async function validateSingleQuiz(quiz, index) {
         }
     });
 
-    if (!/^정답은\s+.+?입니다/.test(quiz.explanation.trim())) {
-        errors.push(`해설 시작 형식 불일치`);
-    }
+    // 수정 후 (마침표나 따옴표 유무에 구애받지 않도록 수정)
+if (!/^정답은\s*['"‘“]?[\s\S]+?['"‌​’”]?(?:입니다|입니다\.)/.test(quiz.explanation.trim())) {
+    errors.push(`해설 시작 형식 불일치`);
+}
 
     // 해설 정답과 실제 정답 번호 비교
     const explanationMatch = quiz.explanation.match(
@@ -328,6 +329,7 @@ async function filterValidQuizzes(quizData) {
             }
         } else {
             invalidCount++;
+            console.log(`[DROP REASON] 문제 ${index + 1} 탈락 사유:`, validation.errors);
             allErrors.push(`문제 ${index + 1}: ${validation.errors.join(', ')}`);
         }
     }
