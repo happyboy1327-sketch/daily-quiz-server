@@ -166,3 +166,5 @@ app.listen(3000, async () => {
     console.log('Gemma 2 Daily Quiz Server running on port 3000');
     await fetchNewQuizData(); // 서버 시작 시 미리 생성
 });
+
+module.exports = app;
