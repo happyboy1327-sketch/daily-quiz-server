@@ -12,11 +12,11 @@ const MODEL_ID = "google/gemma-4-26B-A4B-it";
 const API_URL = "https://router.huggingface.co/v1/chat/completions";
 const ONE_HOUR = 3600000; 
 
-// Keep-Alive HTTP client for high-performance connection reuse
+// Keep-Alive HTTP client for connection reuse
 const axiosClient = axios.create({
     httpAgent: new http.Agent({ keepAlive: true, maxSockets: 50 }),
     httpsAgent: new https.Agent({ keepAlive: true, maxSockets: 50 }),
-    timeout: 12000
+    timeout: 8000
 });
 
 const ALL_TOPICS = [
@@ -94,20 +94,7 @@ function createQuizPayload(selectedTopics) {
             },
             {
                 role: "user",
-                content: `총 13가지 분야(문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학) 중 다음 선택된 5개 분야에서 각각 정확히 1문제씩 총 5개의 중급 난이도 상식 퀴즈를 생성하세요.
-선택된 분야: ${selectedTopics.join(', ')}
-
-필수 규칙:
-1. 중복없이 선택된 5개 분야 각각 정확히 1문제씩 출제한다.
-2. 총 문제 수는 반드시 5개여야 함.
-3. 지나치게 많이 출제되는 단골 소재는 피하고 흥미로운 사실을 우선 활용.
-4. 한글 맞춤법 문제는 2026년 현행 표준 규정 기준으로 작성한다.
-5. 코딩 문제는 반드시 문제 본문에 마크다운 코드 블록을 포함한다.
-6. choices는 정확히 4개 작성한다.
-7. correctAnswerText는 choices 배열의 요소와 완전히 일치해야 한다.
-8. correctAnswerIndex는 정답 보기의 인덱스(0~3)다.
-9. explanation은 반드시 "정답은 [correctAnswerText]입니다."로 시작한다.
-10. explanation은 최대 4문장으로 작성한다. 오답이 틀린 이유도 포함.
+                content: `총 13가지 분야 중 다음 선택된 5개 분야에서 각각 1문제씩 총 5개의 상식 퀴즈를 생성하세요: ${selectedTopics.join(', ')}
 
 반드시 아래 JSON 형식으로만 응답:
 {
@@ -189,7 +176,7 @@ function getDailyQuestions(k, data) {
 
 async function fetchWithHuggingFace(selectedTopics) {
     if (!HF_TOKEN) {
-        console.warn("[ENGINE] HF_TOKEN is missing. Using pre-warmed quiz pool.");
+        console.warn("[ENGINE] HF_TOKEN missing in environment variables. Serving fallback pool.");
         return null;
     }
     const startTime = Date.now();
@@ -236,30 +223,36 @@ async function fetchNewQuizData(customTopics) {
     if (IS_FETCHING) return false;
     IS_FETCHING = true;
     const topics = customTopics || getSelectedTopics(5);
-    console.log(`[ENGINE] Requesting Hugging Face Gemma for topics: ${topics.join(', ')}`);
 
-    let newQuizzes = await fetchWithHuggingFace(topics);
+    try {
+        let newQuizzes = await fetchWithHuggingFace(topics);
 
-    if (!newQuizzes || newQuizzes.length === 0) {
-        console.log("[ENGINE] Serving pre-warmed high quality quiz pool (0ms delay)");
-        const shuffledFallback = [...FALLBACK_QUIZZES].sort(() => 0.5 - Math.random());
-        newQuizzes = shuffledFallback.slice(0, 5).map((q, idx) => ({ ...q, id: Date.now() + idx }));
-        LAST_LATENCY_MS = 2;
-        LAST_PROVIDER = 'offline-cache';
+        if (!newQuizzes || newQuizzes.length === 0) {
+            const shuffledFallback = [...FALLBACK_QUIZZES].sort(() => 0.5 - Math.random());
+            newQuizzes = shuffledFallback.slice(0, 5).map((q, idx) => ({ ...q, id: Date.now() + idx }));
+            LAST_LATENCY_MS = 2;
+            LAST_PROVIDER = 'offline-cache';
+        }
+
+        MASTER_QUIZ_DATA = newQuizzes;
+        LAST_FETCH_TIME = Date.now();
+        IS_FETCHING = false;
+        return true;
+    } catch (e) {
+        IS_FETCHING = false;
+        return false;
     }
-
-    MASTER_QUIZ_DATA = newQuizzes;
-    LAST_FETCH_TIME = Date.now();
-    IS_FETCHING = false;
-    return true;
 }
 
-// Non-blocking async freshness check
 async function ensureDataFreshness() {
-    if (MASTER_QUIZ_DATA.length === 0) {
-        await fetchNewQuizData();
-    } else if ((Date.now() - LAST_FETCH_TIME) > ONE_HOUR && !IS_FETCHING) {
-        fetchNewQuizData().catch(err => console.error("Background refresh error:", err));
+    try {
+        if (MASTER_QUIZ_DATA.length === 0) {
+            await fetchNewQuizData();
+        } else if ((Date.now() - LAST_FETCH_TIME) > ONE_HOUR && !IS_FETCHING) {
+            fetchNewQuizData().catch(err => console.error("Background refresh error:", err));
+        }
+    } catch (e) {
+        console.error("ensureDataFreshness error:", e);
     }
 }
 
@@ -277,30 +270,24 @@ function getSpeedStats() {
 app.use(cors());
 app.use(express.json());
 
-// Boot pre-warming
-ensureDataFreshness().catch(() => {});
+// Serving index.html static asset from root directory
+app.use(express.static(path.join(__dirname)));
 
 // --- API ROUTES FIRST ---
 
-// 1. Daily Quiz Questions (Sanitized)
 app.get('/api/quiz', async (req, res) => {
-    await ensureDataFreshness();
-    if (MASTER_QUIZ_DATA.length === 0) return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
-    
     try {
+        await ensureDataFreshness();
         const dailyQuiz = getDailyQuestions(5, MASTER_QUIZ_DATA);
         return res.status(200).json(sanitizeQuizData(dailyQuiz));
     } catch (error) {
-        return res.status(500).json({ errorCode: "SERVER_ERROR" });
+        return res.status(200).json(sanitizeQuizData(FALLBACK_QUIZZES));
     }
 });
 
-// 2. Answer Key
 app.get('/api/answer-key', async (req, res) => {
-    await ensureDataFreshness();
-    if (MASTER_QUIZ_DATA.length === 0) return res.status(503).json({ error: "Data unavailable" });
-    
     try {
+        await ensureDataFreshness();
         const dailyQuiz = getDailyQuestions(5, MASTER_QUIZ_DATA);
         const answerKey = {};
         dailyQuiz.forEach(q => {
@@ -310,11 +297,12 @@ app.get('/api/answer-key', async (req, res) => {
         });
         return res.status(200).json(answerKey);
     } catch (e) {
-        return res.status(500).json({ errorCode: "SERVER_ERROR" });
+        const answerKey = {};
+        FALLBACK_QUIZZES.forEach(q => { answerKey[q.id] = q.correctAnswerIndex; });
+        return res.status(200).json(answerKey);
     }
 });
 
-// 3. Instant Dynamic Quiz Generation
 app.post('/api/quiz/generate', async (req, res) => {
     const startTime = Date.now();
     const { topics } = req.body || {};
@@ -346,25 +334,20 @@ app.post('/api/quiz/generate', async (req, res) => {
     }
 });
 
-// 4. Engine & Speed Statistics
 app.get('/api/quiz/stats', (req, res) => {
     return res.json(getSpeedStats());
 });
 
-// 5. Available Topics
 app.get('/api/quiz/topics', (req, res) => {
     return res.json({ topics: ALL_TOPICS });
 });
 
-// 6. Force Cache Refresh
 app.post('/api/admin/refresh', async (req, res) => {
     const success = await fetchNewQuizData();
     return res.json({ success, stats: getSpeedStats() });
 });
 
-// Serving index.html for non-API routes
-app.use(express.static(path.join(__dirname)));
-
+// Fallback route for SPA index.html
 app.get('*', (req, res) => {
     if (req.path.startsWith('/api/')) {
         return res.status(404).json({ errorCode: "NOT_FOUND", error: "API endpoint not found" });
@@ -372,9 +355,12 @@ app.get('*', (req, res) => {
     return res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
-});
+// Only listen locally if run directly with `node server.js`
+if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Server listening on port ${PORT}`);
+    });
+}
 
 module.exports = app;
