@@ -7,8 +7,11 @@ const seedrandom = require('seedrandom');
 const app = express();
 
 // 쿡북의 오픈 엔드포인트 / 허깅페이스 호환 설정 (API 키 불필요)
-const MODEL_ID = "google/gemma-4-26b-a4b-it"; // @param ["google/gemma-4-E2B-it", "google/gemma-4-E4B-it", "google/gemma-4-12B-it", "google/gemma-4-31B-it", "google/gemma-4-26B-A4B-it"]
-const API_URL = "https://api-inference.huggingface.co/v1/chat/completions"; // 또는 사용하는 오픈 API 엔드포인트 주소
+//const MODEL_ID = "google/gemma-4-26b-a4b-it"; // @param ["google/gemma-4-E2B-it", "google/gemma-4-E4B-it", "google/gemma-4-12B-it", "google/gemma-4-31B-it", "google/gemma-4-26B-A4B-it"]
+// 구글 공식 엔드포인트 사용 예시 (API 키가 환경변수에 세팅되어 있는 경우)
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
+const MODEL_NAME = "gemma-4-26b-a4b-it"; 
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;; // 또는 사용하는 오픈 API 엔드포인트 주소
 
 const ONE_HOUR = 3600000; 
 
