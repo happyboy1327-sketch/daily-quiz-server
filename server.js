@@ -107,8 +107,8 @@ function autoFixQuiz(quiz) {
 }
 
 function sanitizeQuizData(quizzes) {
-    return quizzes.map(({ topic, question, choices, id }) => ({
-        id, topic, question, choices
+    return quizzes.map(({ topic, question, choices, id, explanation }) => ({
+        id, topic, question, choices, explanation
     }));
 }
 
