@@ -30,6 +30,7 @@ const QUIZ_GENERATION_PROMPT = {
 1. 지정된 분야 중 서로 다른 5개 분야를 선택하여 출제하여라.
 2. 각 분야의 뻔한 소재(예: 역사=세종대왕, 건강=CPR, 예술=모나리자)는 우선적으로 피하고,세부 영역(세계사, 천문학, 생활금융 등)에서 다양한 소재를 선택할 것.
 3. 한글 맞춤법 문제는 2026년 현행 국립국어원 표준 규정을 기준으로 작성하고, 띄어쓰기, 외래어 표기법, 사이시옷 등 실제 활용 가능한 내용을 다룰 것.
+3-1. 코딩 분야 문제는 반드시 문제(question) 본문에 분석할 코드 스니펫(예: 마크다운 코드 블록)을 직접 포함할 것.
 4. 보기(choices)는 반드시 정확히 4개 작성하라.
 5. 정답 관리를 위해 반드시 아래 3개 필드를 일치시켜라.
 - correctAnswerText: choices 배열의 정답 보기와 동일한 문자열. correctAnswerIndex가 0이면 첫 번째 보기의 문자열, 3이면 네 번째 보기의 문자열을 가리킨다.
@@ -54,7 +55,7 @@ JSON 배열만 반환하세요.
     generationConfig: {
         responseMimeType: "application/json",
 
-        temperature: 0.4,
+        temperature: 0.3,
 
         thinkingConfig: {
             thinkingBudget: 512
