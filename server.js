@@ -8,7 +8,8 @@ const app = express();
 const HF_TOKEN = process.env.HF_TOKEN; // Hugging Face 토큰
 
 // Hugging Face Inference API 설정
-const MODEL_ID = "google/gemma-4-26b-a4b-it";
+const MODEL_ID = "google/gemma-4-26B-A4B-it";
+
 const API_URL = "https://router.huggingface.co/v1/chat/completions";
 
 const ONE_HOUR = 3600000; 
