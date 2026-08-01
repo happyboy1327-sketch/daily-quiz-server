@@ -3,6 +3,8 @@ const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
 const seedrandom = require('seedrandom');
+const http = require('http');
+const https = require('https');
 
 const app = express();
 const HF_TOKEN = process.env.HF_TOKEN; 
