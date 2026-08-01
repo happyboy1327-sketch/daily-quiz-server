@@ -51,15 +51,25 @@ const QUIZ_GENERATION_PROMPT = {
 // 2. 핵심 유틸리티 함수
 // ==========================================================
 
-// Gemma 2의 마크다운 찌꺼기 제거 후 JSON 파싱
+// Gemma의 마크다운 찌꺼기 제거 후 JSON 파싱
+// 주의: 코딩 문제는 question 필드 안에 ```python 같은 코드펜스를 포함하므로,
+// 단순히 "첫 ``` ~ 다음 ```"를 찾는 방식은 그 내부 코드펜스에서 잘못 끊길 수 있음.
+// 따라서 코드펜스를 찾지 않고, 배열의 시작 '['과 마지막 ']' 사이를 그대로 추출한다.
 function extractJson(text) {
     try {
-        const regex = /```(?:json)?\s*([\s\S]*?)\s*```/;
-        const match = text.match(regex);
-        const jsonString = match ? match[1].trim() : text.trim();
+        const trimmed = text.trim();
+        const start = trimmed.indexOf('[');
+        const end = trimmed.lastIndexOf(']');
+
+        if (start === -1 || end === -1 || end <= start) {
+            throw new Error("JSON 배열의 시작/끝 대괄호를 찾지 못했습니다.");
+        }
+
+        const jsonString = trimmed.slice(start, end + 1);
         return JSON.parse(jsonString);
     } catch (e) {
-        console.error("[PARSE ERROR] JSON 파싱 실패:", e);
+        console.error("[PARSE ERROR] JSON 파싱 실패:", e.message);
+        console.error("[PARSE ERROR] 원본 응답 일부:", text.slice(0, 300));
         return null;
     }
 }
