@@ -106,10 +106,11 @@ function autoFixQuiz(quiz) {
     return quiz;
 }
 
-function sanitizeQuizData(quizzes) {
-    return quizzes.map(({ topic, question, choices, id, explanation }) => ({
-        id, topic, question, choices, explanation
-    }));
+function sanitizeQuizData(questions) {
+    return questions.map(q => {
+        const { correctAnswerIndex, ...safeQuestion } = q;
+        return safeQuestion; 
+    });
 }
 
 function getDailyQuestions(k, data) {
