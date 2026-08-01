@@ -47,9 +47,9 @@ function createQuizPayload(selectedTopics) {
 2. 뻔한 소재를 피하고 세부 영역에서 다양하게 선택할 것.
 3. 한글 맞춤법은 2026년 현행 표준 규정 기준.
 4. 코딩 문제는 반드시 문제 본문에 마크다운 코드 블록을 포함할 것.
-5. 보기(choices)는 정확히 4개 작성.
+5. 보기(choices)는 정확히 4개 작성해야 하며 정답은 하나일 것.
 6. correctAnswerText는 choices의 요소와 정확히 일치해야 하며, correctAnswerIndex는 그 인덱스(0-3)여야 함.
-7. explanation은 반드시 "정답은 [correctAnswerText]입니다."로 시작하고 최대 4문장으로 작성.
+7. explanation은 반드시 "정답은 [correctAnswerText]입니다."로 시작하고 최대 4문장으로 작성해야 하며, 정답이 맞는 이유와 나머지 선택지는 오답인 이유를 포함해야 함.
 8. topic 필드는 위에서 선택된 5개 분야명 중 하나를 사용할 것.`
         }],
         tools: [{
