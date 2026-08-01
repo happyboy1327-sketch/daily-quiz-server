@@ -9,7 +9,8 @@ const HF_TOKEN = process.env.HF_TOKEN; // Hugging Face 토큰
 
 // Hugging Face Inference API 설정
 const MODEL_ID = "google/gemma-4-26b-a4b-it";
-const API_URL = "https://api-inference.huggingface.co/v1/chat/completions";
+const API_URL = "https://router.huggingface.co/v1/chat/completions";
+
 const ONE_HOUR = 3600000; 
 
 let MASTER_QUIZ_DATA = []; 
