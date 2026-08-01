@@ -260,27 +260,7 @@ function validateQuiz(data){
     });
 
     return data;
-}
-
-app.post("/api/quiz",async(req,res)=>{
-    try{
-        const prompt= createQuizPrompt();
-        const gemmaResult= await callGemma(prompt);
-        const quiz= parseQuizJSON(gemmaResult);
-        validateQuiz(quiz);
-
-        res.json({
-            success:true,
-            questions:quiz.questions
-        });
-
-    } catch(error){
-        res.status(500).json({
-            success:false,
-            message:error.message
-        });
-    }
-});
+};
 
 // ======================================================
 // server.js
@@ -289,29 +269,39 @@ app.post("/api/quiz",async(req,res)=>{
 
 let lastTopics=[];
 
-function checkDuplicateTopics(topics){
-    if(JSON.stringify(topics)===JSON.stringify(lastTopics))
-        return false;
-    lastTopics=topics;
-    return true;
-}
 
 async function createQuizWithRetry(){
+
     let retry=0;
+    let lastPrompt=null;
 
     while(retry<3){
+
         try{
-            const prompt=createQuizPrompt();
-            const result=await callGemma(prompt);
+
+            if(!lastPrompt){
+                lastPrompt=createQuizPrompt();
+            }
+
+            const result=await callGemma(lastPrompt);
+
             const quiz=parseQuizJSON(result);
+
             validateQuiz(quiz);
 
             return quiz;
 
+
         }catch(error){
+
             retry++;
-            console.log(`퀴즈 생성 재시도 ${retry}/3`);
-            if(retry>=3) throw error;
+
+            console.log(
+              `퀴즈 생성 재시도 ${retry}/3`
+            );
+
+            if(retry>=3)
+                throw error;
         }
     }
 }
