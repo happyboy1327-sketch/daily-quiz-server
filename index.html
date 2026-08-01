@@ -49,7 +49,7 @@
             font-weight: bold;
             line-height: 1.5;
         }
-        /* 코딩 문제용 코드 블록 스타일 */
+        /* 코딩 문제 전용 코드 블록 */
         pre {
             background-color: #2d2d2d;
             color: #ccc;
@@ -135,7 +135,7 @@
             background-color: #dc3545;
             color: white;
         }
-        /* 복습 모드 스타일 */
+        /* 복습 모드 */
         #review-list {
             margin-top: 20px;
             list-style: none;
@@ -215,7 +215,7 @@
         function formatText(str) {
             if (!str) return '';
             let formatted = escapeHtml(str);
-            // 코드 블록(```) 렌더링 지원
+            // 코드 블록(```) 지원
             formatted = formatted.replace(/```(?:[a-zA-Z]*)\n?([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
             // 줄바꿈 처리
             formatted = formatted.replace(/\n/g, '<br>');
@@ -223,7 +223,7 @@
         }
 
         // ==========================================================
-        // Local Storage 관리 함수
+        // Local Storage 오답 노트
         // ==========================================================
         function getWrongAnswers() {
             try {
@@ -249,7 +249,7 @@
             };
 
             if (existingIndex !== -1) {
-                wrongAnswers[existingIndex] = newEntry;
+                wrongAnswers[existingIndex] = newEntry; // 중복 문제 덮어쓰기
             } else {
                 wrongAnswers.push(newEntry);
             }
@@ -265,7 +265,7 @@
         }
 
         // ==========================================================
-        // 메인 퀴즈 로직 (병렬 Fetch 적용)
+        // 퀴즈 데이터 순차 로딩 (기존 백엔드 완벽 호환)
         // ==========================================================
         async function loadQuizData(retryCount = 0) {
             pageTitle.textContent = '오늘의 상식 퀴즈';
@@ -275,26 +275,23 @@
             loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중...";
 
             try {
-                // 퀴즈와 정답 키를 병렬로 호출하여 속도 향상
-                const [quizRes, answerRes] = await Promise.all([
-                    fetch(QUIZ_API_URL),
-                    fetch(ANSWER_KEY_API_URL)
-                ]);
+                // 1. 퀴즈 먼저 요청 (서버에서 생성 후 캐싱됨)
+                const quizRes = await fetch(QUIZ_API_URL);
 
                 if (quizRes.status === 503 && retryCount < 2) {
                     setTimeout(() => loadQuizData(retryCount + 1), 3000);
                     return;
                 }
 
-                if (!quizRes.ok || !answerRes.ok) {
-                    throw new Error(`API 요청 실패 (코드: ${quizRes.status})`);
-                }
+                if (!quizRes.ok) throw new Error(`퀴즈 데이터 로드 실패 (${quizRes.status})`);
+                const quizData = await quizRes.json();
 
-                const [quizData, answerMap] = await Promise.all([
-                    quizRes.json(),
-                    answerRes.json()
-                ]);
+                // 2. 이미 생성된 캐시에서 정답 키 안정적으로 가져오기
+                const answerRes = await fetch(ANSWER_KEY_API_URL);
+                if (!answerRes.ok) throw new Error(`정답 키 로드 실패 (${answerRes.status})`);
+                const answerMap = await answerRes.json();
 
+                // 3. ID 매칭
                 currentQuizData = quizData.map(q => ({
                     ...q,
                     correctAnswerIndex: Number(answerMap[q.id])
@@ -307,7 +304,7 @@
 
             } catch (error) {
                 loadingDiv.style.display = 'none';
-                quizContainer.innerHTML = `<p style="color: #dc3545; text-align: center;">로딩 실패: ${escapeHtml(error.message)}<br>서버가 잠시 자는 중일 수 있습니다. 잠시 후 다시 시도해 주세요.</p>`;
+                quizContainer.innerHTML = `<p style="color: #dc3545; text-align: center;">로딩 실패: ${escapeHtml(error.message)}<br>잠시 후 다시 시도해 주세요.</p>`;
                 showHomeButtons();
             }
         }
@@ -388,7 +385,7 @@
         }
 
         // ==========================================================
-        // 복습 모드 로직
+        // 복습 모드
         // ==========================================================
         function showReviewMode() {
             pageTitle.textContent = '📝 오답 복습 모드';
@@ -425,9 +422,6 @@
             showHomeButtons();
         }
 
-        // ==========================================================
-        // UI 네비게이션
-        // ==========================================================
         function showHomeButtons() {
             navButtons.innerHTML = `
                 <button class="btn-primary" onclick="loadQuizData()">퀴즈 시작</button>
