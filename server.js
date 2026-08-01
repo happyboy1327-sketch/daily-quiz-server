@@ -36,35 +36,40 @@ function getSelectedTopics() {
 function createQuizPayload(selectedTopics) {
     return {
         model: MODEL_ID,
-        temperature: 0.1,
-        max_tokens: 3000,
         messages: [
             {
                 role: "system",
-                content: "You are a strict JSON-only quiz generator. You must output a valid JSON object matching the requested schema and nothing else. Do not wrap in conversational text."
+                content: "Output only valid JSON. No markdown. No extra text."
             },
             {
                 role: "user",
-                content: `총 13가지 분야(문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학) 중 다음 **선택된 5개 분야**에서 각각 정확히 1문제씩 총 5개의 중하급-중급 난이도 상식 퀴즈를 생성해 주세요.
+                content: `총 13가지 분야(문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학) 중 다음 선택된 5개 분야에서 각각 정확히 1문제씩 총 5개의 중급 난이도 상식 퀴즈를 생성하세요.
+선택된 분야:${selectedTopics.join(', ')}
 
-**선택된 5개 분야:** ${selectedTopics.join(', ')}
+필수 규칙:
+1. 중복없이 선택된 5개 분야 각각 정확히 1문제씩 출제한다.
+2. 총 문제 수는 반드시 5개여야 함.
+3. 지나치게 많이 출제되는 단골 소재는 피하고 흥미로운 사실을 우선 활용.
+4. 한글 맞춤법 문제는 2026년 현행 표준 규정 기준으로 작성한다.
+5. 코딩 문제는 반드시 문제 본문에 마크다운 코드 블록을 포함한다.
+6. choices는 정확히 4개 작성한다.
+7. correctAnswerText는 choices 배열의 요소와 완전히 일치해야 한다.
+8. correctAnswerIndex는 정답 보기의 인덱스(0~3)다.
+9. explanation은 반드시 "정답은 [correctAnswerText]입니다."로 시작한다.
+10. explanation은 최대 4문장으로 작성한다. 오답이 틀린 이유도 포함.
 
-**필수 규칙**
-1. 위 5개 분야 각각에 대해 정확히 1문제씩 출제할 것.
-2. 뻔한 단골 소재를 피하고 세부 영역에서 다양하게 선택할 것.
-3. 한글 맞춤법은 2026년 현행 표준 규정 기준.
-4. 코딩 문제는 반드시 문제 본문에 마크다운 코드 블록을 포함할 것.
-5. 보기(choices)는 정확히 4개 작성.
-6. correctAnswerText는 choices의 요소와 정확히 일치해야 하며, correctAnswerIndex는 그 인덱스(0-3)여야 함.
-7. explanation은 반드시 "정답은 [correctAnswerText]입니다."로 시작하고 최대 4문장으로, 정답이 맞는 이유와 나머지 선택지가 오답인 이유 작성.
-8. topic 필드는 위에서 선택된 5개 분야명 중 하나를 사용할 것.
-9. 반드시 아래 형식의 순수 JSON 객체로만 응답할 것:
+반드시 아래 JSON 형식으로만 응답:
 {
   "quizzes": [
     {
       "topic": "분야명",
       "question": "문제 내용",
-      "choices": ["보기1", "보기2", "보기3", "보기4"],
+      "choices": [
+        "보기1",
+        "보기2",
+        "보기3",
+        "보기4"
+      ],
       "correctAnswerIndex": 0,
       "correctAnswerText": "보기1",
       "explanation": "정답은 보기1입니다. ..."
@@ -72,7 +77,9 @@ function createQuizPayload(selectedTopics) {
   ]
 }`
             }
-        ]
+        ],
+        temperature: 0.3,
+        max_tokens: 1400
     };
 }
 
