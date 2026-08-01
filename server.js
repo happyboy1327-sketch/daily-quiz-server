@@ -3,8 +3,6 @@ const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
 const seedrandom = require('seedrandom');
-const http = require('http');
-const https = require('https');
 
 const app = express();
 const HF_TOKEN = process.env.HF_TOKEN; 
@@ -14,11 +12,6 @@ const API_URL = "https://router.huggingface.co/v1/chat/completions";
 
 const ONE_HOUR = 3600000; 
 
-const axiosClient = axios.create({
-    httpAgent: new http.Agent({ keepAlive: true, maxSockets: 50 }),
-    httpsAgent: new https.Agent({ keepAlive: true, maxSockets: 50 }),
-    timeout: 8000
-});
 
 let MASTER_QUIZ_DATA = []; 
 let LAST_FETCH_TIME = 0;
@@ -118,7 +111,7 @@ async function fetchNewQuizData() {
     
     try {
         const payload = createQuizPayload(selectedTopics);
-        const response = await axiosClient.post(API_URL, payload, {
+        const response = await axios.post(API_URL, payload, {
             headers: {
                 'Authorization': `Bearer ${HF_TOKEN}`,
                 'Content-Type': 'application/json'
