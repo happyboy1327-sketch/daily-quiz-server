@@ -8,7 +8,7 @@ const app = express();
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
 // Gemma 모델 설정
-const MODEL_ID = "gemma-4-26b-a4b-it" // @param ["google/gemma-4-E2B-it", "google/gemma-4-E4B-it", "google/gemma-4-12B-it", "google/gemma-4-31B-it", "google/gemma-4-26B-A4B-it"]
+const MODEL_ID = "models/gemma-4-26b-a4b-it" // @param ["google/gemma-4-E2B-it", "google/gemma-4-E4B-it", "google/gemma-4-12B-it", "google/gemma-4-31B-it", "google/gemma-4-26B-A4B-it"]
 //"; 
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent?key=${GEMINI_API_KEY}`;
 const ONE_HOUR = 3600000; 
@@ -140,9 +140,19 @@ async function fetchNewQuizData() {
         console.log(`[API] 퀴즈 생성 완료 (${MASTER_QUIZ_DATA.length}문제)`);
         return true;
     } catch (error) {
-        console.error(`[DATA ERROR] 퀴즈 생성 실패: ${error.message}`);
-        return false;
+        } catch (error) {
+    console.error("[DATA ERROR] 퀴즈 생성 실패");
+
+    if (error.response) {
+        console.error("HTTP STATUS:", error.response.status);
+        console.error(
+            JSON.stringify(error.response.data, null, 2)
+        );
+    } else {
+        console.error(error);
     }
+
+    return false;
 }
 
 async function ensureDataFreshness() {
