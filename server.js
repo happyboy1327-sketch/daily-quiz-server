@@ -36,6 +36,8 @@ function getSelectedTopics() {
 function createQuizPayload(selectedTopics) {
     return {
         model: MODEL_ID,
+        temperature: 0.1,       
+        max_tokens: 2000,
         messages: [{
             role: "user",
             content: `총 13가지 분야(문화예술, 환경, 과학, 역사, 디지털 리터러시, 인권 리터러시, 한글 맞춤법, 코딩, 안전 및 건강상식, 경제, 지리, 정치, 심리학) 중 다음 **선택된 5개 분야**에서 각각 정확히 1문제씩 총 5개의 중하급-중급 난이도 상식 퀴즈를 생성해 주세요.
