@@ -5,14 +5,11 @@ const path = require('path');
 const seedrandom = require('seedrandom');
 
 const app = express();
+const HF_TOKEN = process.env.HF_TOKEN; // Hugging Face 토큰
 
-// 쿡북의 오픈 엔드포인트 / 허깅페이스 호환 설정 (API 키 불필요)
-//const MODEL_ID = "google/gemma-4-26b-a4b-it"; // @param ["google/gemma-4-E2B-it", "google/gemma-4-E4B-it", "google/gemma-4-12B-it", "google/gemma-4-31B-it", "google/gemma-4-26B-A4B-it"]
-// 구글 공식 엔드포인트 사용 예시 (API 키가 환경변수에 세팅되어 있는 경우)
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
-const MODEL_NAME = "gemma-4-26B-A4B-it"; 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`; // 또는 사용하는 오픈 API 엔드포인트 주소
-
+// Hugging Face Inference API 설정
+const MODEL_ID = "google/gemma-4-26b-a4b-it";
+const API_URL = "https://api-inference.huggingface.co/v1/chat/completions";
 const ONE_HOUR = 3600000; 
 
 let MASTER_QUIZ_DATA = []; 
@@ -121,16 +118,21 @@ function getDailyQuestions(k, data) {
 }
 
 // ==========================================================
-// 3. 데이터 로딩 로직 (오픈 API 연동)
+// 3. 데이터 로딩 로직 (Hugging Face API 연동)
 // ==========================================================
 
 async function fetchNewQuizData() {
     const selectedTopics = getSelectedTopics();
-    console.log(`[API] 오픈 API 퀴즈 생성 요청 중... (선택 분야: ${selectedTopics.join(', ')})`);
+    console.log(`[API] Hugging Face 퀴즈 생성 요청 중... (선택 분야: ${selectedTopics.join(', ')})`);
     
     try {
         const payload = createQuizPayload(selectedTopics);
-        const response = await axios.post(API_URL, payload);
+        const response = await axios.post(API_URL, payload, {
+            headers: {
+                'Authorization': `Bearer ${HF_TOKEN}`,
+                'Content-Type': 'application/json'
+            }
+        });
         
         const message = response.data.choices[0].message;
         if (!message.tool_calls || message.tool_calls.length === 0) {
@@ -211,5 +213,9 @@ app.get('/api/answer-key', async (req, res) => {
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
+app.listen(3000, async () => {
+    console.log('Hugging Face Daily Quiz Server running on port 3000');
+    await fetchNewQuizData(); 
+});
 
 module.exports = app;
