@@ -31,7 +31,7 @@ function createQuizPayload(selectedTopics) {
     return {
         model: MODEL_ID,
         temperature: 0.1,
-        max_tokens: 3000,
+        max_tokens: 6000,
         messages: [
             {
                 role: "system",
