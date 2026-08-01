@@ -141,8 +141,9 @@ app.get('/api/answer-key', async (req, res) => {
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-app.listen(3000, async () => {
-    console.log('Gemma 2 Daily Quiz Server running on port 3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, async () => {
+    console.log(`Gemma 2 Daily Quiz Server running on port ${PORT}`);
     await fetchNewQuizData();
 });
 
