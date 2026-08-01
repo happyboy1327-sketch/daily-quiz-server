@@ -54,10 +54,10 @@ JSON 배열만 반환하세요.
     generationConfig: {
         responseMimeType: "application/json",
 
-        temperature: 0.4,
+        temperature: 0.3,
 
         thinkingConfig: {
-            thinkingBudget: 512
+            thinkingLevel: "high"
         }
     }
 };
