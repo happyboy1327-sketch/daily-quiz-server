@@ -8,7 +8,7 @@ const app = express();
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
 // Gemma 모델 설정
-const MODEL_ID = "google/gemma-4-26B-A4B-it" // @param ["google/gemma-4-E2B-it", "google/gemma-4-E4B-it", "google/gemma-4-12B-it", "google/gemma-4-31B-it", "google/gemma-4-26B-A4B-it"]
+const MODEL_ID = "gemma-4-26b-a4b-it" // @param ["google/gemma-4-E2B-it", "google/gemma-4-E4B-it", "google/gemma-4-12B-it", "google/gemma-4-31B-it", "google/gemma-4-26B-A4B-it"]
 //"; 
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent?key=${GEMINI_API_KEY}`;
 const ONE_HOUR = 3600000; 
