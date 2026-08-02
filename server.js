@@ -142,6 +142,89 @@ function extractJsonFromText(text) {
     return text.slice(start, end + 1).trim();
 }
 
+
+async function validateQuizAccuracy(quizzes) {
+    const payload = {
+        model: MODEL_ID,
+
+        response_format: {
+            type: "json_object"
+        },
+
+        messages: [
+            {
+                role: "system",
+                content: `
+너는 상식 퀴즈 검증 전문가다.
+
+주어진 퀴즈들을 검사하고 사실 오류가 있는지 판단한다.
+
+반드시 다음을 검증한다.
+
+1. 질문 전제 검증
+- 질문 자체가 성립하는가?
+- 존재하지 않는 개념이나 잘못된 비교 기준이 없는가?
+- "최초", "최대", "가장", "유일", "천연" 같은 조건이 사실과 맞는가?
+
+2. 정답 검증
+- correctAnswerText가 실제 정답인가?
+- choices 중 다른 정답이 가능한 경우가 없는가?
+
+3. 해설 검증
+- 해설 내용이 사실과 일치하는가?
+- 해설이 정답과 모순되지 않는가?
+- 잘못된 정보를 포함하지 않는가?
+
+하나라도 오류가 있으면 valid를 false로 한다.
+
+출력은 반드시 JSON만 작성한다.
+
+형식:
+{
+  "valid": true
+}
+`
+            },
+            {
+                role: "user",
+                content: JSON.stringify(quizzes)
+            }
+        ],
+
+        temperature: 0,
+        max_tokens: 50
+    };
+
+    try {
+        const response = await axios.post(API_URL, payload, {
+            headers: {
+                "Authorization": `Bearer ${MISTRAL_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            timeout: 30000
+        });
+
+        const content = response.data?.choices?.[0]?.message?.content;
+
+        if (!content) {
+            throw new Error("검증 응답 없음");
+        }
+
+        const result = JSON.parse(content);
+
+        return result.valid === true;
+
+    } catch (error) {
+        console.error(
+            "[ACCURACY VALIDATION ERROR]",
+            error.response?.data || error.message
+        );
+
+        // 검증 실패 시 안전하게 차단
+        return false;
+    }
+}
+
 async function fetchNewQuizData() {
     if (!MISTRAL_API_KEY) {
         console.error("[ERROR] MISTRAL_API_KEY 환경변수가 설정되지 않았습니다.");
@@ -269,9 +352,14 @@ if (topicSet.has(quiz.topic)) {
     throw new Error(`중복 분야: ${quiz.topic}`);
 }
 
-topicSet.add(quiz.topic);
-
+topicSet.add(quiz.topic);  
 }
+
+        const accuracyValid = await validateQuizAccuracy(rawQuizzes);
+
+if (!accuracyValid) {
+    throw new Error("질문 전제 또는 사실 검증 실패");
+}      
         MASTER_QUIZ_DATA = rawQuizzes.map((q, idx) => {
     const fixed = autoFixQuiz(q);
 
