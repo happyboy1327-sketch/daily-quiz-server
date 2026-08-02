@@ -28,7 +28,6 @@ function getSelectedTopics() {
     return shuffled.slice(0, 5);
 }
 
-
 function createQuizPayload(selectedTopics) {
     return {
         model: MODEL_ID,
@@ -97,20 +96,36 @@ Rules:
     };
 }
 
-
+// 📌 보정 로직 개선된 autoFixQuiz
 function autoFixQuiz(quiz) {
-    if (!Array.isArray(quiz.choices)) return quiz;
+    if (!quiz || !Array.isArray(quiz.choices)) return quiz;
 
+    // 1. 모든 보기의 양끝 공백, 양끝 따옴표, 마크다운(**) 제거
+    quiz.choices = quiz.choices.map(c => 
+        String(c || '').trim().replace(/^["'`]|["'`]$/g, '').replace(/\*\*(.*?)\*\*/g, '$1').trim()
+    );
+
+    // 2. correctAnswerText도 동일하게 정제
     if (quiz.correctAnswerText) {
-        const textIndex = quiz.choices.findIndex(
-            choice =>
-                choice &&
-                choice.trim() === quiz.correctAnswerText.trim()
-        );
+        quiz.correctAnswerText = String(quiz.correctAnswerText)
+            .trim()
+            .replace(/^["'`]|["'`]$/g, '')
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            .trim();
+    }
 
-        if (textIndex !== -1) {
-            quiz.correctAnswerIndex = textIndex;
-        }
+    // 3. 텍스트 기준으로 인덱스 재설정 (우선순위 1)
+    const textIndex = quiz.choices.findIndex(
+        choice => choice.toLowerCase() === quiz.correctAnswerText.toLowerCase()
+    );
+
+    if (textIndex !== -1) {
+        quiz.correctAnswerIndex = textIndex;
+        quiz.correctAnswerText = quiz.choices[textIndex]; // 토씨 하나 안 틀리게 원본과 일치
+    } 
+    // 4. 텍스트 매칭 안 되면 인덱스 기준으로 텍스트 재설정 (우선순위 2)
+    else if (typeof quiz.correctAnswerIndex === 'number' && quiz.correctAnswerIndex >= 0 && quiz.correctAnswerIndex < 4) {
+        quiz.correctAnswerText = quiz.choices[quiz.correctAnswerIndex];
     }
 
     return quiz;
@@ -145,7 +160,6 @@ function extractJsonFromText(text) {
 
     return text.slice(start, end + 1).trim();
 }
-
 
 async function validateQuizAccuracy(quizzes) {
     const payload = {
@@ -209,11 +223,11 @@ async function validateQuizAccuracy(quizzes) {
         });
 
         const content = response.data?.choices?.[0]?.message?.content;
-if (!content) {
-    throw new Error("검증 응답 없음");
-}
-const cleanJson = extractJsonFromText(content); // 마크다운 제거 후 JSON만 추출
-const result = JSON.parse(cleanJson);
+        if (!content) {
+            throw new Error("검증 응답 없음");
+        }
+        const cleanJson = extractJsonFromText(content); // 마크다운 제거 후 JSON만 추출
+        const result = JSON.parse(cleanJson);
 
         return result.valid === true;
 
@@ -235,170 +249,152 @@ async function fetchNewQuizData() {
     }
 
     const selectedTopics = getSelectedTopics();
-console.log(`[API] 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`);
+    console.log(`[API] 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`);
 
-for (let generationAttempt = 1; generationAttempt <= 2; generationAttempt++) {
-    
-    try {
-        const payload = createQuizPayload(selectedTopics);
-        let response;
-
-for (let attempt = 1; attempt <= 2; attempt++) {
-    try {
-        response = await axios.post(API_URL, payload, {
-            headers: {
-                'Authorization': `Bearer ${MISTRAL_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            timeout: 30000
-        });
-
-        break;
-
-    } catch (error) {
-
-        console.error(
-            `[MISTRAL ERROR] 시도 ${attempt}/2`,
-            error.response?.data || error.message
-        );
-
-        if (attempt === 2) {
-            throw error;
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 2000));
-    }
-}
+    for (let generationAttempt = 1; generationAttempt <= 2; generationAttempt++) {
         
-        const message = response.data?.choices?.[0]?.message;
-        if (!message || !message.content) {
-            throw new Error("API 응답 내용이 비어있습니다.");
+        try {
+            const payload = createQuizPayload(selectedTopics);
+            let response;
+
+            for (let attempt = 1; attempt <= 2; attempt++) {
+                try {
+                    response = await axios.post(API_URL, payload, {
+                        headers: {
+                            'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        timeout: 30000
+                    });
+
+                    break;
+
+                } catch (error) {
+                    console.error(
+                        `[MISTRAL ERROR] 시도 ${attempt}/2`,
+                        error.response?.data || error.message
+                    );
+
+                    if (attempt === 2) {
+                        throw error;
+                    }
+
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+            }
+            
+            const message = response.data?.choices?.[0]?.message;
+            if (!message || !message.content) {
+                throw new Error("API 응답 내용이 비어있습니다.");
+            }
+
+            let rawContent = message.content;
+
+            if (Array.isArray(rawContent)) {
+                const textPart = rawContent.find(
+                    part => part.type === "text" && typeof part.text === "string"
+                );
+
+                rawContent = textPart?.text;
+            }
+
+            console.log("[MISTRAL RAW RESPONSE]");
+            console.log(rawContent);
+
+            if (!rawContent || typeof rawContent !== "string") {
+                throw new Error("응답 텍스트 없음");
+            }
+
+            const cleanJson = extractJsonFromText(rawContent);
+
+            let parsed;
+
+            try {
+                parsed = JSON.parse(cleanJson);
+            } catch (jsonError) {
+                console.error("[JSON PARSE ERROR]");
+                console.error(cleanJson);
+                throw jsonError;
+            }
+
+            const rawQuizzes = parsed.quizzes || (Array.isArray(parsed) ? parsed : null);
+
+            if (!Array.isArray(rawQuizzes) || rawQuizzes.length !== 5) {
+                throw new Error(`퀴즈 개수 오류: ${rawQuizzes?.length}`);
+            }
+
+            // 📌 [통합] 보정 후 검증 수행
+            const processedQuizzes = [];
+            const topicSet = new Set();
+
+            for (let quiz of rawQuizzes) {
+                // 📌 [핵심] 검증 시작하기 전에 먼저 보정부터 수행
+                quiz = autoFixQuiz(quiz);
+
+                // 1. 필수 필드 및 개수 검사
+                if (!quiz.topic || !quiz.question || !Array.isArray(quiz.choices) || 
+                    !quiz.correctAnswerText || typeof quiz.correctAnswerIndex !== "number" || !quiz.explanation) {
+                    throw new Error("퀴즈 필수 필드 누락");
+                }
+
+                if (quiz.choices.length !== 4) throw new Error("보기 개수 오류");
+                if (new Set(quiz.choices).size !== 4) throw new Error("보기 중복 또는 빈 보기 오류");
+                if (quiz.choices.some(c => !c)) throw new Error("빈 보기 발견");
+
+                if (quiz.correctAnswerIndex < 0 || quiz.correctAnswerIndex > 3) {
+                    throw new Error("정답 인덱스 범위 오류");
+                }
+
+                // 📌 보정 후 완벽히 일치하는지 최종 확인
+                if (quiz.choices[quiz.correctAnswerIndex] !== quiz.correctAnswerText) {
+                    throw new Error("정답 텍스트/인덱스 불일치");
+                }
+
+                // 해설 시작 형식 검증 (정답 텍스트 포함 확인)
+                const cleanAnswer = quiz.correctAnswerText.replace(/[^a-zA-Z0-9가-힣]/g, "");
+                const cleanExplanation = quiz.explanation
+                    .replace(/^정답은\s*/, "")
+                    .replace(/[^a-zA-Z0-9가-힣]/g, "");
+
+                if (!cleanExplanation.startsWith(cleanAnswer)) {
+                    throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);
+                }
+
+                // 2. 분야 중복 검사
+                if (!selectedTopics.includes(quiz.topic)) throw new Error(`잘못된 분야: ${quiz.topic}`);
+                if (topicSet.has(quiz.topic)) throw new Error(`중복 분야: ${quiz.topic}`);
+
+                topicSet.add(quiz.topic);
+                processedQuizzes.push(quiz);
+            }
+
+            // 보정 및 정제 완료된 processedQuizzes로 교제/사실 검증
+            const accuracyValid = await validateQuizAccuracy(processedQuizzes);
+
+            if (!accuracyValid) {
+                throw new Error("질문 전제 또는 사실 검증 실패");
+            }      
+
+            MASTER_QUIZ_DATA = processedQuizzes.map((q, idx) => {
+                return { ...q, id: Date.now() + idx };
+            });
+
+            LAST_FETCH_TIME = Date.now();
+            console.log(`[API] 퀴즈 ${MASTER_QUIZ_DATA.length}개 생성 완료`);
+            return true;
+        } catch (error) {
+            console.error(
+                `[DATA ERROR] 퀴즈 생성 실패 ${generationAttempt}/2:`,
+                error.response?.data || error.message
+            );
+
+            if (generationAttempt === 2) {
+                return false;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 2000));
         }
-
-        let rawContent = message.content;
-
-if (Array.isArray(rawContent)) {
-    const textPart = rawContent.find(
-        part => part.type === "text" && typeof part.text === "string"
-    );
-
-    rawContent = textPart?.text;
-}
-
-console.log("[MISTRAL RAW RESPONSE]");
-console.log(rawContent);
-
-if (!rawContent || typeof rawContent !== "string") {
-    throw new Error("응답 텍스트 없음");
-}
-
-const cleanJson = extractJsonFromText(rawContent);
-
-let parsed;
-
-try {
-    parsed = JSON.parse(cleanJson);
-} catch (jsonError) {
-    console.error("[JSON PARSE ERROR]");
-    console.error(cleanJson);
-    throw jsonError;
-}
-        const rawQuizzes = parsed.quizzes || (Array.isArray(parsed) ? parsed : null);
-
-if (!Array.isArray(rawQuizzes) || rawQuizzes.length !== 5) {
-    throw new Error(`퀴즈 개수 오류: ${rawQuizzes?.length}`);
-}
-        const topicSet = new Set();
-       for (const quiz of rawQuizzes) {
-
-    if (!quiz.topic ||
-        !quiz.question ||
-        !Array.isArray(quiz.choices) ||
-        !quiz.correctAnswerText ||
-        typeof quiz.correctAnswerIndex !== "number" ||
-        !quiz.explanation) {
-
-        throw new Error("퀴즈 필수 필드 누락");
     }
-
-
-    if (quiz.choices.length !== 4) {
-        throw new Error("보기 개수 오류");
-    }
-
-    if (new Set(quiz.choices).size !== 4) {
-    throw new Error("보기 중복 오류");
-}
-
-    if (quiz.choices.some(choice => !choice || !choice.trim())) {
-    throw new Error("빈 보기 발견");
-}
-
-
-    if (
-        quiz.correctAnswerIndex < 0 ||
-        quiz.correctAnswerIndex > 3
-    ) {
-        throw new Error("정답 인덱스 오류");
-    }
-
-
-    if (!quiz.choices.includes(quiz.correctAnswerText)) {
-        throw new Error("정답 텍스트 불일치");
-    }
-
-    const cleanAnswer = quiz.correctAnswerText.replace(/[^a-zA-Z0-9가-힣]/g, "");
-const cleanExplanation = quiz.explanation
-    .replace(/^정답은\s*/, "")
-    .replace(/[^a-zA-Z0-9가-힣]/g, "");
-
-if (!cleanExplanation.startsWith(cleanAnswer)) {
-    throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);
-}
-
-
-    if (!selectedTopics.includes(quiz.topic)) {
-    throw new Error(`잘못된 분야: ${quiz.topic}`);
-}
-
-if (topicSet.has(quiz.topic)) {
-    throw new Error(`중복 분야: ${quiz.topic}`);
-}
-
-topicSet.add(quiz.topic);  
-}
-
-        const accuracyValid = await validateQuizAccuracy(rawQuizzes);
-
-if (!accuracyValid) {
-    throw new Error("질문 전제 또는 사실 검증 실패");
-}      
-        MASTER_QUIZ_DATA = rawQuizzes.map((q, idx) => {
-    const fixed = autoFixQuiz(q);
-
-    if (fixed.choices[fixed.correctAnswerIndex] !== fixed.correctAnswerText) {
-        throw new Error("최종 정답 인덱스 불일치");
-    }
-
-    return { ...fixed, id: Date.now() + idx };
-});
-
-        LAST_FETCH_TIME = Date.now();
-        console.log(`[API] 퀴즈 ${MASTER_QUIZ_DATA.length}개 생성 완료`);
-        return true;
-    } catch (error) {
-    console.error(
-        `[DATA ERROR] 퀴즈 생성 실패 ${generationAttempt}/2:`,
-        error.response?.data || error.message
-    );
-
-    if (generationAttempt === 2) {
-        return false;
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 2000));
-}
-}
 }
 
 async function ensureDataFreshness() {
