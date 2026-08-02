@@ -275,10 +275,22 @@ for (let attempt = 1; attempt <= 2; attempt++) {
             throw new Error("API 응답 내용이 비어있습니다.");
         }
 
-        const rawContent = message.content;
+        let rawContent = message.content;
+
+if (Array.isArray(rawContent)) {
+    const textPart = rawContent.find(
+        part => part.type === "text" && typeof part.text === "string"
+    );
+
+    rawContent = textPart?.text;
+}
 
 console.log("[MISTRAL RAW RESPONSE]");
 console.log(rawContent);
+
+if (!rawContent || typeof rawContent !== "string") {
+    throw new Error("응답 텍스트 없음");
+}
 
 const cleanJson = extractJsonFromText(rawContent);
 
