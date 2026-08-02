@@ -91,9 +91,9 @@ Rules:
 }`
             }
         ],
-
+        reasoning_effort: "high",
         temperature: 0.1,
-        max_tokens: 3300
+        max_tokens: 4200
     };
 }
 
