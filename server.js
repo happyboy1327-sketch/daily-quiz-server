@@ -61,9 +61,16 @@ Rules:
 4. choices는 정확히 4개 작성.
 5. **correctAnswerText는 choices 배열 중 하나와 완벽히 일치.**
 6. **correctAnswerIndex는 정답의 인덱스(0~3).**
-7. **explanation은 아래 형식으로 최대 3문장 이내로, 정답 이외의 나머지 선택지가 틀린 이유도 작성.**
-형식: "정답은 '{correctAnswerText}'입니다. {오답 상세 설명}" 
-가이드: 해설 안에 정답 텍스트를 토씨 하나 틀리지 않고 정확히 포함하세요. **실제 해설 텍스트에서는 따옴표 제거합니다.**
+7. explanation 작성 규칙:
+- explanation은 최대 3문장 이내로 작성한다.
+- 첫 문장은 빠진 표현없이 반드시 아래 형식을 따른다.
+
+정답은 {correctAnswerText}입니다.
+
+- {correctAnswerText}는 생성된 정답 보기 텍스트와 동일하게 작성한다.
+- 단, correctAnswerText가 문장부호(., !, ?, 。, ！, ？)로 끝나는 경우에는 마지막 문장부호를 제외하고 "입니다."를 붙인다.
+- 첫 문장 뒤에는 정답이 아닌 나머지 선택지가 왜 틀렸는지 간단히 설명한다.
+
 8. 최종 출력 전에 각 문제를 내부 검토한다:
 - **정답이 실제 사실과 일치하는가?**
 - **보기 중 정답이 여러 개 존재하지 않는가?**
@@ -361,9 +368,9 @@ async function fetchNewQuizData() {
 
                 // 해설 시작 형식 검증 (정답 텍스트 포함 확인)
                 const compareAnswer = quiz.correctAnswerText
-                     .replace(/\s*\([^)]*\)/g, "")
-                     .trim();
-
+                    .replace(/\s*\([^)]*\)/g, "")
+                    .replace(/[.!?。？！]$/, "")
+                    .trim();
                 const compareExplanation = quiz.explanation
                      .replace(/^정답은\s*/, "")
                      .trim();
