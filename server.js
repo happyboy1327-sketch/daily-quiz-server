@@ -5,10 +5,10 @@ const path = require('path');
 const seedrandom = require('seedrandom');
 
 const app = express();
-const HF_TOKEN = process.env.HF_TOKEN; 
+const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 
-const MODEL_ID = "google/gemma-4-26B-A4B-it:novita";
-const API_URL = "https://router.huggingface.co/v1/chat/completions";
+const MODEL_ID = "ministral-8b-latest";
+const API_URL = "https://api.mistral.ai/v1/chat/completions";
 
 const ONE_HOUR = 3600000; 
 
@@ -26,13 +26,28 @@ function getSelectedTopics() {
     return shuffled.slice(0, 5);
 }
 
+
 function createQuizPayload(selectedTopics) {
     return {
         model: MODEL_ID,
+
+        response_format: {
+            type: "json_object"
+        },
+
         messages: [
             {
                 role: "system",
-                content: "You are a JSON generator. Respond ONLY with valid JSON inside a standard ```json code block. Do not add intro or outro text."
+                content: `
+You generate valid JSON only.
+
+Rules:
+- Output only JSON.
+- Do not use markdown.
+- Do not use code fences.
+- Do not add explanations.
+- Do not add text before or after the JSON.
+`
             },
             {
                 role: "user",
@@ -41,43 +56,50 @@ function createQuizPayload(selectedTopics) {
 필수 규칙:
 1. 선택된 5개 분야 각각 정확히 1문제씩 출제 (총 5문제).
 2. 한글 맞춤법 문제는 2026년 현행 표준 규정 기준.
-3. 코딩 문제는 문제 내용에 마크다운 코드 블록 포함.
+3. 코딩 문제는 코드 내용을 포함할 수 있지만, 마크다운 코드 블록은 사용하지 말고 일반 문자열 형태로 작성.
 4. choices는 정확히 4개 작성.
 5. correctAnswerText는 choices 배열 중 하나와 완벽히 일치.
 6. correctAnswerIndex는 정답의 인덱스(0~3).
-7. explanation은 "정답은 [correctAnswerText]입니다."로 시작하고 최대 3문장 이내로 간결히 작성.
+7. explanation은 "정답은 [correctAnswerText]입니다."로 시작하고 최대 3문장 이내로 정답 이외의 나머지 선택지가 틀린 이유도 작성.
 
 응답 형식:
-\`\`\`json
+
 {
   "quizzes": [
     {
       "topic": "분야명",
-      "question": "문제 내용",
+      "question": "문제",
       "choices": ["보기1", "보기2", "보기3", "보기4"],
       "correctAnswerIndex": 0,
       "correctAnswerText": "보기1",
-      "explanation": "정답은 보기1입니다. ..."
+      "explanation": "정답은 보기1입니다."
     }
   ]
-}\`\`\``
+}`
             }
         ],
-        temperature: 0.3,
-        max_tokens: 3000 // ★ 토큰 수를 대폭 늘려 JSON 잘림 방지
+
+        temperature: 0.1,
+        max_tokens: 2200
     };
 }
 
+
 function autoFixQuiz(quiz) {
     if (!Array.isArray(quiz.choices)) return quiz;
+
     if (quiz.correctAnswerText) {
         const textIndex = quiz.choices.findIndex(
-            choice => choice && choice.trim() === quiz.correctAnswerText.trim()
+            choice =>
+                choice &&
+                choice.trim() === quiz.correctAnswerText.trim()
         );
+
         if (textIndex !== -1) {
             quiz.correctAnswerIndex = textIndex;
         }
     }
+
     return quiz;
 }
 
@@ -97,39 +119,61 @@ function getDailyQuestions(k, data) {
 
 // JSON 추출 및 정제 함수
 function extractJsonFromText(text) {
-    // 1. 마크다운 코드 블록 안의 JSON 추출
-    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-    if (codeBlockMatch && codeBlockMatch[1]) {
-        return codeBlockMatch[1].trim();
-    }
-    
-    // 2. 코드 블록이 없을 경우 최외곽 { ... } 추출
-    const jsonObjectMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonObjectMatch) {
-        return jsonObjectMatch[0].trim();
+    if (typeof text !== "string") {
+        throw new Error("응답이 문자열이 아닙니다.");
     }
 
-    return text.trim();
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+
+    if (start === -1 || end === -1 || end < start) {
+        throw new Error("JSON 객체를 찾지 못했습니다.");
+    }
+
+    return text.slice(start, end + 1).trim();
 }
 
 async function fetchNewQuizData() {
-    if (!HF_TOKEN) {
-        console.error("[ERROR] HF_TOKEN 환경변수가 설정되지 않았습니다.");
+    if (!MISTRAL_API_KEY) {
+        console.error("[ERROR] MISTRAL_API_KEY 환경변수가 설정되지 않았습니다.");
         return false;
     }
 
     const selectedTopics = getSelectedTopics();
-    console.log(`[API] 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`);
+console.log(`[API] 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`);
+
+for (let generationAttempt = 1; generationAttempt <= 2; generationAttempt++) {
     
     try {
         const payload = createQuizPayload(selectedTopics);
-        const response = await axios.post(API_URL, payload, {
+        let response;
+
+for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+        response = await axios.post(API_URL, payload, {
             headers: {
-                'Authorization': `Bearer ${HF_TOKEN}`,
+                'Authorization': `Bearer ${MISTRAL_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            timeout: 30000 // 30초 타임아웃
+            timeout: 30000
         });
+
+        break;
+
+    } catch (error) {
+
+        console.error(
+            `[MISTRAL ERROR] 시도 ${attempt}/2`,
+            error.response?.data || error.message
+        );
+
+        if (attempt === 2) {
+            throw error;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+}
         
         const message = response.data?.choices?.[0]?.message;
         if (!message || !message.content) {
@@ -137,26 +181,104 @@ async function fetchNewQuizData() {
         }
 
         const rawContent = message.content;
-        const cleanJson = extractJsonFromText(rawContent);
-        const parsed = JSON.parse(cleanJson);
+
+console.log("[MISTRAL RAW RESPONSE]");
+console.log(rawContent);
+
+const cleanJson = extractJsonFromText(rawContent);
+
+let parsed;
+
+try {
+    parsed = JSON.parse(cleanJson);
+} catch (jsonError) {
+    console.error("[JSON PARSE ERROR]");
+    console.error(cleanJson);
+    throw jsonError;
+}
         const rawQuizzes = parsed.quizzes || (Array.isArray(parsed) ? parsed : null);
 
-        if (!rawQuizzes || !Array.isArray(rawQuizzes) || rawQuizzes.length === 0) {
-            throw new Error("유효한 퀴즈 배열을 파싱하지 못했습니다.");
-        }
+if (!Array.isArray(rawQuizzes) || rawQuizzes.length !== 5) {
+    throw new Error(`퀴즈 개수 오류: ${rawQuizzes?.length}`);
+}
+        const topicSet = new Set();
+       for (const quiz of rawQuizzes) {
 
+    if (!quiz.topic ||
+        !quiz.question ||
+        !Array.isArray(quiz.choices) ||
+        !quiz.correctAnswerText ||
+        typeof quiz.correctAnswerIndex !== "number" ||
+        !quiz.explanation) {
+
+        throw new Error("퀴즈 필수 필드 누락");
+    }
+
+
+    if (quiz.choices.length !== 4) {
+        throw new Error("보기 개수 오류");
+    }
+
+    if (quiz.choices.some(choice => !choice || !choice.trim())) {
+    throw new Error("빈 보기 발견");
+}
+
+
+    if (
+        quiz.correctAnswerIndex < 0 ||
+        quiz.correctAnswerIndex > 3
+    ) {
+        throw new Error("정답 인덱스 오류");
+    }
+
+
+    if (!quiz.choices.includes(quiz.correctAnswerText)) {
+        throw new Error("정답 텍스트 불일치");
+    }
+
+    const expectedStart = `정답은 ${quiz.correctAnswerText}입니다.`;
+
+if (!quiz.explanation.startsWith(expectedStart)) {
+    throw new Error("해설 형식 오류");
+}
+
+    if (!selectedTopics.includes(quiz.topic)) {
+    throw new Error(`잘못된 분야: ${quiz.topic}`);
+}
+
+if (topicSet.has(quiz.topic)) {
+    throw new Error(`중복 분야: ${quiz.topic}`);
+}
+
+topicSet.add(quiz.topic);
+
+}
         MASTER_QUIZ_DATA = rawQuizzes.map((q, idx) => {
-            const fixed = autoFixQuiz(q);
-            return { ...fixed, id: Date.now() + idx };
-        });
+    const fixed = autoFixQuiz(q);
+
+    if (fixed.choices[fixed.correctAnswerIndex] !== fixed.correctAnswerText) {
+        throw new Error("최종 정답 인덱스 불일치");
+    }
+
+    return { ...fixed, id: Date.now() + idx };
+});
 
         LAST_FETCH_TIME = Date.now();
         console.log(`[API] 퀴즈 ${MASTER_QUIZ_DATA.length}개 생성 완료`);
         return true;
     } catch (error) {
-        console.error("[DATA ERROR] 퀴즈 생성 실패:", error.response?.data || error.message);
+    console.error(
+        `[DATA ERROR] 퀴즈 생성 실패 ${generationAttempt}/2:`,
+        error.response?.data || error.message
+    );
+
+    if (generationAttempt === 2) {
         return false;
     }
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+}
+}
 }
 
 async function ensureDataFreshness() {
