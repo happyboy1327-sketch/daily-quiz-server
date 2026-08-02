@@ -7,7 +7,9 @@ const seedrandom = require('seedrandom');
 const app = express();
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 
-const MODEL_ID = "ministral-8b-latest";
+// 모델명을 변경해 테스트해보세요
+const MODEL_ID = "mistral-small-latest";
+
 const API_URL = "https://api.mistral.ai/v1/chat/completions";
 
 const ONE_HOUR = 3600000; 
