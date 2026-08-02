@@ -191,8 +191,8 @@ async function validateQuizAccuracy(quizzes) {
             }
         ],
 
-        temperature: 0,
-        max_tokens: 50
+        temperature: 0.1,
+        max_tokens: 400
     };
 
     try {
@@ -332,17 +332,15 @@ if (!Array.isArray(rawQuizzes) || rawQuizzes.length !== 5) {
         throw new Error("정답 텍스트 불일치");
     }
 
-    const explanationStart = quiz.explanation
+    const cleanAnswer = quiz.correctAnswerText.replace(/['"`\s]/g, "");
+const cleanExplanation = quiz.explanation
     .replace(/^정답은\s*/, "")
-    .trim();
+    .replace(/['"`\s]/g, "");
 
-const answerText = quiz.correctAnswerText
-    .replace(/^['"]|['"]$/g, "")
-    .trim();
-
-if (!explanationStart.startsWith(answerText)) {
-    throw new Error("해설 형식 오류");
+if (!cleanExplanation.startsWith(cleanAnswer)) {
+    throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);
 }
+
 
     if (!selectedTopics.includes(quiz.topic)) {
     throw new Error(`잘못된 분야: ${quiz.topic}`);
