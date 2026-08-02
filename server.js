@@ -360,7 +360,9 @@ async function fetchNewQuizData() {
                 }
 
                 // 해설 시작 형식 검증 (정답 텍스트 포함 확인)
-                const cleanAnswer = quiz.correctAnswerText.replace(/[^a-zA-Z0-9가-힣]/g, "");
+                const cleanAnswer = quiz.correctAnswerText
+                      .replace(/\s*\([^)]*\)/g, "")
+                      .replace(/[^a-zA-Z0-9가-힣]/g, "");
                 const cleanExplanation = quiz.explanation
                     .replace(/^정답은\s*/, "")
                     .replace(/[^a-zA-Z0-9가-힣]/g, "");
