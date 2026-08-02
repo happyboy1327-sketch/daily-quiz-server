@@ -192,7 +192,7 @@ async function validateQuizAccuracy(quizzes) {
         ],
 
         temperature: 0.1,
-        max_tokens: 400
+        max_tokens: 1000
     };
 
     try {
