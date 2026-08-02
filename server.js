@@ -331,10 +331,10 @@ if (!Array.isArray(rawQuizzes) || rawQuizzes.length !== 5) {
         throw new Error("정답 텍스트 불일치");
     }
 
-    const cleanAnswer = quiz.correctAnswerText.replace(/['"`\s]/g, "");
+    const cleanAnswer = quiz.correctAnswerText.replace(/[^a-zA-Z0-9가-힣]/g, "");
 const cleanExplanation = quiz.explanation
     .replace(/^정답은\s*/, "")
-    .replace(/['"`\s]/g, "");
+    .replace(/[^a-zA-Z0-9가-힣]/g, "");
 
 if (!cleanExplanation.startsWith(cleanAnswer)) {
     throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);
