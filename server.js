@@ -205,12 +205,11 @@ async function validateQuizAccuracy(quizzes) {
         });
 
         const content = response.data?.choices?.[0]?.message?.content;
-
-        if (!content) {
-            throw new Error("검증 응답 없음");
-        }
-
-        const result = JSON.parse(content);
+if (!content) {
+    throw new Error("검증 응답 없음");
+}
+const cleanJson = extractJsonFromText(content); // 마크다운 제거 후 JSON만 추출
+const result = JSON.parse(cleanJson);
 
         return result.valid === true;
 
