@@ -361,12 +361,12 @@ async function fetchNewQuizData() {
 
                 // 해설 시작 형식 검증 (정답 텍스트 포함 확인)
                 const compareAnswer = quiz.correctAnswerText
-                      .replace(/\s*\([^)]*\)/g, "")
-                      .replace(/[^a-zA-Z0-9가-힣]/g, "");
+                     .replace(/\s*\([^)]*\)/g, "")
+                     .trim();
 
                 const compareExplanation = quiz.explanation
-                       .replace(/^정답은\s*/, "")
-                       .replace(/[^a-zA-Z0-9가-힣]/g, "");
+                     .replace(/^정답은\s*/, "")
+                     .trim();
 
                  if (!compareExplanation.startsWith(compareAnswer)) {
                          throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);
