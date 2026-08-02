@@ -52,7 +52,7 @@ Rules:
             },
             {
                 role: "user",
-                content: `선택된 5개 분야(${selectedTopics.join(', ')})에서 뻔한 기초 상식은 제외하고, 참신하며 팩트가 명확한 소재로 각각 1문제씩 총 5개의 퀴즈를 생성하세요.
+                content: `선택된 5개 분야(${selectedTopics.join(', ')})에서 뻔한 기초 상식은 제외하고, 역사/학술/뉴스 등에 실존하는 공식 명칭과 객관적 팩트만 사용하여 각각 1문제씩 총 5개의 퀴즈를 생성하세요.
 
 필수 규칙:
 1. 선택된 5개 분야 각각 정확히 1문제씩 출제 (총 5문제).
@@ -228,7 +228,7 @@ async function validateQuizAccuracy(quizzes) {
                 "Authorization": `Bearer ${MISTRAL_API_KEY}`,
                 "Content-Type": "application/json"
             },
-            timeout: 30000
+            timeout: 60000
         });
 
         const content = response.data?.choices?.[0]?.message?.content;
@@ -273,7 +273,7 @@ async function fetchNewQuizData() {
                             'Authorization': `Bearer ${MISTRAL_API_KEY}`,
                             'Content-Type': 'application/json'
                         },
-                        timeout: 30000
+                        timeout: 60000
                     });
 
                     break;
