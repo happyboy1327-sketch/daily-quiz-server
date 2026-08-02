@@ -228,6 +228,10 @@ if (!Array.isArray(rawQuizzes) || rawQuizzes.length !== 5) {
         throw new Error("보기 개수 오류");
     }
 
+    if (new Set(quiz.choices).size !== 4) {
+    throw new Error("보기 중복 오류");
+}
+
     if (quiz.choices.some(choice => !choice || !choice.trim())) {
     throw new Error("빈 보기 발견");
 }
@@ -245,9 +249,15 @@ if (!Array.isArray(rawQuizzes) || rawQuizzes.length !== 5) {
         throw new Error("정답 텍스트 불일치");
     }
 
-    const expectedStart = `정답은 ${quiz.correctAnswerText}입니다.`;
+    const explanationStart = quiz.explanation
+    .replace(/^정답은\s*/, "")
+    .trim();
 
-if (!quiz.explanation.startsWith(expectedStart)) {
+const answerText = quiz.correctAnswerText
+    .replace(/^['"]|['"]$/g, "")
+    .trim();
+
+if (!explanationStart.startsWith(answerText)) {
     throw new Error("해설 형식 오류");
 }
 
