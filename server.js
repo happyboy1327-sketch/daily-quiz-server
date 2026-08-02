@@ -60,7 +60,7 @@ Rules:
 4. choices는 정확히 4개 작성.
 5. correctAnswerText는 choices 배열 중 하나와 완벽히 일치.
 6. correctAnswerIndex는 정답의 인덱스(0~3).
-7. explanation은 "정답은 [correctAnswerText]입니다."로 시작하고 최대 3문장 이내로 정답 이외의 나머지 선택지가 틀린 이유도 작성.
+7. explanation은 최대 3문장 이내로 정답 이외의 나머지 선택지가 틀린 이유도 작성.
 8. 최종 출력 전에 각 문제를 내부 검토한다:
 - 정답이 실제 사실과 일치하는가?
 - 보기 중 정답이 여러 개 존재하지 않는가?
@@ -89,7 +89,7 @@ Rules:
         ],
 
         temperature: 0.1,
-        max_tokens: 2300
+        max_tokens: 3300
     };
 }
 
