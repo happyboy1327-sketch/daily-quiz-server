@@ -271,8 +271,10 @@ async function validateQuizAccuracy(quizzes) {
 - 시간 범위를 벗어난 정답은 오류이므로 false로 반환한다.
 
 2. 정답 검증
-- correctAnswerText가 실제 정답인가?
-- choices 중 다른 정답이 가능한 경우가 없는가?
+- correctAnswerText가 실제 정답인지 확인한다.
+- choices 전체를 검토하여 질문 조건에 맞는 정답이 오직 하나만 존재하는지 확인한다.
+- correctAnswerText 외에 다른 choice가 정답이 될 수 있으면 false로 한다.
+- correctAnswerText가 틀렸거나, 보기 안에 올바른 정답이 없으면 false로 한다.
 
 3. 해설 검증
 일반 topic:
