@@ -190,7 +190,7 @@ function autoFixQuiz(quiz) {
 
     // 3. 텍스트 기준으로 인덱스 재설정 (우선순위 1)
     const textIndex = quiz.choices.findIndex(
-        choice => choice.toLowerCase() === quiz.correctAnswerText.toLowerCase()
+        choice => choice === quiz.correctAnswerText
     );
 
     if (textIndex !== -1) {
@@ -198,9 +198,13 @@ function autoFixQuiz(quiz) {
         quiz.correctAnswerText = quiz.choices[textIndex]; // 토씨 하나 안 틀리게 원본과 일치
     } 
     // 4. 텍스트 매칭 안 되면 인덱스 기준으로 텍스트 재설정 (우선순위 2)
-    else if (typeof quiz.correctAnswerIndex === 'number' && quiz.correctAnswerIndex >= 0 && quiz.correctAnswerIndex < 4) {
-        quiz.correctAnswerText = quiz.choices[quiz.correctAnswerIndex];
-    }
+    else if (
+    typeof quiz.correctAnswerIndex === 'number' &&
+    quiz.correctAnswerIndex >= 0 &&
+    quiz.correctAnswerIndex < 4
+) {
+    // index는 유지하지만 correctAnswerText는 덮어쓰지 않음
+}
 
     return quiz;
 }
