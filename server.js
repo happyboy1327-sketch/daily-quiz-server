@@ -16,6 +16,59 @@ const ONE_HOUR = 3600000;
 
 let MASTER_QUIZ_DATA = []; 
 let LAST_FETCH_TIME = 0;
+const SPELLING_DATA = [
+{correct:"할 일",wrong:["할일"],category:"띄어쓰기"},
+{correct:"할 수 있다",wrong:["할수있다"],category:"띄어쓰기"},
+{correct:"한 번",wrong:["한번"],category:"띄어쓰기"},
+{correct:"몇 가지",wrong:["몇가지"],category:"띄어쓰기"},
+{correct:"것 같다",wrong:["것같다"],category:"띄어쓰기"},
+{correct:"뿐만 아니라",wrong:["뿐만아니라"],category:"띄어쓰기"},
+{correct:"할 수밖에 없다",wrong:["할수밖에없다"],category:"띄어쓰기"},
+{correct:"곧바로",wrong:["곧 바로"],category:"띄어쓰기"},
+{correct:"몇몇",wrong:["몇 몇"],category:"띄어쓰기"},
+
+{correct:"할 만하다",wrong:["할만하다"],category:"의존 명사"},
+{correct:"될 법하다",wrong:["될법하다"],category:"의존 명사"},
+{correct:"아는 체하다",wrong:["아는체하다"],category:"의존 명사"},
+{correct:"올 듯하다",wrong:["올듯하다"],category:"의존 명사"},
+{correct:"뿐이다",wrong:["뿐 이다"],category:"의존 명사"},
+
+{correct:"되겠다",wrong:["되갯다","되겟다","돼겠다","됬겠다","돼갰다"],category:"어미 활용"},
+{correct:"됐다",wrong:["됬다"],category:"어미 활용"},
+{correct:"안 돼",wrong:["안되"],category:"어미 활용"},
+{correct:"돼서",wrong:["되서"],category:"어미 활용"},
+
+{correct:"하려고",wrong:["할려고"],category:"어미"},
+{correct:"할게",wrong:["할께"],category:"어미"},
+
+{correct:"웬일",wrong:["왠일"],category:"표기"},
+{correct:"어이없다",wrong:["어의없다"],category:"표기"},
+{correct:"금세",wrong:["금새"],category:"표기"},
+{correct:"며칠",wrong:["몇일"],category:"표기"},
+{correct:"오랜만",wrong:["오랫만"],category:"표기"},
+{correct:"설거지",wrong:["설겆이"],category:"표기"},
+{correct:"오랫동안",wrong:["오랜동안"],category:"표기"},
+{correct:"따뜻하다",wrong:["따듯하다"],category:"표기"},
+
+{correct:"나뭇잎",wrong:["나무잎"],category:"사이시옷"},
+{correct:"고깃집",wrong:["고기집"],category:"사이시옷"},
+{correct:"전셋집",wrong:["전세집"],category:"사이시옷"},
+{correct:"장맛비",wrong:["장마비"],category:"사이시옷"},
+{correct:"뒷받침",wrong:["뒤받침"],category:"사이시옷"},
+{correct:"머리말",wrong:["머릿말"],category:"사이시옷"},
+
+{correct:"해 버리다",wrong:["해버리다"],category:"보조 용언"},
+{correct:"가 버리다",wrong:["가버리다"],category:"보조 용언"},
+{correct:"깨뜨려 버리다",wrong:["깨뜨려버리다"],category:"보조 용언"},
+{correct:"알아 두다",wrong:["알아두다"],category:"보조 용언"}
+];
+
+const SPELLING_REGEX = new RegExp(
+    SPELLING_DATA
+        .flatMap(item => item.wrong)
+        .map(word => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join("|")
+);
 
 const ALL_TOPICS = [
     "문화예술", "환경", "과학", "역사", "디지털 리터러시", 
@@ -168,6 +221,16 @@ ${selectedTopics.join(", ")}
 
         max_tokens: 4200
     };
+}
+
+function validateSpellingQuiz(quiz) {
+    const text = [
+        quiz.question,
+        ...quiz.choices,
+        quiz.explanation
+    ].join(" ");
+
+    return !SPELLING_REGEX.test(text);
 }
 
 // 📌 보정 로직 개선된 autoFixQuiz
@@ -426,6 +489,12 @@ async function fetchNewQuizData() {
             for (let quiz of rawQuizzes) {
                 // 📌 [핵심] 검증 시작하기 전에 먼저 보정부터 수행
                 quiz = autoFixQuiz(quiz);
+
+                if (quiz.topic === "한글 맞춤법") {
+                  if (!validateSpellingQuiz(quiz)) {
+                     throw new Error("한글 맞춤법 오류 발견");
+                      }
+                }
 
                 // 1. 필수 필드 및 개수 검사
                 if (!quiz.topic || !quiz.question || !Array.isArray(quiz.choices) || 
