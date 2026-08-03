@@ -33,76 +33,139 @@ function createQuizPayload(selectedTopics) {
         model: MODEL_ID,
 
         response_format: {
-            type: "json_object"
+            type: "json_schema",
+            json_schema: {
+                name: "quiz_response",
+                strict: true,
+                schema: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: ["quizzes"],
+                    properties: {
+                        quizzes: {
+                            type: "array",
+                            minItems: 5,
+                            maxItems: 5,
+                            items: {
+                                type: "object",
+                                additionalProperties: false,
+                                required: [
+                                    "topic",
+                                    "question",
+                                    "choices",
+                                    "correctAnswerIndex",
+                                    "correctAnswerText",
+                                    "explanation"
+                                ],
+                                properties: {
+                                    topic: {
+                                        type: "string"
+                                    },
+                                    question: {
+                                        type: "string"
+                                    },
+                                    choices: {
+                                        type: "array",
+                                        minItems: 4,
+                                        maxItems: 4,
+                                        items: {
+                                            type: "string"
+                                        }
+                                    },
+                                    correctAnswerIndex: {
+                                        type: "integer",
+                                        minimum: 0,
+                                        maximum: 3
+                                    },
+                                    correctAnswerText: {
+                                        type: "string"
+                                    },
+                                    explanation: {
+                                        type: "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
 
         messages: [
             {
                 role: "system",
                 content: `
-You generate valid JSON only.
+너는 상식 퀴즈 출제 전문가다.
 
-Rules:
-- Output only JSON.
-- Do not use markdown.
-- Do not use code fences.
-- Do not add explanations.
-- Do not add text before or after the JSON.
+반드시 JSON Schema 구조를 준수한다.
+
+규칙:
+- JSON 외의 텍스트를 출력하지 않는다.
+- 마크다운을 사용하지 않는다.
+- 코드 블록을 사용하지 않는다.
+- 생성 과정이나 검토 과정은 출력하지 않는다.
+
+출제 기준:
+- 역사/학술/뉴스 등에 존재하는 공식 명칭과 객관적 사실만 사용한다.
+- 뻔한 기초 상식보다 검증 가능한 중간 난이도 문제를 우선한다.
 `
             },
             {
                 role: "user",
-                content: `선택된 5개 분야(${selectedTopics.join(', ')})에서 뻔한 기초 상식은 제외하고, 역사/학술/뉴스 등에 실존하는 공식 명칭과 객관적 팩트만 사용하여 각각 1문제씩 총 5개의 퀴즈를 생성하세요.
+                content: `
+선택된 5개 분야:
+${selectedTopics.join(", ")}
+
+각 분야마다 정확히 1문제씩 총 5개의 퀴즈를 생성하세요.
 
 필수 규칙:
-1. 선택된 5개 분야 각각 정확히 1문제씩 출제 (총 5문제).
-2. 한글 맞춤법 문제는 2026년 현행 표준 규정 기준.
-- 한글 맞춤법/띄어쓰기 문제에서는 선택지 자체가 비교 대상이다.
-- 정답 판별에 필요한 띄어쓰기, 맞춤법 차이를 제외한 불필요한 괄호 설명, 부연 설명을 선택지에 넣지 않는다.
-- 띄어쓰기 문제의 선택지는 동일한 단어 형태만 사용하고 괄호 설명을 금지한다.
-3. 코딩 문제는 코드 내용을 포함할 수 있지만, **마크다운 코드 블록은 사용하지 말고 일반 문자열 형태로 작성.**
-4. choices는 정확히 4개 작성.
-5. **correctAnswerText는 choices 배열 중 하나와 완벽히 일치.**
-6. **correctAnswerIndex는 정답의 인덱스(0~3).**
-7. explanation 작성 규칙:
-- explanation은 최대 3문장 이내로 작성한다.
-- 첫 문장은 빠진 표현없이 반드시 아래 형식을 따른다.
 
+1. 선택된 분야별 문제 수는 정확히 1개다.
+
+2. 한글 맞춤법 문제:
+- 2026년 현행 표준 규정 기준.
+- 선택지는 비교 대상 자체만 작성한다.
+- 괄호 설명, 추가 부연 설명 금지.
+- 띄어쓰기 차이를 검사하는 경우 동일한 단어 형태로 비교한다.
+
+3. 코딩 문제:
+- 코드 작성 가능.
+- 마크다운 코드 블록 금지.
+- 일반 문자열로 작성.
+
+4. choices:
+- 반드시 4개.
+- 모든 선택지는 서로 달라야 한다.
+- 정답 외에도 그럴듯한 오답을 작성한다.
+
+5. 정답:
+- correctAnswerText는 choices 중 하나와 글자 하나까지 동일해야 한다.
+- correctAnswerIndex는 correctAnswerText 위치와 일치해야 한다.
+
+6. explanation:
+- 최대 3문장.
+- 반드시 첫 문장은 아래 형식:
 정답은 {correctAnswerText}입니다.
+- {correctAnswerText}는 choices의 실제 문자열과 완전히 동일해야 한다.
+- 이후 오답 선택지가 틀린 이유를 설명한다.
 
-- {correctAnswerText}는 생성된 정답 보기 텍스트와 동일하게 작성한다.
-- correctAnswerText가 문장부호(., !, ?, 。, ！, ？)로 끝나는 경우,
-  "입니다." 앞의 마지막 문장부호는 생략한다.
-- 첫 문장 뒤에는 정답이 아닌 나머지 선택지가 왜 틀렸는지 간단히 설명한다.
+7. 생성 전 내부 검토:
+- 질문 전제가 성립하는가?
+- "최초", "최대", "가장", "유일", "현행" 조건이 사실과 일치하는가?
+- 시간 조건이 있으면 실제 발생 시점과 비교한다.
+- 보기 중 복수 정답 가능성이 없는가?
+- explanation이 사실과 일치하는가?
 
-8. 최종 출력 전에 각 문제를 내부 검토한다:
-- **정답이 실제 사실과 일치하는가?**
-- **보기 중 정답이 여러 개 존재하지 않는가?**
-- **해설 내용이 정답 및 사실과 일치하는가?**
-- **해설에 언급된 정답이 correctAnswerText와 정확히 같은가?**
-- **질문의 조건(최초, 최대, 유일, 천연, 현행 등)이 정답과 모순되지 않는가?**
-
-검토 결과 오류가 발견된 문제는 폐기하고 올바른 문제로 다시 생성한다.
-검토 과정은 출력하지 말고 **최종 JSON만 반환한다.**
-
-응답 형식:
-
-{
-  "quizzes": [
-    {
-      "topic": "분야명",
-      "question": "문제",
-      "choices": ["보기1", "보기2", "보기3", "보기4"],
-      "correctAnswerIndex": 0,
-      "correctAnswerText": "보기1",
-      "explanation": "정답은 보기1입니다."
-    }
-  ]
-}`
+오류가 발견된 문제는 수정 후 출력한다.
+검토 과정은 출력하지 않는다.
+`
             }
         ],
+
         reasoning_effort: "high",
+
         temperature: 0.1,
+
         max_tokens: 4200
     };
 }
