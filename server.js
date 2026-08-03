@@ -275,9 +275,16 @@ async function validateQuizAccuracy(quizzes) {
 - choices 중 다른 정답이 가능한 경우가 없는가?
 
 3. 해설 검증
-- 해설 내용이 사실과 일치하는가?
-- 해설이 정답과 모순되지 않는가?
-- 잘못된 정보를 포함하지 않는가?
+일반 topic:
+- explanation 첫 문장이 정답 설명과 일치하는지 확인한다.
+- 첫 문장에 사실 오류나 부정확한 정보가 있으면 false 반환한다.
+
+단, topic이 "한글 맞춤법"인 경우:
+- 위 검증에 추가하여 아래 항목을 모두 검증한다.
+- correctAnswerText의 맞춤법과 띄어쓰기가 올바른지 확인한다.
+- 보기 자체의 표기가 올바른지 확인한다.
+- explanation 전체에서 맞춤법 설명 오류가 있는지 확인한다.
+- 표준 맞춤법 기준으로 판단한다.
 
 
 하나라도 오류가 있으면 valid를 false로 한다.
@@ -463,7 +470,15 @@ async function fetchNewQuizData() {
             }
 
             // 보정 및 정제 완료된 processedQuizzes로 교제/사실 검증
-            const accuracyValid = await validateQuizAccuracy(processedQuizzes);
+            const accuracyValid = await validateQuizAccuracy(
+                processedQuizzes.map(q => ({
+                    ...q,
+                    explanation:
+                        q.topic === "한글 맞춤법"
+                            ? q.explanation
+                            : q.explanation.match(/^.*?입니다\./)?.[0] || q.explanation
+                }))
+            );
 
             if (!accuracyValid) {
                 throw new Error("질문 전제 또는 사실 검증 실패");
