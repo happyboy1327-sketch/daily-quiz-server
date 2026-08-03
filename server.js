@@ -78,6 +78,15 @@ const ALL_TOPICS = [
     "경제", "지리", "정치", "심리학"
 ];
 
+function shuffleArray(array, seed) {
+    const rng = seedrandom(seed); 
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1)); 
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 function getSelectedTopics() {
     const availableTopics = ALL_TOPICS.filter(topic => !LAST_TOPICS.includes(topic));
     const topicPool = availableTopics.length >= 5 ? availableTopics : ALL_TOPICS;
@@ -282,6 +291,7 @@ function sanitizeQuizData(questions) {
         return safeQuestion; 
     });
 }
+
 
 function getDailyQuestions(k, data) {
     const today = new Date().toISOString().split('T')[0];
