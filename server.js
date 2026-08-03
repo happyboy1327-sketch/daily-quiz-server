@@ -58,6 +58,7 @@ const SPELLING_DATA = [
 {correct:"장맛비",wrong:["장마비"],category:"사이시옷"},
 {correct:"뒷받침",wrong:["뒤받침"],category:"사이시옷"},
 {correct:"머리말",wrong:["머릿말"],category:"사이시옷"},
+{correct:"어젯밤",wrong:["어제 밤", "어제밤"],category:"사이시옷"},
 
 {correct:"해 버리다",wrong:["해버리다"],category:"보조 용언"},
 {correct:"가 버리다",wrong:["가버리다"],category:"보조 용언"},
