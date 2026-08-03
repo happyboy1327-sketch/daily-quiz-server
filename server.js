@@ -164,7 +164,7 @@ ${selectedTopics.join(", ")}
 
         reasoning_effort: "high",
 
-        temperature: 0.1,
+        temperature: 0.25,
 
         max_tokens: 4200
     };
