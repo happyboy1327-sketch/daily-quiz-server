@@ -450,12 +450,22 @@ async function fetchNewQuizData() {
                     .replace(/[.!?。？！]$/, "")
                     .trim();
                 const compareExplanation = quiz.explanation
-                     .replace(/^정답은\s*/, "")
-                     .trim();
+                    .replace(/^정답은\s*/, "")
+                    .trim();
 
-                 if (!compareExplanation.startsWith(compareAnswer)) {
-                         throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);
-                      }
+                const normalize = (text) =>
+                    text
+                        .replace(/[.]/g, "")
+                        .replace(/합니다/g, "한다")
+                        .trim();
+                
+                if (!normalize(compareExplanation).startsWith(normalize(compareAnswer))) {
+                    throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);
+                }
+
+                 //if (!compareExplanation.startsWith(compareAnswer)) ///{///
+                         //throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);//
+                      //}
                 
                 //if (!cleanExplanation.startsWith(cleanAnswer)) {
                     //throw new Error
