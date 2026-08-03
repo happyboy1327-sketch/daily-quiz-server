@@ -16,6 +16,8 @@ const ONE_HOUR = 3600000;
 
 let MASTER_QUIZ_DATA = []; 
 let LAST_FETCH_TIME = 0;
+let LAST_TOPICS = [];
+
 const SPELLING_DATA = [
 {correct:"할 일",wrong:["할일"],category:"띄어쓰기"},
 {correct:"할 수 있다",wrong:["할수있다"],category:"띄어쓰기"},
@@ -77,8 +79,9 @@ const ALL_TOPICS = [
 ];
 
 function getSelectedTopics() {
-    const shuffled = [...ALL_TOPICS].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 5);
+    const availableTopics = ALL_TOPICS.filter(topic => !LAST_TOPICS.includes(topic));
+    const topicPool = availableTopics.length >= 5 ? availableTopics : ALL_TOPICS;
+    return shuffleArray([...topicPool], Date.now().toString()).slice(0, 5);
 }
 
 function createQuizPayload(selectedTopics) {
@@ -571,6 +574,7 @@ async function fetchNewQuizData() {
             });
 
             LAST_FETCH_TIME = Date.now();
+            LAST_TOPICS = [...selectedTopics];
             console.log(`[API] 퀴즈 ${MASTER_QUIZ_DATA.length}개 생성 완료`);
             return true;
         } catch (error) {
