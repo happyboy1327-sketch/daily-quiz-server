@@ -244,13 +244,29 @@ ${selectedTopics.join(", ")}
 }
 
 function validateSpellingQuiz(quiz) {
-    const text = [
-        quiz.question,
-        ...quiz.choices,
-        quiz.explanation
-    ].join(" ");
+    const text = quiz.choices.join(" ");
 
     return !SPELLING_REGEX.test(text);
+}
+
+function normalizeChoice(choice, topic) {
+    const text = String(choice || "").trim();
+
+    // 한글 맞춤법은 내부 띄어쓰기가 의미이므로 유지
+    if (topic === "한글 맞춤법") {
+        return text;
+    }
+
+    // 일반 분야는 공백 차이만 다른 보기 방지
+    return text.replace(/\s+/g, "");
+}
+
+function hasDuplicateChoices(quiz) {
+    const normalized = quiz.choices.map(choice =>
+        normalizeChoice(choice, quiz.topic)
+    );
+
+    return new Set(normalized).size !== normalized.length;
 }
 
 // 📌 보정 로직 개선된 autoFixQuiz
@@ -526,7 +542,9 @@ async function fetchNewQuizData() {
                     throw new Error("퀴즈 필수 필드 누락");
                 }
 
-                if (quiz.choices.length !== 4) throw new Error("보기 개수 오류");
+                if (hasDuplicateChoices(quiz)) {
+                   throw new Error("보기 중복 또는 빈 보기 오류");
+                 }
                 if (new Set(quiz.choices).size !== 4) throw new Error("보기 중복 또는 빈 보기 오류");
                 if (quiz.choices.some(c => !c)) throw new Error("빈 보기 발견");
 
