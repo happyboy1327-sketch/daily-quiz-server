@@ -560,7 +560,7 @@ async function fetchNewQuizData() {
                 // 해설 시작 형식 검증 (정답 텍스트 포함 확인)
                 // explanation 첫 문장의 정답 추출 후 검증
                 const explanationMatch = quiz.explanation.match(
-                  /^정답은\s+['"‘“]?(.+?)['"’”]?(?:입니다|이다)\.?/
+                  /^정답은\s+['"‘“]?(.+?)['"’”]?(?:입니다)\.?/
                );
 
                if (!explanationMatch) {
@@ -575,8 +575,7 @@ async function fetchNewQuizData() {
                 return text
                    .replace(/됩니다$/, "된다")
                    .replace(/합니다$/, "한다")
-                   .replace(/입니다$/, "이다");
-            }
+                    }
 
              if (normalizeEnding(explanationAnswer) !== normalizeEnding(correctAnswer)) {
                   throw new Error(
