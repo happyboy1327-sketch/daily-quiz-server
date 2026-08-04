@@ -249,6 +249,19 @@ function validateSpellingQuiz(quiz) {
     return !SPELLING_REGEX.test(text);
 }
 
+const FOREIGN_SCRIPT_REGEX = /[\u0400-\u04FF]/;
+
+function validateForeignScript(quiz) {
+    const text = [
+        quiz.question,
+        ...quiz.choices,
+        quiz.explanation,
+        quiz.correctAnswerText
+    ].join(" ");
+
+    return !FOREIGN_SCRIPT_REGEX.test(text);
+}
+
 function normalizeChoice(choice, topic) {
     const text = String(choice || "").trim();
 
@@ -529,6 +542,10 @@ async function fetchNewQuizData() {
             for (let quiz of rawQuizzes) {
                 // 📌 [핵심] 검증 시작하기 전에 먼저 보정부터 수행
                 quiz = autoFixQuiz(quiz);
+
+                if (!validateForeignScript(quiz)) {
+              throw new Error("허용되지 않는 외국 문자 발견");
+                }
 
                 if (quiz.topic === "한글 맞춤법") {
                   if (!validateSpellingQuiz(quiz)) {
