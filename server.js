@@ -658,10 +658,9 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/api/quiz', async (req, res) => {
-app.get('/api/quiz', async (req, res) => {
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) {
-        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE", message: "퀴즈 데이터를 불러올 수 없습니다." });
+        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE", message: "퀴즈 데이터를 불러올 수 없다." });
     }
     
     try {
@@ -678,7 +677,7 @@ app.get('/api/quiz', async (req, res) => {
 app.get('/api/answer-key', async (req, res) => {
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) {
-        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE", message: "퀴즈 데이터를 불러올 수 없습니다." });
+        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE", message: "퀴즈 데이터를 불러올 수 없다." });
     }
     
     try {
@@ -699,6 +698,8 @@ app.get('/api/answer-key', async (req, res) => {
         return res.status(500).json({ errorCode: "SERVER_ERROR" });
     }
 });
+
+    
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
