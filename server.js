@@ -215,12 +215,12 @@ ${selectedTopics.join(", ")}
 
 6. explanation:
 - [문법 자동 수정 엄격 금지]
-  ${correctAnswerText} 위치에는 choices에 있는 문자열을 토시 하나 안 바꾸고 기계적으로 단순 복사(Copy & Paste)하여 삽입하시오.
+  correctAnswerText 위치에는 choices에 있는 문자열을 토시 하나 안 바꾸고 기계적으로 단순 복사(Copy & Paste)하여 삽입하시오.
   한국어 문법상 아무리 어색하고 틀린 문장이 되더라도 종결어미, 조사, 단어를 절대로 교정/수정/윤문하지 마시오. (문법이 어색한 것이 정상입니다.)
 
-- 첫 문장 포맷: 정답은 ${correctAnswerText}입니다.
+- 첫 문장 포맷: 정답은 {correctAnswerText}입니다.
 - 이후 오답 선택지가 틀린 이유를 설명한다. (전체 4문장 이상)
-- ${correctAnswerText}는 choices의 실제 문자열과 완전히 동일해야 한다.
+- correctAnswerText는 choices의 실제 문자열과 완전히 동일해야 한다.
 
 7. 생성 전 내부 검토:
 - 질문 전제가 성립하는가?
