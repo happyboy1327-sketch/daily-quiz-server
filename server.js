@@ -583,7 +583,7 @@ async function fetchNewQuizData() {
              if (!firstSentence.includes("정답은")) {
                throw new Error(`해설 형식 오류 ('정답은' 누락): ${firstSentence}`);
              }
-             }
+             
 
                  //if (!compareExplanation.startsWith(compareAnswer)) ///{///
                          //throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);//
