@@ -292,10 +292,27 @@
                 const answerMap = await answerRes.json();
 
                 // 3. ID 매칭
-                currentQuizData = quizData.map(q => ({
-                    ...q,
-                    correctAnswerIndex: Number(answerMap[q.id])
-                }));
+                // 3. ID 매칭 (loadQuizData 내부)
+                currentQuizData = quizData.map(q => {
+                     // 1) answerMap에서 ID(숫자 및 문자열 타입 모두) 탐색
+                      let targetIdx = undefined;
+                      if (answerMap && typeof answerMap === 'object') {
+                         targetIdx = answerMap[q.id] ?? answerMap[String(q.id)];
+                       }
+
+            // 2) answerMap에 없으면 /api/quiz 응답 본문에 들어있는 correctAnswerIndex 사용
+                      if (targetIdx === undefined || targetIdx === null) {
+                         targetIdx = q.correctAnswerIndex;
+                        }
+
+                      const finalIndex = Number(targetIdx);
+
+                       return {
+                        ...q,
+        // NaN 방지: 최종 값이 NaN이면 원래 q.correctAnswerIndex나 0으로 안전 복구
+                     correctAnswerIndex: !isNaN(finalIndex) ? finalIndex : (Number(q.correctAnswerIndex) || 0)
+    };
+});
 
                 currentQuestionIndex = 0;
                 score = 0;
