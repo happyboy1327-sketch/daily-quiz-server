@@ -267,64 +267,62 @@
         // ==========================================================
         // 퀴즈 데이터 순차 로딩 (기존 백엔드 완벽 호환)
         // ==========================================================
-        async function loadQuizData(retryCount = 0) {
-            pageTitle.textContent = '오늘의 상식 퀴즈';
-            quizContainer.innerHTML = '';
-            navButtons.innerHTML = '';
-            loadingDiv.style.display = 'block';
-            loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중...";
+        let isQuizLoading = false;
 
-            try {
-                // 1. 퀴즈 먼저 요청 (서버에서 생성 후 캐싱됨)
-                const quizRes = await fetch(QUIZ_API_URL);
+async function loadQuizData(retryCount = 0) {
+    if (isQuizLoading && retryCount === 0) return;
+    isQuizLoading = true;
 
-                if (quizRes.status === 503 && retryCount < 2) {
-                    setTimeout(() => loadQuizData(retryCount + 1), 3000);
-                    return;
-                }
+    pageTitle.textContent = '오늘의 상식 퀴즈';
+    quizContainer.innerHTML = '';
+    navButtons.innerHTML = '';
+    loadingDiv.style.display = 'block';
+    loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중...";
 
-                if (!quizRes.ok) throw new Error(`퀴즈 데이터 로드 실패 (${quizRes.status})`);
-                const quizData = await quizRes.json();
+    try {
+        // 1. 퀴즈 먼저 요청 (서버에서 생성 후 캐싱됨)
+        const quizRes = await fetch(QUIZ_API_URL);
 
-                // 2. 이미 생성된 캐시에서 정답 키 안정적으로 가져오기
-                const answerRes = await fetch(ANSWER_KEY_API_URL);
-                if (!answerRes.ok) throw new Error(`정답 키 로드 실패 (${answerRes.status})`);
-                const answerMap = await answerRes.json();
+        if (quizRes.status === 503 && retryCount < 2) {
+            setTimeout(() => {
+                isQuizLoading = false;
+                loadQuizData(retryCount + 1);
+            }, 3000);
+            return;
+        }
 
-                // 3. ID 매칭
-                // 3. ID 매칭 (loadQuizData 내부)
-                currentQuizData = quizData.map(q => {
-                     // 1) answerMap에서 ID(숫자 및 문자열 타입 모두) 탐색
-                      let targetIdx = undefined;
-                      if (answerMap && typeof answerMap === 'object') {
-                         targetIdx = answerMap[q.id] ?? answerMap[String(q.id)];
-                       }
+        if (!quizRes.ok) throw new Error(`퀴즈 데이터 로드 실패 (${quizRes.status})`);
+        const quizData = await quizRes.json();
 
-            // 2) answerMap에 없으면 /api/quiz 응답 본문에 들어있는 correctAnswerIndex 사용
-                      if (targetIdx === undefined || targetIdx === null) {
-                         targetIdx = q.correctAnswerIndex;
-                        }
+        // 2. 이미 생성된 캐시에서 정답 키 안정적으로 가져오기
+        const answerRes = await fetch(ANSWER_KEY_API_URL);
+        if (!answerRes.ok) throw new Error(`정답 키 로드 실패 (${answerRes.status})`);
+        const answerMap = await answerRes.json();
 
-                      const finalIndex = Number(targetIdx);
+        // 3. ID 매칭
+        currentQuizData = quizData.map(q => ({
+            ...q,
+            correctAnswerIndex: answerMap[q.id] ?? q.correctAnswerIndex
+        }));
 
-                       return {
-                        ...q,
-        // NaN 방지: 최종 값이 NaN이면 원래 q.correctAnswerIndex나 0으로 안전 복구
-                     correctAnswerIndex: !isNaN(finalIndex) ? finalIndex : (Number(q.correctAnswerIndex) || 0)
-    };
-});
+        loadingDiv.style.display = 'none';
 
+     
                 currentQuestionIndex = 0;
                 score = 0;
                 loadingDiv.style.display = 'none';
                 displayQuestion();
 
             } catch (error) {
-                loadingDiv.style.display = 'none';
+        console.error(error);
+        loadingDiv.style.display = 'none';
                 quizContainer.innerHTML = `<p style="color: #dc3545; text-align: center;">로딩 실패: ${escapeHtml(error.message)}<br>잠시 후 다시 시도해 주세요.</p>`;
                 showHomeButtons();
-            }
-        }
+    } finally {
+        isQuizLoading = false;
+    }
+}
+
 
         function displayQuestion() {
             if (currentQuestionIndex >= currentQuizData.length) {
