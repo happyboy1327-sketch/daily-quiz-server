@@ -589,10 +589,11 @@ async function fetchNewQuizData() {
 
 // 종결어미 차이만 허용
              function normalizeEnding(text) {
-                return text
-                   .replace(/됩니다$/, "된다")
-                   .replace(/합니다$/, "한다")
-                    }
+                 return text
+                       .trim()
+                       .replace(/[.!?。？！]$/, "")
+                       .replace(/(입니다|습니다|합니다|한다|이다)$/u, "");
+             }
 
              if (normalizeEnding(explanationAnswer) !== normalizeEnding(correctAnswer)) {
                   throw new Error(
