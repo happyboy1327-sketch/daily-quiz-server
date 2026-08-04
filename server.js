@@ -574,32 +574,35 @@ async function fetchNewQuizData() {
                     throw new Error("정답 텍스트/인덱스 불일치");
                 }
 
-                // 해설 시작 형식 검증 (정답 텍스트 포함 확인)
-                // explanation 첫 문장의 정답 추출 후 검증
-                const explanationMatch = quiz.explanation.match(
-                  /^정답은\s+['"‘“]?(.+?)['"’”]?(?:입니다)\.?/
-               );
+                function getFirstSentence(text) {
+                   return text.match(/^.*?[.!?。？！]/u)?.[0] || text;
+                }
 
-               if (!explanationMatch) {
-                 throw new Error(`해설 형식 오류: ${quiz.explanation}`);
-             }
+               function normalizeEnding(text) {
+                          return text
+                                   .trim()
+                                   .replace(/[.!?。？！]$/u, "")
+                                   .replace(/(입니다|습니다|합니다|한다|이다|다)$/u, "");
+                                   }
 
-             const explanationAnswer = explanationMatch[1].trim();
-             const correctAnswer = quiz.correctAnswerText.trim();
+                const firstSentence = getFirstSentence(quiz.explanation);
 
-// 종결어미 차이만 허용
-             function normalizeEnding(text) {
-                 return text
-                       .trim()
-                       .replace(/[.!?。？！]$/, "")
-                       .replace(/(입니다|습니다|합니다|한다|이다)$/u, "");
-             }
+                const explanationMatch = firstSentence.match(
+                   /^정답은\s+(.+?)(?:입니다|습니다|합니다|한다|이다|다)\.?$/u
+                   );
 
-             if (normalizeEnding(explanationAnswer) !== normalizeEnding(correctAnswer)) {
-                  throw new Error(
-        `해설 정답 불일치: (정답: ${correctAnswer} / 해설: ${explanationAnswer})`
-                 );
-              }
+                if (!explanationMatch) {
+                   throw new Error(`해설 형식 오류: ${firstSentence}`);
+                   }
+
+                  const explanationAnswer = normalizeEnding(explanationMatch[1]);
+                  const correctAnswer = normalizeEnding(quiz.correctAnswerText);
+
+                  if (explanationAnswer !== correctAnswer) {
+                     throw new Error(
+                     `해설 정답 불일치: (정답: ${correctAnswer} / 해설: ${explanationAnswer})`
+    );
+}
 
                  //if (!compareExplanation.startsWith(compareAnswer)) ///{///
                          //throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);//
