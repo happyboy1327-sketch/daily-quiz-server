@@ -239,7 +239,7 @@ ${selectedTopics.join(", ")}
 
         temperature: 0.25,
 
-        max_tokens: 4200
+        max_tokens: 4000
     };
 }
 
@@ -433,7 +433,7 @@ async function validateQuizAccuracy(quizzes) {
                 "Authorization": `Bearer ${MISTRAL_API_KEY}`,
                 "Content-Type": "application/json"
             },
-            timeout: 60000
+            timeout: 70000
         });
 
         const content = response.data?.choices?.[0]?.message?.content;
@@ -478,7 +478,7 @@ async function fetchNewQuizData() {
                             'Authorization': `Bearer ${MISTRAL_API_KEY}`,
                             'Content-Type': 'application/json'
                         },
-                        timeout: 60000
+                        timeout: 70000
                     });
 
                     break;
