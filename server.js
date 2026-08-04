@@ -580,6 +580,15 @@ async function fetchNewQuizData() {
                 throw new Error("질문 전제 또는 사실 검증 실패");
             }      
 
+            processedQuizzes.forEach((quiz, idx) => {
+               const answer = quiz.choices[quiz.correctAnswerIndex];
+
+               shuffleArray(quiz.choices, `${Date.now()}_${idx}`);
+
+            quiz.correctAnswerIndex = quiz.choices.indexOf(answer);
+            quiz.correctAnswerText = answer;
+           });
+
             MASTER_QUIZ_DATA = processedQuizzes.map((q, idx) => {
                 return { ...q, id: Date.now() + idx };
             });
