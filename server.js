@@ -28,6 +28,8 @@ const SPELLING_DATA = [
 {correct:"할 수밖에 없다",wrong:["할수밖에없다"],category:"띄어쓰기"},
 {correct:"곧바로",wrong:["곧 바로"],category:"띄어쓰기"},
 {correct:"몇몇",wrong:["몇 몇"],category:"띄어쓰기"},
+{correct:"맡아서 하다",wrong:["맡아하다", "맡아 하다", "맡아서하다"],category:"띄어쓰기"},
+    
 
 {correct:"할 만하다",wrong:["할만하다"],category:"의존 명사"},
 {correct:"될 법하다",wrong:["될법하다"],category:"의존 명사"},
@@ -220,7 +222,7 @@ ${selectedTopics.join(", ")}
 
 - 첫 문장 포맷: 정답은 {correctAnswerText}입니다.
 - 이후 오답 선택지가 틀린 이유를 choices 배열 순대로 설명한다. (전체 4문장 이상)
-단, 오답 설명 시 '1번', '4번' 등의 번호를 쓰지 말고, 해당 선택지의 단어를 직접 인용하여 순서대로 설명하시오.
+단, 오답 설명 시 '1번', '4번', '세번째' 등의 번호를 쓰지 말고, 해당 선택지의 단어를 직접 인용하여 줄바꿈 없이 한 칸 띄워 순서대로 설명하시오.
 - correctAnswerText는 choices의 실제 문자열과 완전히 동일해야 한다.
 
 7. 생성 전 내부 검토:
