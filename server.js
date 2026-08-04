@@ -214,9 +214,9 @@ ${selectedTopics.join(", ")}
 - correctAnswerIndex는 correctAnswerText 위치와 일치해야 한다.
 
 6. explanation:
-- 최대 3문장.
-- 반드시 첫 문장은 아래 형식:
-**정답은 {correctAnswerText}입니다.**
+- [필수 규격] 첫 문장은 아래 <FORMAT>을 토시 하나, 공백 하나 바꾸지 말고 '완전히 똑같이' 시작해야 합니다.
+     <FORMAT>: 정답은 {correctAnswerText}입니다.
+- 반드시 <FORMAT>을 포함하여 4문장 이상 작성해야 한다.
 - {correctAnswerText}는 choices의 실제 문자열과 완전히 동일해야 한다.
 - 이후 오답 선택지가 틀린 이유를 설명한다.
 
