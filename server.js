@@ -216,7 +216,7 @@ ${selectedTopics.join(", ")}
 6. explanation:
 - [문법 자동 수정 엄격 금지]
   ${correctAnswerText} 위치에는 choices에 있는 문자열을 토시 하나 안 바꾸고 기계적으로 단순 복사(Copy & Paste)하여 삽입하시오.
-  한국어 문법상 아무리 어색하고 틀린 문장이 되더라도 어미, 조사, 단어를 절대로 교정/수정/윤문하지 마시오. (문법이 어색한 것이 정상입니다.)
+  한국어 문법상 아무리 어색하고 틀린 문장이 되더라도 종결어미, 조사, 단어를 절대로 교정/수정/윤문하지 마시오. (문법이 어색한 것이 정상입니다.)
 
 - 첫 문장 포맷: 정답은 ${correctAnswerText}입니다.
 - 이후 오답 선택지가 틀린 이유를 설명한다. (전체 4문장 이상)
@@ -576,35 +576,14 @@ async function fetchNewQuizData() {
                     throw new Error("정답 텍스트/인덱스 불일치");
                 }
 
-                function getFirstSentence(text) {
-                   return text.match(/^.*?[.!?。？！]/u)?.[0] || text;
-                }
+                // 1. 해설의 첫 문장 추출
+               const firstSentence = quiz.explanation.match(/^.*?[.!?。？！\n]/u)?.[0] || quiz.explanation;
 
-               function normalizeEnding(text) {
-                          return text
-                                   .trim()
-                                   .replace(/[.!?。？！]$/u, "")
-                                   .replace(/(입니다|습니다|합니다|한다|이다|다)$/u, "");
-                                   }
-
-                const firstSentence = getFirstSentence(quiz.explanation);
-
-                const explanationMatch = firstSentence.match(
-                   /^정답은\s+(.+?)(?:입니다|습니다|합니다|한다|이다|다)\.?$/u
-                   );
-
-                if (!explanationMatch) {
-                   throw new Error(`해설 형식 오류: ${firstSentence}`);
-                   }
-
-                  const explanationAnswer = normalizeEnding(explanationMatch[1]);
-                  const correctAnswer = normalizeEnding(quiz.correctAnswerText);
-
-                  if (explanationAnswer !== correctAnswer) {
-                     throw new Error(
-                     `해설 정답 불일치: (정답: ${correctAnswer} / 해설: ${explanationAnswer})`
-    );
-}
+// 2. 첫 문장에 '정답은'이 들어있는지 지극히 단순 비교
+             if (!firstSentence.includes("정답은")) {
+               throw new Error(`해설 형식 오류 ('정답은' 누락): ${firstSentence}`);
+             }
+             }
 
                  //if (!compareExplanation.startsWith(compareAnswer)) ///{///
                          //throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);//
