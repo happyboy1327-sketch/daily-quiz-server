@@ -540,23 +540,31 @@ async function fetchNewQuizData() {
                 }
 
                 // 해설 시작 형식 검증 (정답 텍스트 포함 확인)
-                const compareAnswer = quiz.correctAnswerText
-                    .replace(/\s*\([^)]*\)/g, "")
-                    .replace(/[.!?。？！]$/, "")
-                    .trim();
-                const compareExplanation = quiz.explanation
-                    .replace(/^정답은\s*/, "")
-                    .trim();
+                // explanation 첫 문장의 정답 추출 후 검증
+                const explanationMatch = quiz.explanation.match(
+                  /^정답은\s+['"‘“]?(.+?)['"’”]?(?:입니다|이다)\.?/
+               );
 
-                const normalize = (text) =>
-                    text
-                        .replace(/[.]/g, "")
-                        .replace(/합니다/g, "한다")
-                        .trim();
-                
-                if (!normalize(compareExplanation).startsWith(normalize(compareAnswer))) {
-                    throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);
-                }
+               if (!explanationMatch) {
+                 throw new Error(`해설 형식 오류: ${quiz.explanation}`);
+             }
+
+             const explanationAnswer = explanationMatch[1].trim();
+             const correctAnswer = quiz.correctAnswerText.trim();
+
+// 종결어미 차이만 허용
+             function normalizeEnding(text) {
+                return text
+                   .replace(/됩니다$/, "된다")
+                   .replace(/합니다$/, "한다")
+                   .replace(/입니다$/, "이다");
+            }
+
+             if (normalizeEnding(explanationAnswer) !== normalizeEnding(correctAnswer)) {
+                  throw new Error(
+        `해설 정답 불일치: (정답: ${correctAnswer} / 해설: ${explanationAnswer})`
+                 );
+              }
 
                  //if (!compareExplanation.startsWith(compareAnswer)) ///{///
                          //throw new Error(`해설 형식 오류: (정답: ${quiz.correctAnswerText} / 해설: ${quiz.explanation})`);//
