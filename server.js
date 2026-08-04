@@ -216,7 +216,7 @@ ${selectedTopics.join(", ")}
 6. explanation:
 - 최대 3문장.
 - 반드시 첫 문장은 아래 형식:
-정답은 {correctAnswerText}입니다.
+**정답은 {correctAnswerText}입니다.**
 - {correctAnswerText}는 choices의 실제 문자열과 완전히 동일해야 한다.
 - 이후 오답 선택지가 틀린 이유를 설명한다.
 
