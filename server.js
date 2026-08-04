@@ -17,6 +17,7 @@ const ONE_HOUR = 3600000;
 let MASTER_QUIZ_DATA = []; 
 let LAST_FETCH_TIME = 0;
 let LAST_TOPICS = [];
+let fetchPromise = null;
 
 const SPELLING_DATA = [
   // [띄어쓰기]
@@ -658,7 +659,14 @@ async function fetchNewQuizData() {
 
 async function ensureDataFreshness() {
     if (MASTER_QUIZ_DATA.length === 0 || (Date.now() - LAST_FETCH_TIME) > ONE_HOUR) {
-        await fetchNewQuizData();
+        // 이미 진행 중인 API 요청이 없으면 새로 생성
+        if (!fetchPromise) {
+            fetchPromise = fetchNewQuizData().finally(() => {
+                fetchPromise = null; // 성공/실패 여부와 관계없이 완료 후 락 해제
+            });
+        }
+        // 진행 중이거나 새로 생성된 Promise가 완료될 때까지 대기
+        await fetchPromise;
     }
 }
 
