@@ -154,7 +154,8 @@ function createQuizPayload(selectedTopics) {
                                         type: "string"
                                     },
                                     explanation: {
-                                        type: "string"
+                                        type: "string",
+                                        pattern: "^(.*\\.\\s*)+$"
                                     }
                                 }
                             }
