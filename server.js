@@ -19,53 +19,57 @@ let LAST_FETCH_TIME = 0;
 let LAST_TOPICS = [];
 
 const SPELLING_DATA = [
-{correct:"할 일",wrong:["할일"],category:"띄어쓰기"},
-{correct:"할 수 있다",wrong:["할수있다"],category:"띄어쓰기"},
-{correct:"한 번",wrong:["한번"],category:"띄어쓰기"},
-{correct:"몇 가지",wrong:["몇가지"],category:"띄어쓰기"},
-{correct:"것 같다",wrong:["것같다"],category:"띄어쓰기"},
-{correct:"뿐만 아니라",wrong:["뿐만아니라"],category:"띄어쓰기"},
-{correct:"할 수밖에 없다",wrong:["할수밖에없다"],category:"띄어쓰기"},
-{correct:"곧바로",wrong:["곧 바로"],category:"띄어쓰기"},
-{correct:"몇몇",wrong:["몇 몇"],category:"띄어쓰기"},
-{correct:"맡아서 하다",wrong:["맡아하다", "맡아 하다", "맡아서하다"],category:"띄어쓰기"},
-    
+  // [띄어쓰기]
+  { correct: "할 일", wrong: ["할일"], category: "띄어쓰기" },
+  { correct: "몇 가지", wrong: ["몇가지"], category: "띄어쓰기" },
+  { correct: "것 같다", wrong: ["것같다"], category: "띄어쓰기" },
+  { correct: "뿐만 아니라", wrong: ["뿐만아니라"], category: "띄어쓰기" },
+  { correct: "할 수밖에 없다", wrong: ["할수밖에없다"], category: "띄어쓰기" },
+  { correct: "곧바로", wrong: ["곧 바로"], category: "띄어쓰기" },
+  { correct: "몇몇", wrong: ["몇 몇"], category: "띄어쓰기" },
+  { correct: "맡아서 하다", wrong: ["맡아서하다"], category: "띄어쓰기" }, // '-아서' 뒤에는 붙여쓰기 절대 불가
 
-{correct:"할 만하다",wrong:["할만하다"],category:"의존 명사"},
-{correct:"될 법하다",wrong:["될법하다"],category:"의존 명사"},
-{correct:"아는 체하다",wrong:["아는체하다"],category:"의존 명사"},
-{correct:"올 듯하다",wrong:["올듯하다"],category:"의존 명사"},
-{correct:"뿐이다",wrong:["뿐 이다"],category:"의존 명사"},
+  // [의존 명사 - 띄어쓰기 필수 항목들]
+  { correct: "할 수 있다", wrong: ["할수있다"], category: "의존 명사" },
+  { correct: "먹은 지 오래되었다", wrong: ["먹은지 오래되었다"], category: "의존 명사" }, // 시간의 경과는 띄어씀
+  { correct: "아는 만큼", wrong: ["아는만큼"], category: "의존 명사" },
+  { correct: "김철수 씨", wrong: ["김철수씨"], category: "의존 명사" }, // 호칭어는 띄어씀
+  { correct: "뿐이다", wrong: ["뿐 이다"], category: "의존 명사" },
 
-{correct:"되겠다",wrong:["되갯다","되겟다","돼겠다","됬겠다","돼갰다"],category:"어미 활용"},
-{correct:"됐다",wrong:["됬다"],category:"어미 활용"},
-{correct:"안 돼",wrong:["안되"],category:"어미 활용"},
-{correct:"돼서",wrong:["되서"],category:"어미 활용"},
+  // [조사 - 붙여쓰기 필수 항목들]
+  { correct: "학교에서만이라도", wrong: ["학교 에서 만 이라도", "학교에서 만이라도"], category: "조사" },
 
-{correct:"하려고",wrong:["할려고"],category:"어미"},
-{correct:"할게",wrong:["할께"],category:"어미"},
+  // [보조 용언 - 붙여쓰기가 규정상 절대 금지되는 케이스들]
+  { correct: "읽어도 보고", wrong: ["읽어도보고"], category: "보조 용언" }, // 조사가 끼어들면 붙여쓰기 불가
+  { correct: "떠내려가 버리다", wrong: ["떠내려가버리다"], category: "보조 용언" }, // 앞말이 합성어면 붙여쓰기 불가
+  { correct: "깨뜨려 버리다", wrong: ["깨뜨려버리다"], category: "보조 용언" }, // 앞말이 파생어면 붙여쓰기 불가
 
-{correct:"웬일",wrong:["왠일"],category:"표기"},
-{correct:"어이없다",wrong:["어의없다"],category:"표기"},
-{correct:"금세",wrong:["금새"],category:"표기"},
-{correct:"며칠",wrong:["몇일"],category:"표기"},
-{correct:"오랜만",wrong:["오랫만"],category:"표기"},
-{correct:"설거지",wrong:["설겆이"],category:"표기"},
-{correct:"오랫동안",wrong:["오랜동안"],category:"표기"},
-{correct:"따뜻하다",wrong:["따듯하다"],category:"표기"},
+  // [어미 활용]
+  { correct: "되겠다", wrong: ["되갯다", "되겟다", "돼겠다", "됬겠다", "돼갰다"], category: "어미 활용" },
+  { correct: "됐다", wrong: ["됬다"], category: "어미 활용" },
+  { correct: "안 돼", wrong: ["안되"], category: "어미 활용" },
+  { correct: "돼서", wrong: ["되서"], category: "어미 활용" },
+  { correct: "하려고", wrong: ["할려고"], category: "어미" },
+  { correct: "할게", wrong: ["할께"], category: "어미" },
 
-{correct:"나뭇잎",wrong:["나무잎"],category:"사이시옷"},
-{correct:"고깃집",wrong:["고기집"],category:"사이시옷"},
-{correct:"전셋집",wrong:["전세집"],category:"사이시옷"},
-{correct:"장맛비",wrong:["장마비"],category:"사이시옷"},
-{correct:"뒷받침",wrong:["뒤받침"],category:"사이시옷"},
-{correct:"머리말",wrong:["머릿말"],category:"사이시옷"},
-{correct:"어젯밤",wrong:["어제 밤", "어제밤"],category:"사이시옷"},
+  // [표기 / 맞춤법]
+  { correct: "웬일", wrong: ["왠일"], category: "표기" },
+  { correct: "어이없다", wrong: ["어의없다"], category: "표기" },
+  { correct: "금세", wrong: ["금새"], category: "표기" },
+  { correct: "며칠", wrong: ["몇일"], category: "표기" },
+  { correct: "오랜만", wrong: ["오랫만"], category: "표기" },
+  { correct: "설거지", wrong: ["설겆이"], category: "표기" },
+  { correct: "오랫동안", wrong: ["오랜동안"], category: "표기" },
+  { correct: "깨끗이", wrong: ["깨끗히"], category: "표기" },
 
-{correct:"해 버리다",wrong:["해버리다"],category:"보조 용언"},
-{correct:"가 버리다",wrong:["가버리다"],category:"보조 용언"},
-{correct:"깨뜨려 버리다",wrong:["깨뜨려버리다"],category:"보조 용언"},
-{correct:"알아 두다",wrong:["알아두다"],category:"보조 용언"}
+  // [사이시옷]
+  { correct: "나뭇잎", wrong: ["나무잎"], category: "사이시옷" },
+  { correct: "고깃집", wrong: ["고기집"], category: "사이시옷" },
+  { correct: "전셋집", wrong: ["전세집"], category: "사이시옷" },
+  { correct: "장맛비", wrong: ["장마비"], category: "사이시옷" },
+  { correct: "뒷받침", wrong: ["뒤받침"], category: "사이시옷" },
+  { correct: "머리말", wrong: ["머릿말"], category: "사이시옷" },
+  { correct: "어젯밤", wrong: ["어제 밤", "어제밤"], category: "사이시옷" }
 ];
 
 const SPELLING_REGEX = new RegExp(
