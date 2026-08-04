@@ -7,6 +7,16 @@ const seedrandom = require('seedrandom');
 const app = express();
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 
+app.disable('x-powered-by');
+
+app.use((req, res, next) => {
+    res.set({
+      'Cache-Control': 'public, max-age=60, stale-while-revalidate=300', 
+      'Vary': 'Accept-Encoding',
+    });
+    next();
+});
+
 // 모델명을 변경해 테스트해보세요
 const MODEL_ID = "mistral-small-latest";
 
