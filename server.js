@@ -658,6 +658,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/api/quiz', async (req, res) => {
+app.get('/api/quiz', async (req, res) => {
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE", message: "퀴즈 데이터를 불러올 수 없습니다." });
@@ -665,7 +666,10 @@ app.get('/api/quiz', async (req, res) => {
     
     try {
         const dailyQuiz = getDailyQuestions(5, MASTER_QUIZ_DATA);
-        return res.status(200).json(sanitizeQuizData(dailyQuiz));
+        // 1. 대소문자 오타 수정 (dailyQuiz) & 원본 보존 정렬
+        const sortedQuestions = [...dailyQuiz].sort((a, b) => a.id - b.id);
+        
+        return res.status(200).json(sanitizeQuizData(sortedQuestions));
     } catch (error) {
         return res.status(500).json({ errorCode: "SERVER_ERROR" });
     }
@@ -674,15 +678,22 @@ app.get('/api/quiz', async (req, res) => {
 app.get('/api/answer-key', async (req, res) => {
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) {
-        return res.status(503).json({ error: "Data unavailable" });
+        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE", message: "퀴즈 데이터를 불러올 수 없습니다." });
     }
     
     try {
         const dailyQuiz = getDailyQuestions(5, MASTER_QUIZ_DATA);
-        const answerKey = {};
-        dailyQuiz.forEach(q => {
-            answerKey[q.id] = q.correctAnswerIndex;
-        });
+        // 1. 대소문자 오타 수정 (dailyQuiz)
+        const sortedQuestions = [...dailyQuiz].sort((a, b) => a.id - b.id);
+        
+        const answerKey = sortedQuestions.reduce((acc, q) => {
+            // 2. 'integer' -> Number.isInteger() 올바른 함수로 수정
+            if (typeof q.id === 'number' && Number.isInteger(q.correctAnswerIndex)) {
+                acc[q.id] = q.correctAnswerIndex;
+            }
+            return acc;
+        }, {});
+        
         return res.status(200).json(answerKey);
     } catch (e) {
         return res.status(500).json({ errorCode: "SERVER_ERROR" });
