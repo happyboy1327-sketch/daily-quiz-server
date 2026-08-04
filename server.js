@@ -252,11 +252,13 @@ function validateSpellingQuiz(quiz) {
 const FOREIGN_SCRIPT_REGEX = /[\u0400-\u04FF]/;
 
 function validateForeignScript(quiz) {
+    if (!quiz) return false;
+
     const text = [
-        quiz.question,
-        ...quiz.choices,
-        quiz.explanation,
-        quiz.correctAnswerText
+        quiz.question || "",
+        ...(Array.isArray(quiz.choices) ? quiz.choices : []),
+        quiz.explanation || "",
+        quiz.correctAnswerText || ""
     ].join(" ");
 
     return !FOREIGN_SCRIPT_REGEX.test(text);
@@ -562,7 +564,7 @@ async function fetchNewQuizData() {
                 if (hasDuplicateChoices(quiz)) {
                    throw new Error("보기 중복 또는 빈 보기 오류");
                  }
-                if (new Set(quiz.choices).size !== 4) throw new Error("보기 중복 또는 빈 보기 오류");
+                
                 if (quiz.choices.some(c => !c)) throw new Error("빈 보기 발견");
 
                 if (quiz.correctAnswerIndex < 0 || quiz.correctAnswerIndex > 3) {
