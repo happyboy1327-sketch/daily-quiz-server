@@ -568,7 +568,7 @@ try {
 
             const rawQuizzes = parsed.quizzes || (Array.isArray(parsed) ? parsed : null);
 
-            if (!Array.isArray(rawQuizzes) || rawQuizzes.length !== 5) {
+            if (!Array.isArray(rawQuizzes) || rawQuizzes.length < 3) {
                 throw new Error(`퀴즈 개수 오류: ${rawQuizzes?.length}`);
             }
 
