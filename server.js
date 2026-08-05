@@ -255,11 +255,11 @@ ${selectedTopics.join(", ")}
             }
         ],
 
-        reasoning_effort: "high",
+        reasoning_effort: "medium",
 
-        temperature: 0.25,
+        temperature: 0.15,
 
-        max_tokens: 4100
+        max_tokens: 4500
     };
 }
 
