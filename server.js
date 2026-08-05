@@ -543,13 +543,28 @@ async function fetchNewQuizData() {
 
             let parsed;
 
-            try {
-                parsed = JSON.parse(cleanJson);
-            } catch (jsonError) {
-                console.error("[JSON PARSE ERROR]");
-                console.error(cleanJson);
-                throw jsonError;
-            }
+try {
+    parsed = JSON.parse(cleanJson);
+} catch (jsonError) {
+    // 응답이 중간에 끊긴 경우, 완벽하게 닫힌 마지막 '}' 까지만 자르고 배열과 객체를 닫아줌
+    const lastBraceIdx = cleanJson.lastIndexOf('}');
+    
+    if (lastBraceIdx !== -1) {
+        try {
+            const repairedJson = cleanJson.slice(0, lastBraceIdx + 1) + ']}';
+            parsed = JSON.parse(repairedJson);
+            console.warn("[JSON AUTO REPAIR] 잘린 JSON 응답에서 완성된 앞부분 퀴즈만 성공적으로 추출했습니다.");
+        } catch (repairErr) {
+            console.error("[JSON PARSE ERROR]");
+            console.error(cleanJson);
+            throw jsonError;
+        }
+    } else {
+        console.error("[JSON PARSE ERROR]");
+        console.error(cleanJson);
+        throw jsonError;
+    }
+}
 
             const rawQuizzes = parsed.quizzes || (Array.isArray(parsed) ? parsed : null);
 
