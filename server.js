@@ -255,7 +255,7 @@ ${selectedTopics.join(", ")}
             }
         ],
 
-        reasoning_effort: "medium",
+        reasoning_effort: "high",
 
         temperature: 0.15,
 
