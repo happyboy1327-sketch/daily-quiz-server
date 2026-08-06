@@ -3,10 +3,34 @@ const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
 const seedrandom = require('seedrandom');
+const crypto = require('crypto');
 const { createQuizPayload } = require('./prdPrompt');
 
 const app = express();
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
+
+// 무상태 토큰 암호화/복호화 설정
+const TOKEN_SECRET = process.env.TOKEN_SECRET || MISTRAL_API_KEY || 'default-quiz-secret-key-32bytes';
+const ENCRYPTION_KEY = crypto.createHash('sha256').update(String(TOKEN_SECRET)).digest();
+const ALGORITHM = 'aes-256-gcm';
+
+function encrypt(text) {
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    const authTag = cipher.getAuthTag().toString('hex');
+    return `${iv.toString('hex')}:${authTag}:${encrypted}`;
+}
+
+function decrypt(token) {
+    const [ivHex, authTagHex, encryptedText] = token.split(':');
+    const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, Buffer.from(ivHex, 'hex'));
+    decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
+    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+}
 
 app.disable('x-powered-by');
 
@@ -436,11 +460,30 @@ app.get('/api/quiz', async (req, res) => {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
     
-    const sanitized = MASTER_QUIZ_DATA.map(({ correctAnswerIndex, ...q }) => q);
+    const sanitized = MASTER_QUIZ_DATA.map(({ correctAnswerIndex, ...q }) => ({
+        ...q,
+        token: encrypt(JSON.stringify({ id: q.id, correctAnswerIndex }))
+    }));
     return res.status(200).json(sanitized);
 });
 
 app.get('/api/answer-key', async (req, res) => {
+    const tokenInput = req.query.tokens || req.query.token || req.headers['x-quiz-token'];
+    
+    if (tokenInput) {
+        try {
+            const tokenList = Array.isArray(tokenInput) ? tokenInput : String(tokenInput).split(',');
+            const answerKey = {};
+            for (const t of tokenList) {
+                const decoded = JSON.parse(decrypt(t.trim()));
+                answerKey[decoded.id] = decoded.correctAnswerIndex;
+            }
+            return res.status(200).json(answerKey);
+        } catch (err) {
+            return res.status(400).json({ errorCode: "INVALID_TOKEN" });
+        }
+    }
+
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
