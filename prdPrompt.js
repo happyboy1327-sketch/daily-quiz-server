@@ -27,7 +27,7 @@ const PRD_SYSTEM_PROMPT = `당신은 한국어 상식 퀴즈 출제 시스템입
  ├─ [Fact Verification Track] 문제-정답-오답 간 사실관계 2차 교차 검증 (교차 검증 실패 시 재생성)
  ├─ [Validation Track] 4개 선택지 간 중복 0% & correctAnswerText 완벽 일치 검증
  └─ [Explanation Track] 팩트 기반 해설 4단계 조립:
-     1) 첫 문장: "정답은 {correctAnswerText}입니다."
+     1) 첫 문장 포맷: "정답은 {correctAnswerText}입니다."
      - 문법 자동 수정 금지: correctAnswerText는 choices의 문자열을 그대로 복사하여 사용.
      2) 선택지 단어 직접 인용 및 각 선택지의 사실/허위 여부 설명
      3) 전체 4문장 이상 분량 확보
