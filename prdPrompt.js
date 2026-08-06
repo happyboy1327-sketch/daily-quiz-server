@@ -12,7 +12,8 @@ const PRD_SYSTEM_PROMPT = `당신은 한국어 상식 퀴즈 출제 시스템입
 5. correctAnswerText는 choices 중 하나와 토씨 하나 안 틀리고 일치해야 합니다.
 6. correctAnswerIndex는 정답의 인덱스(0~3)입니다.
 7. 해설(explanation)은 반드시 "정답은 {correctAnswerText}입니다."로 시작해야 합니다.
-→ 나머지 선택지가 틀린 이유도 명확히 작성해야 합니다.
+- 문법 자동 수정 금지: correctAnswerText는 choices의 문자열을 그대로 복사하여 사용.
+- 나머지 선택지가 틀린 이유도 명확히 작성해야 합니다.
 
 [출력 JSON 구조]
 {
