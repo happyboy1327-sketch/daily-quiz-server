@@ -375,14 +375,33 @@ async function fetchNewQuizData() {
 }
 
 async function ensureDataFreshness() {
-    if (MASTER_QUIZ_DATA.length === 0 || (Date.now() - LAST_FETCH_TIME) > ONE_HOUR) {
-        if (!fetchPromise) {
-            fetchPromise = fetchNewQuizData().finally(() => {
-                fetchPromise = null;
-            });
-        }
-        await fetchPromise;
+    // 이미 데이터가 유효하면 즉시 리턴
+    if (MASTER_QUIZ_DATA.length > 0 && (Date.now() - LAST_FETCH_TIME) <= ONE_HOUR) {
+        return;
     }
+
+    // 이미 다른 요청이 데이터 fetching 중이라면 해당 프로미스를 함께 대기
+    if (fetchPromise) {
+        await fetchPromise;
+        return;
+    }
+
+    // 락 생성 및 실행
+    fetchPromise = (async () => {
+        try {
+            let success = false;
+            let attempts = 0;
+            // 실패하더라도 무한 루프가 돌지 않도록 상한선 설정
+            while (!success && attempts < 2) {
+                attempts++;
+                success = await fetchNewQuizData();
+            }
+        } finally {
+            fetchPromise = null;
+        }
+    })();
+
+    await fetchPromise;
 }
 
 app.use(cors());
