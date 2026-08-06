@@ -9,7 +9,9 @@ const { createQuizPayload } = require('./prdPrompt');
 const app = express();
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 
-// 무상태 토큰 암호화/복호화 설정
+const SERVER_START_TIME = Date.now();
+const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
 const TOKEN_SECRET = process.env.TOKEN_SECRET || MISTRAL_API_KEY || 'default-quiz-secret-key-32bytes';
 const ENCRYPTION_KEY = crypto.createHash('sha256').update(String(TOKEN_SECRET)).digest();
 const ALGORITHM = 'aes-256-gcm';
@@ -34,7 +36,15 @@ function decrypt(token) {
 
 app.disable('x-powered-by');
 
+// 💡 [핵심] Vercel 24시간 자동 인스턴스 재생성 미들웨어
 app.use((req, res, next) => {
+    // 서버가 켜진 지 24시간이 넘었다면 현재 프로세스를 깔끔하게 종료
+    // Vercel이 다음 요청 시 감지하여 100% 최적화된 새 인스턴스로 자동 재생성함
+    if (Date.now() - SERVER_START_TIME > TWENTY_FOUR_HOURS) {
+        console.log("[Vercel] 인스턴스 24시간 경과: 메모리 초기화를 위해 컨테이너 재생성을 수행합니다.");
+        process.exit(0);
+    }
+    
     res.set({
       'Cache-Control': 'public, max-age=60, stale-while-revalidate=300', 
       'Vary': 'Accept-Encoding',
