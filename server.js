@@ -238,7 +238,10 @@ async function fetchNewQuizData() {
 
                 // 4. 해설 첫 문장 "정답은 {correctAnswerText}입니다." 확인
                 if (!quiz.explanation.trim().startsWith(`정답은 ${quiz.correctAnswerText}입니다.`)) {
-                    throw new Error("해설 규격 미달 ('정답은 {text}입니다.'로 시작하지 않음)");
+                  const targetPrefix = `정답은 ${quiz.correctAnswerText}입니다.`;
+    // 앞부분에 어설프게 붙은 "정답은 ~입니다." 나 "정답: ~" 변형 문구 제거 후 정규 포맷으로 강제 재조합
+                  const cleanExp = quiz.explanation.trim().replace(/^(정답은|정답\s*:)\s*.*?(입니다|임)\.?\s*/i, '');
+                  quiz.explanation = `${targetPrefix} ${cleanExp}`.trim();
                 }
 
                 if (!selectedTopics.includes(quiz.topic) || topicSet.has(quiz.topic)) {
