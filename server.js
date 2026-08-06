@@ -35,22 +35,22 @@ const SPELLING_DATA = [
   { correct: "할 수밖에 없다", wrong: ["할수밖에없다"], category: "띄어쓰기" },
   { correct: "곧바로", wrong: ["곧 바로"], category: "띄어쓰기" },
   { correct: "몇몇", wrong: ["몇 몇"], category: "띄어쓰기" },
-  { correct: "맡아서 하다", wrong: ["맡아서하다"], category: "띄어쓰기" }, // '-아서' 뒤에는 붙여쓰기 절대 불가
+  { correct: "맡아서 하다", wrong: ["맡아서하다"], category: "띄어쓰기" },
 
   // [의존 명사 - 띄어쓰기 필수 항목들]
   { correct: "할 수 있다", wrong: ["할수있다"], category: "의존 명사" },
-  { correct: "먹은 지 오래되었다", wrong: ["먹은지 오래되었다"], category: "의존 명사" }, // 시간의 경과는 띄어씀
+  { correct: "먹은 지 오래되었다", wrong: ["먹은지 오래되었다"], category: "의존 명사" },
   { correct: "아는 만큼", wrong: ["아는만큼"], category: "의존 명사" },
-  { correct: "김철수 씨", wrong: ["김철수씨"], category: "의존 명사" }, // 호칭어는 띄어씀
+  { correct: "김철수 씨", wrong: ["김철수씨"], category: "의존 명사" },
   { correct: "뿐이다", wrong: ["뿐 이다"], category: "의존 명사" },
 
   // [조사 - 붙여쓰기 필수 항목들]
   { correct: "학교에서만이라도", wrong: ["학교 에서 만 이라도", "학교에서 만이라도"], category: "조사" },
 
   // [보조 용언 - 붙여쓰기가 규정상 절대 금지되는 케이스들]
-  { correct: "읽어도 보고", wrong: ["읽어도보고"], category: "보조 용언" }, // 조사가 끼어들면 붙여쓰기 불가
-  { correct: "떠내려가 버리다", wrong: ["떠내려가버리다"], category: "보조 용언" }, // 앞말이 합성어면 붙여쓰기 불가
-  { correct: "깨뜨려 버리다", wrong: ["깨뜨려버리다"], category: "보조 용언" }, // 앞말이 파생어면 붙여쓰기 불가
+  { correct: "읽어도 보고", wrong: ["읽어도보고"], category: "보조 용언" },
+  { correct: "떠내려가 버리다", wrong: ["떠내려가버리다"], category: "보조 용언" },
+  { correct: "깨뜨려 버리다", wrong: ["깨뜨려버리다"], category: "보조 용언" },
 
   // [어미 활용]
   { correct: "되겠다", wrong: ["되갯다", "되겟다", "돼겠다", "됬겠다", "돼갰다"], category: "어미 활용" },
@@ -145,26 +145,85 @@ function autoFixQuiz(quiz) {
     return quiz;
 }
 
-function sanitizeQuizData(questions) {
-    return questions.map(q => {
-        const { correctAnswerIndex, ...safeQuestion } = q;
-        return safeQuestion; 
-    });
-}
-
-function getDailyQuestions(k, data) {
-    const today = new Date().toISOString().split('T')[0];
-    const rng = seedrandom(today); 
-    const shuffled = [...data].sort(() => 0.5 - rng());
-    return shuffled.slice(0, k);
-}
-
 function extractJsonFromText(text) {
     if (typeof text !== "string") throw new Error("응답이 문자열이 아닙니다.");
     const start = text.indexOf("{");
     const end = text.lastIndexOf("}");
     if (start === -1 || end === -1 || end < start) throw new Error("JSON 객체를 찾지 못했습니다.");
     return text.slice(start, end + 1).trim();
+}
+
+/**
+ * [추가] 2차 교차 검증 함수 (AI Fact Checker)
+ */
+async function validateQuizAccuracy(quizzes) {
+    const payload = {
+        model: "mistral-small-latest",
+        response_format: { type: "json_object" },
+        messages: [
+            {
+                role: "system",
+                content: `
+너는 정확성과 신뢰성을 우선으로 검증하는 상식 퀴즈 검사원이다.
+주어진 퀴즈 목록을 검사하고 사실 오류가 있는지 판단한다.
+
+[검증 기준]
+1. 질문 전제 검증
+- 질문 자체가 성립하는가?
+- 존재하지 않는 개념이나 잘못된 비교 기준이 없는가?
+- "최초", "최대", "가장", "유일" 등 비교·최상급 조건이나 "천연" 같은 분류 조건이 사실과 맞는가?
+- 정답이 여러 개가 될 가능성이 있으면 false로 한다.
+
+1-1. 시대 범위 표현 규칙:
+- "세기 초반": 해당 세기의 00년~33년
+- "세기 중반": 해당 세기의 34년~66년
+- "세기 후반": 해당 세기의 67년~99년
+- 조선 후기 = 임진왜란 이후~대한제국 성립 전후(17세기 이후~19세기 말)
+- 질문에 시간 조건이 포함된 경우 정답의 실제 발생 시점과 비교하여 벗어나면 false로 한다.
+
+2. 정답 검증
+- correctAnswerText가 실제 정답인지 확인한다.
+- choices 전체를 검토하여 질문 조건에 맞는 정답이 오직 하나만 존재하는지 확인한다.
+- correctAnswerText 외에 다른 choice가 정답이 될 수 있으면 false로 한다.
+- correctAnswerText가 틀렸거나, 보기 안에 올바른 정답이 없으면 false로 한다.
+
+3. 해설 검증
+- 해설의 사실 정보가 객관적 사실과 일치하는지 확인한다.
+- topic이 "한글 맞춤법"인 경우, 표준 맞춤법 및 표준 발음법 기준으로 발음/맞춤법 설명이 정확한지 엄격히 검증한다.
+
+하나라도 오류가 있으면 valid를 false로 하고 reason에 구체적 원인을 적는다.
+
+[출력 형식 (JSON)]
+{
+  "valid": true | false,
+  "reason": "오류 내용 (valid가 true면 빈 문자열)"
+}
+`
+            },
+            {
+                role: "user",
+                content: JSON.stringify(quizzes)
+            }
+        ],
+        temperature: 0.1
+    };
+
+    try {
+        const response = await axios.post(API_URL, payload, {
+            headers: {
+                'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            timeout: 40000
+        });
+
+        const rawContent = response.data?.choices?.[0]?.message?.content;
+        const cleanJson = extractJsonFromText(rawContent);
+        return JSON.parse(cleanJson);
+    } catch (err) {
+        console.error("[VALIDATOR API ERROR]", err.message);
+        return { valid: false, reason: `검증 API 호출 통신 오류: ${err.message}` };
+    }
 }
 
 async function fetchNewQuizData() {
@@ -174,9 +233,9 @@ async function fetchNewQuizData() {
     }
 
     const selectedTopics = getSelectedTopics();
-    console.log(`[API] PRD 모듈 기반 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`);
+    console.log(`[API] 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`);
 
-    for (let generationAttempt = 1; generationAttempt <= 2; generationAttempt++) {
+    for (let generationAttempt = 1; generationAttempt <= 3; generationAttempt++) {
         try {
             const payload = createQuizPayload(selectedTopics);
             const response = await axios.post(API_URL, payload, {
@@ -236,12 +295,11 @@ async function fetchNewQuizData() {
                     throw new Error("정답 인덱스/텍스트 불일치");
                 }
 
-                // 4. 해설 첫 문장 "정답은 {correctAnswerText}입니다." 확인
+                // 4. 해설 첫 문장 정규화
                 if (!quiz.explanation.trim().startsWith(`정답은 ${quiz.correctAnswerText}입니다.`)) {
-                  const targetPrefix = `정답은 ${quiz.correctAnswerText}입니다.`;
-    // 앞부분에 어설프게 붙은 "정답은 ~입니다." 나 "정답: ~" 변형 문구 제거 후 정규 포맷으로 강제 재조합
-                  const cleanExp = quiz.explanation.trim().replace(/^(정답은|정답\s*:)\s*.*?(입니다|임)\.?\s*/i, '');
-                  quiz.explanation = `${targetPrefix} ${cleanExp}`.trim();
+                    const targetPrefix = `정답은 ${quiz.correctAnswerText}입니다.`;
+                    const cleanExp = quiz.explanation.trim().replace(/^(정답은|정답\s*:)\s*.*?(입니다|임)\.?\s*/i, '');
+                    quiz.explanation = `${targetPrefix} ${cleanExp}`.trim();
                 }
 
                 if (!selectedTopics.includes(quiz.topic) || topicSet.has(quiz.topic)) {
@@ -252,45 +310,47 @@ async function fetchNewQuizData() {
                 processedQuizzes.push(quiz);
             }
 
-            // 보기 셔플 및 정답 인덱스 재계산 (수정)
-processedQuizzes.forEach((quiz, idx) => {
-    // 1. 기준 텍스트를 확실한 correctAnswerText로 고정
-    const targetText = quiz.correctAnswerText;
+            // 보기 셔플 및 정답 인덱스 재계산
+            processedQuizzes.forEach((quiz, idx) => {
+                const targetText = quiz.correctAnswerText;
+                shuffleArray(quiz.choices, `${Date.now()}_${idx}`);
 
-    // 2. 보기 셔플
-    shuffleArray(quiz.choices, `${Date.now()}_${idx}`);
+                let newIndex = quiz.choices.indexOf(targetText);
+                if (newIndex === -1 && targetText) {
+                    const cleanTarget = targetText.replace(/[\s\.]/g, '');
+                    newIndex = quiz.choices.findIndex(c => c.replace(/[\s\.]/g, '') === cleanTarget);
+                }
 
-    // 3. 셔플된 배열에서 targetText의 위치를 정확히 다시 검색
-    let newIndex = quiz.choices.indexOf(targetText);
+                if (newIndex !== -1) {
+                    quiz.correctAnswerIndex = newIndex;
+                    quiz.correctAnswerText = quiz.choices[newIndex];
+                }
+            });
 
-    // 4. 만약 미세한 공백 차이로 못 찾을 경우를 대비한 느슨한 매칭
-    if (newIndex === -1 && targetText) {
-        const cleanTarget = targetText.replace(/[\s\.]/g, '');
-        newIndex = quiz.choices.findIndex(c => c.replace(/[\s\.]/g, '') === cleanTarget);
-    }
-
-    if (newIndex !== -1) {
-        quiz.correctAnswerIndex = newIndex;
-        quiz.correctAnswerText = quiz.choices[newIndex];
-    }
-});
+            // 5. [추가] AI 교차 검증 수행 (사실관계, 헛소리, 오류 검출)
+            console.log(`[API] AI 2차 십자 검증(Fact-Check) 수행 중...`);
+            const validation = await validateQuizAccuracy(processedQuizzes);
+            if (!validation.valid) {
+                throw new Error(`AI 교차 검증 실패: ${validation.reason}`);
+            }
 
             MASTER_QUIZ_DATA = processedQuizzes.map((q, idx) => ({
-    id: idx + 1,
-    topic: q.topic,
-    question: q.question,
-    choices: q.choices,
-    correctAnswerIndex: q.correctAnswerIndex,
-    correctAnswerText: q.correctAnswerText,
-    explanation: q.explanation
-}));
+                id: idx + 1,
+                topic: q.topic,
+                question: q.question,
+                choices: q.choices,
+                correctAnswerIndex: q.correctAnswerIndex,
+                correctAnswerText: q.correctAnswerText,
+                explanation: q.explanation
+            }));
+            
             LAST_FETCH_TIME = Date.now();
             LAST_TOPICS = [...selectedTopics];
-            console.log(`[API] PRD 생성 및 내부 검증 완료 (${MASTER_QUIZ_DATA.length}개)`);
+            console.log(`[API] 퀴즈 생성 및 2차 교차 검증 최종 승인 완료 (${MASTER_QUIZ_DATA.length}개)`);
             return true;
         } catch (error) {
-            console.error(`[DATA ERROR] 생성 시도 ${generationAttempt}/2 실패:`, error.message);
-            if (generationAttempt === 2) return false;
+            console.error(`[DATA ERROR] 시도 ${generationAttempt}/3 실패:`, error.message);
+            if (generationAttempt === 3) return false;
             await new Promise(resolve => setTimeout(resolve, 2000));
         }
     }
@@ -316,7 +376,6 @@ app.get('/api/quiz', async (req, res) => {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
     
-    // ID 순서대로 정렬된 5개 문제 반환 (correctAnswerIndex 제외)
     const sanitized = MASTER_QUIZ_DATA.map(({ correctAnswerIndex, ...q }) => q);
     return res.status(200).json(sanitized);
 });
@@ -327,7 +386,6 @@ app.get('/api/answer-key', async (req, res) => {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
     
-    // { "1": index, "2": index, ... } 형태 맵 생성
     const answerKey = MASTER_QUIZ_DATA.reduce((acc, q) => {
         acc[q.id] = q.correctAnswerIndex;
         return acc;
