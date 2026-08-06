@@ -252,13 +252,28 @@ async function fetchNewQuizData() {
                 processedQuizzes.push(quiz);
             }
 
-            // 보기 셔플 및 정답 인덱스 재계산
-            processedQuizzes.forEach((quiz, idx) => {
-                const answer = quiz.choices[quiz.correctAnswerIndex];
-                shuffleArray(quiz.choices, `${Date.now()}_${idx}`);
-                quiz.correctAnswerIndex = quiz.choices.indexOf(answer);
-                quiz.correctAnswerText = answer;
-            });
+            // 보기 셔플 및 정답 인덱스 재계산 (수정)
+processedQuizzes.forEach((quiz, idx) => {
+    // 1. 기준 텍스트를 확실한 correctAnswerText로 고정
+    const targetText = quiz.correctAnswerText;
+
+    // 2. 보기 셔플
+    shuffleArray(quiz.choices, `${Date.now()}_${idx}`);
+
+    // 3. 셔플된 배열에서 targetText의 위치를 정확히 다시 검색
+    let newIndex = quiz.choices.indexOf(targetText);
+
+    // 4. 만약 미세한 공백 차이로 못 찾을 경우를 대비한 느슨한 매칭
+    if (newIndex === -1 && targetText) {
+        const cleanTarget = targetText.replace(/[\s\.]/g, '');
+        newIndex = quiz.choices.findIndex(c => c.replace(/[\s\.]/g, '') === cleanTarget);
+    }
+
+    if (newIndex !== -1) {
+        quiz.correctAnswerIndex = newIndex;
+        quiz.correctAnswerText = quiz.choices[newIndex];
+    }
+});
 
             MASTER_QUIZ_DATA = processedQuizzes.map((q, idx) => ({
     id: idx + 1,
