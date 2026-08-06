@@ -49,7 +49,6 @@
             font-weight: bold;
             line-height: 1.5;
         }
-        /* 코딩 문제 전용 코드 블록 */
         pre {
             background-color: #2d2d2d;
             color: #ccc;
@@ -135,7 +134,6 @@
             background-color: #dc3545;
             color: white;
         }
-        /* 복습 모드 */
         #review-list {
             margin-top: 20px;
             list-style: none;
@@ -199,9 +197,6 @@
         const loadingDiv = document.getElementById('loading');
         const pageTitle = document.getElementById('page-title');
 
-        // ==========================================================
-        // 헬퍼 함수 (XSS 방지 및 텍스트 포맷팅)
-        // ==========================================================
         function escapeHtml(str) {
             if (!str) return '';
             return String(str)
@@ -215,16 +210,11 @@
         function formatText(str) {
             if (!str) return '';
             let formatted = escapeHtml(str);
-            // 코드 블록(```) 지원
             formatted = formatted.replace(/```(?:[a-zA-Z]*)\n?([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-            // 줄바꿈 처리
             formatted = formatted.replace(/\n/g, '<br>');
             return formatted;
         }
 
-        // ==========================================================
-        // Local Storage 오답 노트
-        // ==========================================================
         function getWrongAnswers() {
             try {
                 const data = localStorage.getItem(STORAGE_KEY);
@@ -249,7 +239,7 @@
             };
 
             if (existingIndex !== -1) {
-                wrongAnswers[existingIndex] = newEntry; // 중복 문제 덮어쓰기
+                wrongAnswers[existingIndex] = newEntry;
             } else {
                 wrongAnswers.push(newEntry);
             }
@@ -264,65 +254,55 @@
             }
         }
 
-        // ==========================================================
-        // 퀴즈 데이터 순차 로딩 (기존 백엔드 완벽 호환)
-        // ==========================================================
         let isQuizLoading = false;
 
-async function loadQuizData(retryCount = 0) {
-    if (isQuizLoading && retryCount === 0) return;
-    isQuizLoading = true;
+        async function loadQuizData(retryCount = 0) {
+            if (isQuizLoading && retryCount === 0) return;
+            isQuizLoading = true;
 
-    pageTitle.textContent = '오늘의 상식 퀴즈';
-    quizContainer.innerHTML = '';
-    navButtons.innerHTML = '';
-    loadingDiv.style.display = 'block';
-    loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중...";
+            pageTitle.textContent = '오늘의 상식 퀴즈';
+            quizContainer.innerHTML = '';
+            navButtons.innerHTML = '';
+            loadingDiv.style.display = 'block';
+            loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중...";
 
-    try {
-        // 1. 퀴즈 먼저 요청 (서버에서 생성 후 캐싱됨)
-        const quizRes = await fetch(QUIZ_API_URL);
+            try {
+                const quizRes = await fetch(QUIZ_API_URL);
 
-        if (quizRes.status === 503 && retryCount < 2) {
-            setTimeout(() => {
-                isQuizLoading = false;
-                loadQuizData(retryCount + 1);
-            }, 3000);
-            return;
-        }
+                if (quizRes.status === 503 && retryCount < 2) {
+                    setTimeout(() => {
+                        isQuizLoading = false;
+                        loadQuizData(retryCount + 1);
+                    }, 3000);
+                    return;
+                }
 
-        if (!quizRes.ok) throw new Error(`퀴즈 데이터 로드 실패 (${quizRes.status})`);
-        const quizData = await quizRes.json();
+                if (!quizRes.ok) throw new Error(`퀴즈 데이터 로드 실패 (${quizRes.status})`);
+                const quizData = await quizRes.json();
 
-        // 2. 이미 생성된 캐시에서 정답 키 안정적으로 가져오기
-        const answerRes = await fetch(ANSWER_KEY_API_URL);
-        if (!answerRes.ok) throw new Error(`정답 키 로드 실패 (${answerRes.status})`);
-        const answerMap = await answerRes.json();
+                const answerRes = await fetch(ANSWER_KEY_API_URL);
+                if (!answerRes.ok) throw new Error(`정답 키 로드 실패 (${answerRes.status})`);
+                const answerMap = await answerRes.json();
 
-        // 3. ID 매칭
-        currentQuizData = quizData.map(q => ({
-            ...q,
-            correctAnswerIndex: answerMap[q.id] ?? q.correctAnswerIndex
-        }));
+                currentQuizData = quizData.map(q => ({
+                    ...q,
+                    correctAnswerIndex: answerMap[q.id] ?? q.correctAnswerIndex
+                }));
 
-        loadingDiv.style.display = 'none';
-
-     
                 currentQuestionIndex = 0;
                 score = 0;
                 loadingDiv.style.display = 'none';
                 displayQuestion();
 
             } catch (error) {
-        console.error(error);
-        loadingDiv.style.display = 'none';
+                console.error(error);
+                loadingDiv.style.display = 'none';
                 quizContainer.innerHTML = `<p style="color: #dc3545; text-align: center;">로딩 실패: ${escapeHtml(error.message)}<br>잠시 후 다시 시도해 주세요.</p>`;
                 showHomeButtons();
-    } finally {
-        isQuizLoading = false;
-    }
-}
-
+            } finally {
+                isQuizLoading = false;
+            }
+        }
 
         function displayQuestion() {
             if (currentQuestionIndex >= currentQuizData.length) {
@@ -399,9 +379,6 @@ async function loadQuizData(retryCount = 0) {
             showHomeButtons();
         }
 
-        // ==========================================================
-        // 복습 모드
-        // ==========================================================
         function showReviewMode() {
             pageTitle.textContent = '📝 오답 복습 모드';
             navButtons.innerHTML = '';
