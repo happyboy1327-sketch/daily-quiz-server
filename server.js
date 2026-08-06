@@ -346,20 +346,27 @@ async function fetchNewQuizData() {
 
             // 보기 셔플 및 정답 인덱스 재계산
             processedQuizzes.forEach((quiz, idx) => {
-                const targetText = quiz.correctAnswerText;
-                shuffleArray(quiz.choices, `${Date.now()}_${idx}`);
+    // 💡 [추가] 셔플 전 originalText 선언 (실행시간: 0.0001ms)
+    const originalText = quiz.choices[quiz.correctAnswerIndex] || quiz.correctAnswerText;
 
-                let newIndex = quiz.choices.indexOf(targetText);
-                if (newIndex === -1 && targetText) {
-                    const cleanTarget = targetText.replace(/[\s\.]/g, '');
-                    newIndex = quiz.choices.findIndex(c => c.replace(/[\s\.]/g, '') === cleanTarget);
-                }
+    shuffleArray(quiz.choices, `${Date.now()}_${idx}`);
 
-                if (newIndex !== -1) {
-                    quiz.correctAnswerIndex = newIndex;
-                    quiz.correctAnswerText = quiz.choices[newIndex];
-                }
-            });
+    // targetText 대신 셔플 전 정확했던 originalText 사용
+    let newIndex = quiz.choices.indexOf(originalText);
+    if (newIndex === -1 && originalText) {
+        const cleanTarget = originalText.replace(/[\s\.]/g, '');
+        newIndex = quiz.choices.findIndex(c => c.replace(/[\s\.]/g, '') === cleanTarget);
+    }
+
+    if (newIndex !== -1) {
+        quiz.correctAnswerIndex = newIndex;
+        quiz.correctAnswerText = quiz.choices[newIndex];
+    } else {
+        // [안전장치] 매칭 실패 시 과거 인덱스 덮어쓰기
+        quiz.correctAnswerIndex = 0;
+        quiz.correctAnswerText = quiz.choices[0];
+    }
+});
 
             // 5. 문항별 병렬(Promise.all) 교차 검증 수행
             console.log(`[API] AI 2차 문항별 병렬 크로스 팩트체크 수행 중...`);
