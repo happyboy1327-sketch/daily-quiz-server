@@ -226,36 +226,55 @@
         // Local Storage 오답 노트
         // ==========================================================
         function getWrongAnswers() {
-            try {
-                const data = localStorage.getItem(STORAGE_KEY);
-                return data ? JSON.parse(data) : [];
-            } catch (e) {
-                return [];
-            }
+    try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (!data) return [];
+        const parsed = JSON.parse(data);
+        if (!Array.isArray(parsed)) return [];
+        
+        // 데이터 구조 충돌 방지: 필수 필드(id, choices 배열)가 갖춰진 항목만 필터링
+        return parsed.filter(item => 
+            item && 
+            item.id !== undefined && 
+            Array.isArray(item.choices)
+        );
+    } catch (e) {
+        // 구조 깨진 캐시 방치 안 하고 초기화
+        console.warn("LocalStorage 데이터 충돌 감지. 데이터 초기화 실행");
+        localStorage.removeItem(STORAGE_KEY);
+        return [];
+    }
         }
 
         function addWrongAnswer(questionData, selectedIndex, actualCorrectIndex) {
-            const wrongAnswers = getWrongAnswers();
-            const existingIndex = wrongAnswers.findIndex(item => item.id === questionData.id);
+    try {
+        const wrongAnswers = getWrongAnswers();
+        const qId = String(questionData.id ?? Date.now());
+        
+        // ID 비교 시 String 형변환으로 타입 충돌 방지
+        const existingIndex = wrongAnswers.findIndex(item => String(item.id) === qId);
 
-            const newEntry = {
-                id: questionData.id,
-                question: questionData.question,
-                choices: questionData.choices,
-                explanation: questionData.explanation,
-                correctAnswerIndex: actualCorrectIndex,
-                userAnswerIndex: selectedIndex,
-                savedTime: new Date().toLocaleString('ko-KR')
-            };
+        const newEntry = {
+            id: qId,
+            question: questionData.question || '내용 없음',
+            choices: Array.isArray(questionData.choices) ? questionData.choices : [],
+            explanation: questionData.explanation || '',
+            correctAnswerIndex: actualCorrectIndex,
+            userAnswerIndex: selectedIndex,
+            savedTime: new Date().toLocaleString('ko-KR')
+        };
 
-            if (existingIndex !== -1) {
-                wrongAnswers[existingIndex] = newEntry; // 중복 문제 덮어쓰기
-            } else {
-                wrongAnswers.push(newEntry);
-            }
-
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswers));
+        if (existingIndex !== -1) {
+            wrongAnswers[existingIndex] = newEntry;
+        } else {
+            wrongAnswers.push(newEntry);
         }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswers));
+    } catch (e) {
+        console.error("저장 중 데이터 충돌 에러:", e);
+    }
+}
 
         function clearWrongAnswers() {
             if (confirm('복습 문제를 모두 삭제하시겠습니까?')) {
@@ -304,6 +323,7 @@ async function loadQuizData(retryCount = 0) {
             ...q,
             correctAnswerIndex: answerMap[q.id] ?? q.correctAnswerIndex
         }));
+        
 
         loadingDiv.style.display = 'none';
 
@@ -411,20 +431,22 @@ async function loadQuizData(retryCount = 0) {
             if (wrongAnswers.length === 0) {
                 quizContainer.innerHTML = `<p style="text-align: center; color: #6c757d;">현재 저장된 오답 문제가 없습니다.<br>메인 퀴즈에서 문제를 틀리면 자동 저장됩니다!</p>`;
             } else {
-                const reviewListHtml = wrongAnswers.map(item => {
-                    const correctAnswerText = item.choices[item.correctAnswerIndex];
-                    const userAnswerText = item.choices[item.userAnswerIndex];
+                // showReviewMode() 함수 내부의 reviewListHtml 생성 부분 수정
+const reviewListHtml = wrongAnswers.map(item => {
+    // 안전한 배열 접근 (배열 범위를 벗어나거나 choices가 이상할 때 충돌 방지)
+    const correctAnswerText = item.choices?.[item.correctAnswerIndex] ?? '정답 정보 없음';
+    const userAnswerText = item.choices?.[item.userAnswerIndex] ?? '선택 정보 없음';
 
-                    return `
-                        <li class="review-item">
-                            <div class="question-text">Q: ${formatText(item.question)}</div>
-                            <p>선택했던 오답: <span style="color: #dc3545; font-weight: bold;">${formatText(userAnswerText)}</span></p>
-                            <p class="correct-answer">정답: ${formatText(correctAnswerText)}</p>
-                            <div class="review-explanation">해설: ${formatText(item.explanation) || '해설이 제공되지 않았습니다.'}</div>
-                            <p style="font-size: 0.8em; color: #6c757d; margin-top: 8px;">(저장 시간: ${item.savedTime})</p>
-                        </li>
-                    `;
-                }).join('');
+    return `
+        <li class="review-item">
+            <div class="question-text">Q: ${formatText(item.question)}</div>
+            <p>선택했던 오답: <span style="color: #dc3545; font-weight: bold;">${formatText(userAnswerText)}</span></p>
+            <p class="correct-answer">정답: ${formatText(correctAnswerText)}</p>
+            <div class="review-explanation">해설: ${formatText(item.explanation) || '해설이 제공되지 않았습니다.'}</div>
+            <p style="font-size: 0.8em; color: #6c757d; margin-top: 8px;">(저장 시간: ${item.savedTime})</p>
+        </li>
+    `;
+}).join('');
 
                 quizContainer.innerHTML = `
                     <h3 style="margin-top: 0;">총 ${wrongAnswers.length}개의 복습 문제</h3>
