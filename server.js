@@ -209,7 +209,7 @@ async function validateSingleQuiz(quiz) {
                 'Authorization': `Bearer ${MISTRAL_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            timeout: 15000
+            timeout: 20000
         });
 
         const rawContent = response.data?.choices?.[0]?.message?.content;
@@ -224,7 +224,14 @@ async function validateSingleQuiz(quiz) {
  * 5개 문항 병렬(Promise.all) 교차 검증
  */
 async function validateQuizAccuracy(quizzes) {
-    const results = await Promise.all(quizzes.map(quiz => validateSingleQuiz(quiz)));
+    const results = [];
+
+    // 5개를 한 번에(Promise.all) 보내지 않고, 2개씩 묶어서 병렬 실행
+    for (let i = 0; i < quizzes.length; i += 2) {
+        const chunk = quizzes.slice(i, i + 2);
+        const chunkResults = await Promise.all(chunk.map(quiz => validateSingleQuiz(quiz)));
+        results.push(...chunkResults);
+    }
 
     for (let i = 0; i < results.length; i++) {
         if (!results[i].valid) {
