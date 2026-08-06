@@ -108,11 +108,10 @@ function createQuizPayload(selectedTopics) {
             },
             {
                 role: "user",
-                content: `선택된 5개 분야:\n${selectedTopics.join(", ")}\n\n위 5개 분야에 대해 정확히 1문제씩 총 5개의 퀴즈를 생성하세요.`
+                content: `선택된 5개 분야:\n${selectedTopics.join(", ")}\n\n위 5개 분야에 대해 정확히 1문제씩 총 5개의 중급 난도 퀴즈를 생성하세요.`
             }
         ],
-        reasoning_effort: "high",
-        temperature: 0.1,
+        temperature: 0.05,
         max_tokens: 4500
     };
 }
