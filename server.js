@@ -154,9 +154,9 @@ function extractJsonFromText(text) {
 }
 
 /**
- * [추가] 2차 교차 검증 함수 (AI Fact Checker)
+ * 단일 문항 팩트체크 (초고속 병렬 처리용)
  */
-async function validateQuizAccuracy(quizzes) {
+async function validateSingleQuiz(quiz) {
     const payload = {
         model: "mistral-small-latest",
         response_format: { type: "json_object" },
@@ -165,7 +165,7 @@ async function validateQuizAccuracy(quizzes) {
                 role: "system",
                 content: `
 너는 정확성과 신뢰성을 우선으로 검증하는 상식 퀴즈 검사원이다.
-주어진 퀴즈 목록을 검사하고 사실 오류가 있는지 판단한다.
+주어진 단일 퀴즈(1개)의 사실 관계 및 오류를 엄격하게 판단한다.
 
 [검증 기준]
 1. 질문 전제 검증
@@ -191,7 +191,7 @@ async function validateQuizAccuracy(quizzes) {
 - 해설의 사실 정보가 객관적 사실과 일치하는지 확인한다.
 - topic이 "한글 맞춤법"인 경우, 표준 맞춤법 및 표준 발음법 기준으로 발음/맞춤법 설명이 정확한지 엄격히 검증한다.
 
-하나라도 오류가 있으면 valid를 false로 하고 reason에 구체적 원인을 적는다.
+오류 발견 시 valid를 false로 하고 reason에 구체적 사유를 명시한다.
 
 [출력 형식 (JSON)]
 {
@@ -202,10 +202,11 @@ async function validateQuizAccuracy(quizzes) {
             },
             {
                 role: "user",
-                content: JSON.stringify(quizzes)
+                content: JSON.stringify(quiz)
             }
         ],
-        temperature: 0.1
+        temperature: 0.1,
+        max_tokens: 200
     };
 
     try {
@@ -214,16 +215,33 @@ async function validateQuizAccuracy(quizzes) {
                 'Authorization': `Bearer ${MISTRAL_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            timeout: 40000
+            timeout: 15000
         });
 
         const rawContent = response.data?.choices?.[0]?.message?.content;
         const cleanJson = extractJsonFromText(rawContent);
         return JSON.parse(cleanJson);
     } catch (err) {
-        console.error("[VALIDATOR API ERROR]", err.message);
-        return { valid: false, reason: `검증 API 호출 통신 오류: ${err.message}` };
+        return { valid: false, reason: `단일 문항 검증 통신 오류: ${err.message}` };
     }
+}
+
+/**
+ * 5개 문항 병렬(Promise.all) 교차 검증
+ */
+async function validateQuizAccuracy(quizzes) {
+    const results = await Promise.all(quizzes.map(quiz => validateSingleQuiz(quiz)));
+
+    for (let i = 0; i < results.length; i++) {
+        if (!results[i].valid) {
+            return {
+                valid: false,
+                reason: `[${i + 1}번 문항 (${quizzes[i].topic})] ${results[i].reason}`
+            };
+        }
+    }
+
+    return { valid: true, reason: "" };
 }
 
 async function fetchNewQuizData() {
@@ -327,8 +345,8 @@ async function fetchNewQuizData() {
                 }
             });
 
-            // 5. [추가] AI 교차 검증 수행 (사실관계, 헛소리, 오류 검출)
-            console.log(`[API] AI 2차 십자 검증(Fact-Check) 수행 중...`);
+            // 5. 문항별 병렬(Promise.all) 교차 검증 수행
+            console.log(`[API] AI 2차 문항별 병렬 크로스 팩트체크 수행 중...`);
             const validation = await validateQuizAccuracy(processedQuizzes);
             if (!validation.valid) {
                 throw new Error(`AI 교차 검증 실패: ${validation.reason}`);
@@ -346,7 +364,7 @@ async function fetchNewQuizData() {
             
             LAST_FETCH_TIME = Date.now();
             LAST_TOPICS = [...selectedTopics];
-            console.log(`[API] 퀴즈 생성 및 2차 교차 검증 최종 승인 완료 (${MASTER_QUIZ_DATA.length}개)`);
+            console.log(`[API] 퀴즈 생성 및 병렬 2차 검증 최종 승인 완료 (${MASTER_QUIZ_DATA.length}개)`);
             return true;
         } catch (error) {
             console.error(`[DATA ERROR] 시도 ${generationAttempt}/3 실패:`, error.message);
