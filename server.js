@@ -206,7 +206,7 @@ async function validateSingleQuiz(quiz) {
             }
         ],
         temperature: 0.1,
-        max_tokens: 200
+        max_tokens: 1000
     };
 
     try {
