@@ -244,12 +244,13 @@
         function addWrongAnswer(questionData, selectedIndex, actualCorrectIndex) {
             try {
                 const wrongAnswers = getWrongAnswers();
-                const qId = String(questionData.id ?? Date.now());
-                
-                const existingIndex = wrongAnswers.findIndex(item => String(item.id) === qId);
+                const existingIndex = wrongAnswers.findIndex(item =>
+    item.question === questionData.question &&
+    JSON.stringify(item.choices) === JSON.stringify(questionData.choices)
+);
 
                 const newEntry = {
-                    id: qId,
+                    id: String(questionData.id ?? ''),
                     question: questionData.question || '내용 없음',
                     choices: Array.isArray(questionData.choices) ? questionData.choices : [],
                     explanation: questionData.explanation || '',
