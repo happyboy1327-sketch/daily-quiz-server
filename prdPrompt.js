@@ -111,6 +111,7 @@ function createQuizPayload(selectedTopics) {
             }
         ],
         temperature: 0.05,
+        reasoning_effort: 'high',
         max_tokens: 4500
     };
 }
