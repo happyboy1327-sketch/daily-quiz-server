@@ -49,7 +49,6 @@
             font-weight: bold;
             line-height: 1.5;
         }
-        /* 코딩 문제 전용 코드 블록 */
         pre {
             background-color: #2d2d2d;
             color: #ccc;
@@ -215,9 +214,7 @@
         function formatText(str) {
             if (!str) return '';
             let formatted = escapeHtml(str);
-            // 코드 블록(```) 지원
             formatted = formatted.replace(/```(?:[a-zA-Z]*)\n?([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-            // 줄바꿈 처리
             formatted = formatted.replace(/\n/g, '<br>');
             return formatted;
         }
@@ -226,55 +223,64 @@
         // Local Storage 오답 노트
         // ==========================================================
         function getWrongAnswers() {
-    try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        if (!data) return [];
-        const parsed = JSON.parse(data);
-        if (!Array.isArray(parsed)) return [];
-        
-        // 데이터 구조 충돌 방지: 필수 필드(id, choices 배열)가 갖춰진 항목만 필터링
-        return parsed.filter(item => 
-            item && 
-            item.id !== undefined && 
-            Array.isArray(item.choices)
-        );
-    } catch (e) {
-        // 구조 깨진 캐시 방치 안 하고 초기화
-        console.warn("LocalStorage 데이터 충돌 감지. 데이터 초기화 실행");
-        localStorage.removeItem(STORAGE_KEY);
-        return [];
-    }
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                if (!data) return [];
+                const parsed = JSON.parse(data);
+                if (!Array.isArray(parsed)) return [];
+                
+                return parsed.filter(item => 
+                    item && 
+                    item.id !== undefined && 
+                    Array.isArray(item.choices)
+                );
+            } catch (e) {
+                console.warn("LocalStorage 데이터 충돌 감지. 데이터 초기화 실행");
+                localStorage.removeItem(STORAGE_KEY);
+                return [];
+            }
         }
 
         function addWrongAnswer(questionData, selectedIndex, actualCorrectIndex) {
-    try {
-        const wrongAnswers = getWrongAnswers();
-        const qId = String(questionData.id ?? Date.now());
-        
-        // ID 비교 시 String 형변환으로 타입 충돌 방지
-        const existingIndex = wrongAnswers.findIndex(item => String(item.id) === qId);
+            try {
+                const wrongAnswers = getWrongAnswers();
+                const qId = String(questionData.id ?? Date.now());
+                
+                const existingIndex = wrongAnswers.findIndex(item => String(item.id) === qId);
 
-        const newEntry = {
-            id: qId,
-            question: questionData.question || '내용 없음',
-            choices: Array.isArray(questionData.choices) ? questionData.choices : [],
-            explanation: questionData.explanation || '',
-            correctAnswerIndex: actualCorrectIndex,
-            userAnswerIndex: selectedIndex,
-            savedTime: new Date().toLocaleString('ko-KR')
-        };
+                const newEntry = {
+                    id: qId,
+                    question: questionData.question || '내용 없음',
+                    choices: Array.isArray(questionData.choices) ? questionData.choices : [],
+                    explanation: questionData.explanation || '',
+                    correctAnswerIndex: actualCorrectIndex,
+                    userAnswerIndex: selectedIndex,
+                    savedTime: new Date().toLocaleString('ko-KR')
+                };
 
-        if (existingIndex !== -1) {
-            wrongAnswers[existingIndex] = newEntry;
-        } else {
-            wrongAnswers.push(newEntry);
+                if (existingIndex !== -1) {
+                    wrongAnswers[existingIndex] = newEntry;
+                } else {
+                    wrongAnswers.push(newEntry);
+                }
+
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswers));
+            } catch (e) {
+                console.error("저장 중 데이터 충돌 에러:", e);
+            }
         }
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswers));
-    } catch (e) {
-        console.error("저장 중 데이터 충돌 에러:", e);
-    }
-}
+        // 개별 오답 삭제 함수 추가
+        function deleteSingleWrongAnswer(index) {
+            try {
+                const wrongAnswers = getWrongAnswers();
+                wrongAnswers.splice(index, 1);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswers));
+                showReviewMode(); // 화면 새로고침
+            } catch (e) {
+                console.error("개별 삭제 중 에러 발생:", e);
+            }
+        }
 
         function clearWrongAnswers() {
             if (confirm('복습 문제를 모두 삭제하시겠습니까?')) {
@@ -288,61 +294,53 @@
         // ==========================================================
         let isQuizLoading = false;
 
-async function loadQuizData(retryCount = 0) {
-    if (isQuizLoading && retryCount === 0) return;
-    isQuizLoading = true;
+        async function loadQuizData(retryCount = 0) {
+            if (isQuizLoading && retryCount === 0) return;
+            isQuizLoading = true;
 
-    pageTitle.textContent = '오늘의 상식 퀴즈';
-    quizContainer.innerHTML = '';
-    navButtons.innerHTML = '';
-    loadingDiv.style.display = 'block';
-    loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중...";
+            pageTitle.textContent = '오늘의 상식 퀴즈';
+            quizContainer.innerHTML = '';
+            navButtons.innerHTML = '';
+            loadingDiv.style.display = 'block';
+            loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중...";
 
-    try {
-        // 1. 퀴즈 먼저 요청 (서버에서 생성 후 캐싱됨)
-        const quizRes = await fetch(QUIZ_API_URL);
+            try {
+                const quizRes = await fetch(QUIZ_API_URL);
 
-        if (quizRes.status === 503 && retryCount < 2) {
-            setTimeout(() => {
-                isQuizLoading = false;
-                loadQuizData(retryCount + 1);
-            }, 3000);
-            return;
-        }
+                if (quizRes.status === 503 && retryCount < 2) {
+                    setTimeout(() => {
+                        isQuizLoading = false;
+                        loadQuizData(retryCount + 1);
+                    }, 3000);
+                    return;
+                }
 
-        if (!quizRes.ok) throw new Error(`퀴즈 데이터 로드 실패 (${quizRes.status})`);
-        const quizData = await quizRes.json();
+                if (!quizRes.ok) throw new Error(`퀴즈 데이터 로드 실패 (${quizRes.status})`);
+                const quizData = await quizRes.json();
 
-        // 2. 이미 생성된 캐시에서 정답 키 안정적으로 가져오기
-        const answerRes = await fetch(ANSWER_KEY_API_URL);
-        if (!answerRes.ok) throw new Error(`정답 키 로드 실패 (${answerRes.status})`);
-        const answerMap = await answerRes.json();
+                const answerRes = await fetch(ANSWER_KEY_API_URL);
+                if (!answerRes.ok) throw new Error(`정답 키 로드 실패 (${answerRes.status})`);
+                const answerMap = await answerRes.json();
 
-        // 3. ID 매칭
-        currentQuizData = quizData.map(q => ({
-            ...q,
-            correctAnswerIndex: answerMap[q.id] ?? q.correctAnswerIndex
-        }));
-        
-
-        loadingDiv.style.display = 'none';
-
-     
+                currentQuizData = quizData.map(q => ({
+                    ...q,
+                    correctAnswerIndex: answerMap[q.id] ?? q.correctAnswerIndex
+                }));
+                
+                loadingDiv.style.display = 'none';
                 currentQuestionIndex = 0;
                 score = 0;
-                loadingDiv.style.display = 'none';
                 displayQuestion();
 
             } catch (error) {
-        console.error(error);
-        loadingDiv.style.display = 'none';
+                console.error(error);
+                loadingDiv.style.display = 'none';
                 quizContainer.innerHTML = `<p style="color: #dc3545; text-align: center;">로딩 실패: ${escapeHtml(error.message)}<br>잠시 후 다시 시도해 주세요.</p>`;
                 showHomeButtons();
-    } finally {
-        isQuizLoading = false;
-    }
-}
-
+            } finally {
+                isQuizLoading = false;
+            }
+        }
 
         function displayQuestion() {
             if (currentQuestionIndex >= currentQuizData.length) {
@@ -431,22 +429,23 @@ async function loadQuizData(retryCount = 0) {
             if (wrongAnswers.length === 0) {
                 quizContainer.innerHTML = `<p style="text-align: center; color: #6c757d;">현재 저장된 오답 문제가 없습니다.<br>메인 퀴즈에서 문제를 틀리면 자동 저장됩니다!</p>`;
             } else {
-                // showReviewMode() 함수 내부의 reviewListHtml 생성 부분 수정
-const reviewListHtml = wrongAnswers.map(item => {
-    // 안전한 배열 접근 (배열 범위를 벗어나거나 choices가 이상할 때 충돌 방지)
-    const correctAnswerText = item.choices?.[item.correctAnswerIndex] ?? '정답 정보 없음';
-    const userAnswerText = item.choices?.[item.userAnswerIndex] ?? '선택 정보 없음';
+                const reviewListHtml = wrongAnswers.map((item, index) => {
+                    const correctAnswerText = item.choices?.[item.correctAnswerIndex] ?? '정답 정보 없음';
+                    const userAnswerText = item.choices?.[item.userAnswerIndex] ?? '선택 정보 없음';
 
-    return `
-        <li class="review-item">
-            <div class="question-text">Q: ${formatText(item.question)}</div>
-            <p>선택했던 오답: <span style="color: #dc3545; font-weight: bold;">${formatText(userAnswerText)}</span></p>
-            <p class="correct-answer">정답: ${formatText(correctAnswerText)}</p>
-            <div class="review-explanation">해설: ${formatText(item.explanation) || '해설이 제공되지 않았습니다.'}</div>
-            <p style="font-size: 0.8em; color: #6c757d; margin-top: 8px;">(저장 시간: ${item.savedTime})</p>
-        </li>
-    `;
-}).join('');
+                    return `
+                        <li class="review-item">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                <div class="question-text" style="width: 80%;">Q: ${formatText(item.question)}</div>
+                                <button class="btn-danger" style="padding: 4px 10px; font-size: 0.8em; margin: 0;" onclick="deleteSingleWrongAnswer(${index})">삭제</button>
+                            </div>
+                            <p>선택했던 오답: <span style="color: #dc3545; font-weight: bold;">${formatText(userAnswerText)}</span></p>
+                            <p class="correct-answer">정답: ${formatText(correctAnswerText)}</p>
+                            <div class="review-explanation">해설: ${formatText(item.explanation) || '해설이 제공되지 않았습니다.'}</div>
+                            <p style="font-size: 0.8em; color: #6c757d; margin-top: 8px;">(저장 시간: ${item.savedTime})</p>
+                        </li>
+                    `;
+                }).join('');
 
                 quizContainer.innerHTML = `
                     <h3 style="margin-top: 0;">총 ${wrongAnswers.length}개의 복습 문제</h3>
