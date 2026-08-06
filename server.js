@@ -314,11 +314,16 @@ async function fetchNewQuizData() {
                 }
 
                 // 4. 해설 첫 문장 정규화
-                if (!quiz.explanation.trim().startsWith(`정답은 ${quiz.correctAnswerText}입니다.`)) {
-                    const targetPrefix = `정답은 ${quiz.correctAnswerText}입니다.`;
-                    const cleanExp = quiz.explanation.trim().replace(/^(정답은|정답\s*:)\s*.*?(입니다|임)\.?\s*/i, '');
-                    quiz.explanation = `${targetPrefix} ${cleanExp}`.trim();
-                }
+                const targetPrefix = `정답은 ${quiz.correctAnswerText}입니다.`;
+const trimmedExp = quiz.explanation.trim();
+
+if (!trimmedExp.startsWith(targetPrefix)) {
+    // 1. AI가 해설 앞에 붙인 정답 관련 상투어구(정답은~, 정답:~ 등)를 문장 부호 포함해서 확실하게 도려냄
+    let cleanExp = trimmedExp.replace(/^(정답은|정답\s*[:：])\s*([^\n.!?]*?)(입니다|임|다)?\.?\s*/i, '').trim();
+    
+    // 2. 혹시 앞부분 제거 후 남은 첫 글자가 온전한 본문이 아니거나 공백이면 안전하게 조합
+    quiz.explanation = `${targetPrefix} ${cleanExp || trimmedExp}`;
+}
 
                 if (!selectedTopics.includes(quiz.topic) || topicSet.has(quiz.topic)) {
                     throw new Error(`분야 오류 또는 중복 분야: ${quiz.topic}`);
