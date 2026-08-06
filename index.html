@@ -131,10 +131,10 @@
             color: white;
         }
         .btn-danger {
-         background-color: #E1BEE7 !important;
-         color: #000000 !important; /* 아이콘이 보이도록 검은색 지정 */
-         border: 1px solid #ffffff !important;
-       }
+            background-color: #E1BEE7 !important;
+            color: #000000 !important;
+            border: 1px solid #ffffff !important;
+        }
         /* 복습 모드 */
         #review-list {
             margin-top: 20px;
@@ -246,9 +246,9 @@
             try {
                 const wrongAnswers = getWrongAnswers();
                 const existingIndex = wrongAnswers.findIndex(item =>
-    item.question === questionData.question &&
-    JSON.stringify(item.choices) === JSON.stringify(questionData.choices)
-);
+                    item.question === questionData.question &&
+                    JSON.stringify(item.choices) === JSON.stringify(questionData.choices)
+                );
 
                 const newEntry = {
                     id: String(questionData.id ?? ''),
@@ -272,13 +272,12 @@
             }
         }
 
-        // 개별 오답 삭제 함수 추가
         function deleteSingleWrongAnswer(index) {
             try {
                 const wrongAnswers = getWrongAnswers();
                 wrongAnswers.splice(index, 1);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswers));
-                showReviewMode(); // 화면 새로고침
+                showReviewMode();
             } catch (e) {
                 console.error("개별 삭제 중 에러 발생:", e);
             }
@@ -292,7 +291,7 @@
         }
 
         // ==========================================================
-        // 퀴즈 데이터 순차 로딩 (기존 백엔드 완벽 호환)
+        // 퀴즈 데이터 순차 로딩 (암호화 토큰 기반 복호화 지원)
         // ==========================================================
         let isQuizLoading = false;
 
@@ -320,7 +319,10 @@
                 if (!quizRes.ok) throw new Error(`퀴즈 데이터 로드 실패 (${quizRes.status})`);
                 const quizData = await quizRes.json();
 
-                const answerRes = await fetch(ANSWER_KEY_API_URL);
+                // 💡 전달받은 암호화 토큰들을 추출하여 정답 요청 URL 쿼리로 전달
+                const tokens = quizData.map(q => q.token).filter(Boolean).join(',');
+                const answerRes = await fetch(`${ANSWER_KEY_API_URL}?tokens=${encodeURIComponent(tokens)}`);
+                
                 if (!answerRes.ok) throw new Error(`정답 키 로드 실패 (${answerRes.status})`);
                 const answerMap = await answerRes.json();
 
