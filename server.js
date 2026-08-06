@@ -244,6 +244,29 @@ async function validateQuizAccuracy(quizzes) {
     return { valid: true, reason: "" };
 }
 
+function validateSpellingAnswer(quiz) {
+    // 1️⃣ 첫 번째 return true : '한글 맞춤법' 분야가 아닌 경우 검사 없이 통과
+    if (quiz.topic !== "한글 맞춤법") return true; 
+
+    const isNegativeQuestion = /틀린|잘못|적절하지\s*않은/.test(quiz.question);
+    const targetAnswer = quiz.correctAnswerText;
+
+    for (const item of SPELLING_DATA) {
+        if (!isNegativeQuestion && item.wrong.includes(targetAnswer)) {
+            console.error(`[검증 실패] '올바른 표기' 문제인데 정답이 틀린 표기임: "${targetAnswer}"`);
+            return false;
+        }
+
+        if (isNegativeQuestion && targetAnswer === item.correct) {
+            console.error(`[검증 실패] '틀린 표기' 문제인데 정답이 올바른 표기임: "${targetAnswer}"`);
+            return false;
+        }
+    }
+
+    // 2️⃣ 두 번째 return true : 반복문을 다 돌았는데도 걸리는 게 없는 경우 (정상이거나 DB에 없는 단어)
+    return true; 
+}
+
 async function fetchNewQuizData() {
     if (!MISTRAL_API_KEY) {
         console.error("[ERROR] MISTRAL_API_KEY 환경변수가 설정되지 않았습니다.");
@@ -294,9 +317,9 @@ async function fetchNewQuizData() {
                 }
 
                 // 2. 한글 맞춤법 전용 오답 DB 대조
-                if (quiz.topic === "한글 맞춤법" && SPELLING_REGEX.test(quiz.choices.join(" "))) {
-                    throw new Error("한글 맞춤법 금지 오답 패턴 발견");
-                }
+                if (!validateSpellingAnswer(quiz)) {
+        throw new Error("한글 맞춤법: 질문 유형(긍정/부정)과 정답 표기 불일치");
+    }
 
                 // 3. 필드 및 구조 검증
                 if (!quiz.topic || !quiz.question || !Array.isArray(quiz.choices) || 
