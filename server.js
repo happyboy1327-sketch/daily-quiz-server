@@ -260,7 +260,15 @@ async function fetchNewQuizData() {
                 quiz.correctAnswerText = answer;
             });
 
-            MASTER_QUIZ_DATA = processedQuizzes.map((q, idx) => ({ ...q, id: Date.now() + idx }));
+            MASTER_QUIZ_DATA = processedQuizzes.map((q, idx) => ({
+    id: idx + 1,
+    topic: q.topic,
+    question: q.question,
+    choices: q.choices,
+    correctAnswerIndex: q.correctAnswerIndex,
+    correctAnswerText: q.correctAnswerText,
+    explanation: q.explanation
+}));
             LAST_FETCH_TIME = Date.now();
             LAST_TOPICS = [...selectedTopics];
             console.log(`[API] PRD 생성 및 내부 검증 완료 (${MASTER_QUIZ_DATA.length}개)`);
@@ -290,39 +298,27 @@ app.use(express.json());
 app.get('/api/quiz', async (req, res) => {
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) {
-        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE", message: "퀴즈 데이터를 불러올 수 없습니다." });
+        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
     
-    try {
-        const dailyQuiz = getDailyQuestions(5, MASTER_QUIZ_DATA);
-        const sortedQuestions = [...dailyQuiz].sort((a, b) => a.id - b.id);
-        return res.status(200).json(sanitizeQuizData(sortedQuestions));
-    } catch (error) {
-        return res.status(500).json({ errorCode: "SERVER_ERROR" });
-    }
+    // ID 순서대로 정렬된 5개 문제 반환 (correctAnswerIndex 제외)
+    const sanitized = MASTER_QUIZ_DATA.map(({ correctAnswerIndex, ...q }) => q);
+    return res.status(200).json(sanitized);
 });
 
 app.get('/api/answer-key', async (req, res) => {
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) {
-        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE", message: "퀴즈 데이터를 불러올 수 없습니다." });
+        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
     
-    try {
-        const dailyQuiz = getDailyQuestions(5, MASTER_QUIZ_DATA);
-        const sortedQuestions = [...dailyQuiz].sort((a, b) => a.id - b.id);
-        
-        const answerKey = sortedQuestions.reduce((acc, q) => {
-            if (typeof q.id === 'number' && Number.isInteger(q.correctAnswerIndex)) {
-                acc[q.id] = q.correctAnswerIndex;
-            }
-            return acc;
-        }, {});
-        
-        return res.status(200).json(answerKey);
-    } catch (e) {
-        return res.status(500).json({ errorCode: "SERVER_ERROR" });
-    }
+    // { "1": index, "2": index, ... } 형태 맵 생성
+    const answerKey = MASTER_QUIZ_DATA.reduce((acc, q) => {
+        acc[q.id] = q.correctAnswerIndex;
+        return acc;
+    }, {});
+    
+    return res.status(200).json(answerKey);
 });
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
