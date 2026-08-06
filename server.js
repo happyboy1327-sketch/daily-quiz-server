@@ -80,12 +80,6 @@ const SPELLING_DATA = [
   { correct: "어젯밤", wrong: ["어제 밤", "어제밤"], category: "사이시옷" }
 ];
 
-const SPELLING_REGEX = new RegExp(
-    SPELLING_DATA
-        .flatMap(item => item.wrong)
-        .map(word => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-        .join("|")
-);
 
 const ALL_TOPICS = [
     "문화예술", "환경", "과학", "역사", "디지털 리터러시", 
