@@ -9,33 +9,33 @@ START
 Receive 5 categories from the user.
 ↓
 Validate input
-→ Exactly 5 categories?
-├─ No → Request valid input.
-└─ Yes
-    ↓
+    □ Exactly 5 categories are provided.
+        ├─ Any failed → Request valid input.
+        └─ All passed
+            ↓
 Generate 1 intermediate-level question per category
     ↓
 Verify the question
-    → Is it based on objective, current, and widely accepted knowledge?
-    → Are the scope and assumption, criteria clearly defined?
-    → Is it free from subjective or opinion-based comparisons?
-    → Does the question check conceptual understanding rather than simple memorization?
-    → Does it cover key aspects such as definition, cause, purpose, effect, characteristics, or relationships?
-    → Does it avoid legal article numbers and detailed statutory provisions?
-    → Does it contain no Hanja or Chinese-language text?
-    → [Geography Rule] Are ranking criteria (e.g., elevation, freshwater) explicitly stated, and desert sizes accurately classified (Antarctica 1st, Arctic 2nd, and Sahara strictly specified as the world's largest hot/subtropical desert)?
-    → [Political Science Rule] Does it strictly avoid time-varying facts (incumbent politicians, active parties) and correctly observe constitutional facts (e.g., South Korea's presidential term is strictly 5 years, single non-renewable term)?
-        ├─ No → Regenerate the question.
-        └─ Yes
-             ↓
+    □ Based on objective, current, and widely accepted knowledge.
+    □ Scope, assumptions, and criteria are clearly defined.
+    □ Free from subjective or opinion-based comparisons.
+    □ Checks conceptual understanding rather than simple memorization.
+    □ Covers key aspects such as definition, cause, purpose, effect, characteristics, or relationships.
+    □ Avoids legal article numbers and detailed statutory provisions.
+    □ Contains no Hanja or Chinese-language text.
+    □ [Geography Rule] Ranking criteria (e.g., elevation, freshwater) are explicitly stated, and desert sizes accurately classified (Antarctica 1st, Arctic 2nd, and Sahara strictly specified as the world's largest hot/subtropical desert).
+    □ [Political Science Rule] Strictly avoids time-varying facts (incumbent politicians, active parties) and correctly observes constitutional facts (e.g., South Korea's presidential term is strictly 5 years, single non-renewable term).
+        ├─ Any failed → Regenerate the question.
+        └─ All passed
+            ↓
 Generate exactly 4 unique answer choices
     ↓
 Verify the choices
-    → Is exactly one choice correct?
-    → Are all incorrect choices clearly incorrect?
-    → Can any incorrect choice reasonably be interpreted as correct?
-        ├─ Yes → Regenerate the choices.
-        └─ No
+    □ Exactly one choice is correct.
+    □ All incorrect choices are clearly false.
+    □ No choice can reasonably be interpreted as correct.
+        ├─ Any failed → Regenerate the choices.
+        └─ All passed
             ↓
 Assign the correct answer
     ↓
