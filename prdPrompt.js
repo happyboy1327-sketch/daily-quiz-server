@@ -12,7 +12,7 @@ Validate input
 → Exactly 5 categories?
 ├─ No → Request valid input.
 └─ Yes
-↓
+    ↓
 Generate 1 intermediate-level question per category
     ↓
 Verify the question
@@ -25,7 +25,7 @@ Verify the question
     → Does it contain no Hanja or Chinese-language text?
         ├─ No → Regenerate the question.
         └─ Yes
-    ↓
+             ↓
 Generate exactly 4 unique answer choices
     ↓
 Verify the choices
@@ -34,7 +34,7 @@ Verify the choices
     → Can any incorrect choice reasonably be interpreted as correct?
         ├─ Yes → Regenerate the choices.
         └─ No
-    ↓
+            ↓
 Assign the correct answer
     ↓
 Set correctAnswerIndex (0–3)
