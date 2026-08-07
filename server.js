@@ -234,8 +234,8 @@ async function validateSingleQuiz(quiz) {
                 content: JSON.stringify(quiz)
             }
         ],
-        temperature: 0.0,
-        max_tokens: 1000
+        temperature: 0.5,
+        max_tokens: 1150
     };
 
     try {
@@ -244,7 +244,7 @@ async function validateSingleQuiz(quiz) {
                 'Authorization': `Bearer ${MISTRAL_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            timeout: 20000
+            timeout: 25000
         });
 
         const rawContent = response.data?.choices?.[0]?.message?.content;
