@@ -18,7 +18,13 @@ Generate exactly 5 multiple-choice questions (4 options each), with exactly 1 qu
 - Clearly and thoroughly explain why each incorrect choice is wrong.
 - Do not use vague statements such as "the others are incorrect," and do not artificially lengthen explanations.
 9. **Do not confuse closely related concepts that differ in definition, scope, or numerical values.**
-- The subject being asked in the question must correspond exactly one-to-one with the correct answer and the explanation.`;
+- The subject being asked in the question must correspond exactly one-to-one with the correct answer and the explanation.
+10. Before finalizing each question, verify that:
+- exactly one choice is correct;
+- every other choice is unambiguously incorrect;
+- the question, correctAnswerIndex, correctAnswerText, and explanation are fully consistent with each other.
+If any ambiguity exists, regenerate the question instead of outputting it.
+
 
 [출력 JSON 구조]
 {
