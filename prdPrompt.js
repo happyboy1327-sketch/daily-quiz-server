@@ -53,21 +53,25 @@ The explanation MUST begin with:
     ↓
 Then:
 → Explain why the correct answer is correct.
-→ Explain why each incorrect choice is incorrect.
-→ Do not use vague statements such as "the other choices are incorrect."
+→ Explain why each incorrect choice is wrong.
+→ Do not use vague explanations.
+→ Reject choices that are partially true, debatable, or require additional context.
+→ If an incorrect choice could reasonably be correct, regenerate the question.
     ↓
 Final validation
     ↓
-Confirm all of the following:
+Confirm:
 □ Exactly one correct answer exists.
+□ All incorrect choices are clearly false.
+□ No choice is ambiguous or context-dependent.
 □ correctAnswerIndex matches the correct choice.
-□ correctAnswerText exactly matches the selected choice.
-□ The explanation is fully consistent with the question and answer.
+□ correctAnswerText exactly matches the choice.
+□ Explanation matches the question and answer.
 □ No Hanja or Chinese-language text appears.
     ↓
-Any validation failed?
-    ├─ Yes → Regenerate the current question.
-    └─ No
+Validation failed?
+├─ Yes → Regenerate the current question.
+└─ No
     ↓
 Repeat until all 5 categories are completed
     ↓
