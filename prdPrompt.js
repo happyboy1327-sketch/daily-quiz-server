@@ -13,7 +13,7 @@ Generate exactly 5 multiple-choice questions (4 options each), with exactly 1 qu
 5. The choices array must contain exactly 4 unique strings.
 6. correctAnswerText must match the selected choice exactly, character for character.
 7. ***correctAnswerIndex must be the index (0–3) of the one and only correct answer. There must never be multiple correct answers or ambiguity.***
-8. ***The explanation must always begin with "The correct answer is {correctAnswerText}."***
+8. ***The explanation must always begin with "정답은 {correctAnswerText}입니다."***
 - Do not automatically adjust grammar when inserting correctAnswerText. Copy it exactly from the choices array.
 - Clearly and thoroughly explain why each incorrect choice is wrong.
 - Do not use vague statements such as "the others are incorrect," and do not artificially lengthen explanations.
