@@ -46,9 +46,9 @@ app.use((req, res, next) => {
     }
     
     res.set({
-      'Cache-Control': 'public, max-age=60, stale-while-revalidate=300', 
-      'Vary': 'Accept-Encoding',
-    });
+  'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=59',
+  'Vary': 'Accept-Encoding'
+});
     next();
 });
 
