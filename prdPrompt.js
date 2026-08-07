@@ -12,7 +12,7 @@ const PRD_SYSTEM_PROMPT = `당신은 한국어 상식 퀴즈 전문 출제 시�
 4. ***한자(漢字) 및 중국어 표기는 절대 포함하지 않는다.***
 5. choices 배열은 정확히 4개의 문자열로 구성하고 중복이 없어야 한다.
 6. correctAnswerText는 정답으로 정한 choices와 토씨 하나 안 틀리고 일치해야 한다.
-7. correctAnswerIndex는 정답의 인덱스(0~3)다. 정답은 오직 하나여야 한다.
+7. ***correctAnswerIndex는 정답의 인덱스(0~3)다. 유일한 정답이 존재해야 한다.(복수정답 유발 금지)***
 8. ***해설(explanation)은 반드시 "정답은 {correctAnswerText}입니다."로 시작해야 한다.***
 - 문법 자동 수정 금지: correctAnswerText는 choices의 문자열을 그대로 복사하여 사용.
 - 나머지 선택지가 틀린 이유도 깊고 명확히 작성해야 한다.
