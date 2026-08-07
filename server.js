@@ -255,19 +255,32 @@ async function validateSingleQuiz(quiz) {
     }
 }
     
-/**
- * 5개 문항 병렬(Promise.all) 교차 검증
- */
 async function validateQuizAccuracy(quizzes) {
-    const results = [];
+    const results = new Array(quizzes.length);
+    let index = 0;
 
-    // 5개를 한 번에(Promise.all) 보내지 않고, 2개씩 묶어서 병렬 실행
-    for (let i = 0; i < quizzes.length; i += 2) {
-        const chunk = quizzes.slice(i, i + 2);
-        const chunkResults = await Promise.all(chunk.map(quiz => validateSingleQuiz(quiz)));
-        results.push(...chunkResults);
+    // 동시 실행할 작업 수 (429 방지용)
+    const CONCURRENCY_LIMIT = 2;
+
+    // 일하는 워커(Worker) 함수
+    async function worker() {
+        while (index < quizzes.length) {
+            const currentIndex = index++;
+            // 개별 검증 실행
+            results[currentIndex] = await validateSingleQuiz(quizzes[currentIndex]);
+        }
     }
 
+    // 최대 2개의 워커만 동시에 가동
+    const workers = Array.from(
+        { length: Math.min(CONCURRENCY_LIMIT, quizzes.length) }, 
+        () => worker()
+    );
+
+    // 모든 워커가 일을 마칠 때까지 대기
+    await Promise.all(workers);
+
+    // 검증 결과 확인
     for (let i = 0; i < results.length; i++) {
         if (!results[i].valid) {
             return {
