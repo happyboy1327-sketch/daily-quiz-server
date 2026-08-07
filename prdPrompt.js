@@ -61,6 +61,7 @@ Confirm:
 □ Exactly one correct answer exists.
 □ All incorrect choices are clearly false.
 □ No choice is ambiguous or context-dependent.
+□ Strictly based on accurate and up-to-date data.
 □ correctAnswerIndex matches the correct choice.
 □ correctAnswerText exactly matches the choice.
 □ Explanation matches the question and answer.
