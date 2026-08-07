@@ -19,7 +19,8 @@ Verify the question
     → Is it based on objective, current, and widely accepted knowledge?
     → Are the scope and assumption, criteria clearly defined?
     → Is it free from subjective or opinion-based comparisons?
-    → Does it require conceptual understanding instead of simple memorization?
+    → Does the question check conceptual understanding rather than simple memorization?
+    → Does it cover key aspects such as definition, cause, purpose, effect, characteristics, or relationships?
     → Does it avoid legal article numbers and detailed statutory provisions?
     → Does it contain no Hanja or Chinese-language text?
         ├─ No → Regenerate the question.
