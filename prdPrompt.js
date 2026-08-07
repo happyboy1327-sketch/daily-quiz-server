@@ -5,7 +5,7 @@ Generate exactly 5 multiple-choice questions (4 options each), with exactly 1 qu
 
 [Mandatory Rules]
 1. Generate exactly 1 question per category, for a total of 5 questions. Difficulty should be intermediate.
-2. ***Every question must be based on objective facts, up-to-date information, and widely accepted knowledge. The question must clearly define its assumptions and scope. Outdated information is not allowed.***
+2. ***Every question must be based on objective facts, up-to-date information, and widely accepted knowledge. The question must clearly define its assumptions, criteria, and scope. Outdated information is not allowed.***
 - **Do not generate subjective or relative comparison questions.**
 3. Avoid simple memorization questions based on basic facts (who, what, when, where, etc.). Instead, create questions that require understanding of concepts, principles, causes, definitions, or effects.
 - **However, do not ask about specific legal article numbers or detailed statutory provisions.**
