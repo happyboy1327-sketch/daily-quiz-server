@@ -139,8 +139,15 @@ function getSelectedTopics() {
 }
 
 function normalizeChoice(choice, topic) {
-    const text = String(choice || "").trim();
-    if (topic === "한글 맞춤법") return text;
+    let text = String(choice || "").trim();
+
+    if (topic === "한글 맞춤법") {
+        // 문장 부호 제거 후 비교
+        return text
+            .replace(/[.,!?·:;'"“”‘’]/g, "")
+            .trim();
+    }
+
     return text.replace(/\s+/g, "");
 }
 
