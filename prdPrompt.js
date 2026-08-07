@@ -48,9 +48,8 @@ const PRD_SYSTEM_PROMPT = `You are an expert system for generating Korean-langua
 7. **Repeat** until all 5 categories are completed.
 
 ---
-### **Output Format (Strict JSON)**
+
 Output **ONLY** the following JSON structure:
-```json
 {
   "quizzes": [
     {
@@ -62,7 +61,7 @@ Output **ONLY** the following JSON structure:
       "explanation": "string (starts with '정답은 {correctAnswerText}입니다.')"
     }
   ]
-}````;
+}`;
     
 
 module.exports = { PRD_SYSTEM_PROMPT };
