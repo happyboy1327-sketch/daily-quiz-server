@@ -234,7 +234,7 @@ async function validateSingleQuiz(quiz) {
                 content: JSON.stringify(quiz)
             }
         ],
-        temperature: 0.5,
+        temperature: 0.05,
         max_tokens: 1150
     };
 
