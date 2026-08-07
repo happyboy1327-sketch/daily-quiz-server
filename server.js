@@ -393,13 +393,17 @@ async function fetchNewQuizData() {
             }
 
             // 보기 셔플 및 정답 인덱스 재계산
-            processedQuizzes.forEach((quiz, idx) => {
-    // 💡 [추가] 셔플 전 originalText 선언 (실행시간: 0.0001ms)
+            // 보기 셔플 및 정답 인덱스 재계산 & 해설 번호 자동 보정
+processedQuizzes.forEach((quiz, idx) => {
     const originalText = quiz.choices[quiz.correctAnswerIndex] || quiz.correctAnswerText;
+    
+    // 1️⃣ 셔플 전 원본 보기 순서 배열 백업
+    const originalChoices = [...quiz.choices];
 
+    // 보기 셔플 진행
     shuffleArray(quiz.choices, `${Date.now()}_${idx}`);
 
-    // targetText 대신 셔플 전 정확했던 originalText 사용
+    // 정답 인덱스 재계산
     let newIndex = quiz.choices.indexOf(originalText);
     if (newIndex === -1 && originalText) {
         const cleanTarget = originalText.replace(/[\s\.]/g, '');
@@ -410,9 +414,26 @@ async function fetchNewQuizData() {
         quiz.correctAnswerIndex = newIndex;
         quiz.correctAnswerText = quiz.choices[newIndex];
     } else {
-        // [안전장치] 매칭 실패 시 과거 인덱스 덮어쓰기
         quiz.correctAnswerIndex = 0;
         quiz.correctAnswerText = quiz.choices[0];
+    }
+
+    // 2️⃣ 💡 [추가] 해설(explanation) 내부 번호(1번~4번) 매칭 자동 보정
+    if (quiz.explanation) {
+        // Step 1: 중복 치환 방지를 위해 원본 "1번"~"4번"을 임시 태그(__TEMP_0__ 등)로 일괄 변경
+        for (let i = 0; i < originalChoices.length; i++) {
+            const oldNumText = `${i + 1}번`;
+            quiz.explanation = quiz.explanation.replaceAll(oldNumText, `__TEMP_${i}__`);
+        }
+
+        // Step 2: 원본 항목이 셔플되어 이동한 새 위치의 번호로 최종 교체
+        for (let i = 0; i < originalChoices.length; i++) {
+            const movedIndex = quiz.choices.indexOf(originalChoices[i]);
+            if (movedIndex !== -1) {
+                const newNumText = `${movedIndex + 1}번`;
+                quiz.explanation = quiz.explanation.replaceAll(`__TEMP_${i}__`, newNumText);
+            }
+        }
     }
 });
 
