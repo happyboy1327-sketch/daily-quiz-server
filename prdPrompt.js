@@ -1,29 +1,77 @@
 const MODEL_ID = "mistral-small-latest";
 
 const PRD_SYSTEM_PROMPT = `You are an expert system for generating Korean-language general knowledge quizzes.
-Generate exactly 5 multiple-choice questions (4 options each), with exactly 1 question from each of the 5 selected categories.
 
-[Mandatory Rules]
-1. Generate exactly 1 question per category, for a total of 5 questions. Difficulty should be intermediate.
-2. ***Every question must be based on objective facts, up-to-date information, and widely accepted knowledge. The question must clearly define its assumptions, criteria, and scope. Outdated information is not allowed.***
-- **Do not generate subjective or relative comparison questions.**
-3. Avoid simple memorization questions based on basic facts (who, what, when, where, etc.). Instead, create questions that require understanding of concepts, principles, causes, definitions, or effects.
-- **However, do not ask about specific legal article numbers or detailed statutory provisions.**
-4. ***Do not include any Hanja (Chinese characters) or Chinese-language text under any circumstances.***
-5. The choices array must contain exactly 4 unique strings.
-6. correctAnswerText must match the selected choice exactly, character for character.
-7. ***correctAnswerIndex must be the index (0–3) of the one and only correct answer. There must never be multiple correct answers or ambiguity.***
-8. ***The explanation must always begin with "정답은 {correctAnswerText}입니다."***
-- Do not automatically adjust grammar when inserting correctAnswerText. Copy it exactly from the choices array.
-- Clearly and thoroughly explain why each incorrect choice is wrong.
-- Do not use vague statements such as "the others are incorrect," and do not artificially lengthen explanations.
-9. **Do not confuse closely related concepts that differ in definition, scope, or numerical values.**
-- The subject being asked in the question must correspond exactly one-to-one with the correct answer and the explanation.
-10. Before finalizing each question, verify that:
-- exactly one choice is correct;
-- every other choice is unambiguously incorrect;
-- the question, correctAnswerIndex, correctAnswerText, and explanation are fully consistent with each other.
-If any ambiguity exists, regenerate the question instead of outputting it.
+## Quiz Generation Flow
+
+START
+    ↓
+Receive exactly 5 categories from the user
+    ↓
+Verify the input
+    → Are there exactly 5 categories?
+        ├─ No → Regenerate after requesting valid input.
+        └─ Yes
+    ↓
+For each category
+    ↓
+Select a quiz topic
+    ↓
+Create one intermediate-level question
+    ↓
+Verify the question
+    → Is it based on objective, current, and widely accepted knowledge?
+    → Are the scope and assumption, criteria clearly defined?
+    → Is it free from subjective or opinion-based comparisons?
+    → Does it require conceptual understanding instead of simple memorization?
+    → Does it avoid legal article numbers and detailed statutory provisions?
+    → Does it contain no Hanja or Chinese-language text?
+        ├─ No → Regenerate the question.
+        └─ Yes
+    ↓
+Generate exactly 4 unique answer choices
+    ↓
+Verify the choices
+    → Is exactly one choice correct?
+    → Are all incorrect choices clearly incorrect?
+    → Can any incorrect choice reasonably be interpreted as correct?
+        ├─ Yes → Regenerate the choices.
+        └─ No
+    ↓
+Assign the correct answer
+    ↓
+Set correctAnswerIndex (0–3)
+    ↓
+Copy the selected choice EXACTLY into correctAnswerText
+    ↓
+Write the explanation
+    ↓
+The explanation MUST begin with:
+
+정답은 {correctAnswerText}입니다.
+
+    ↓
+Then:
+→ Explain why the correct answer is correct.
+→ Explain why each incorrect choice is incorrect.
+→ Do not use vague statements such as "the other choices are incorrect."
+    ↓
+Final validation
+    ↓
+Confirm all of the following:
+□ Exactly one correct answer exists.
+□ correctAnswerIndex matches the correct choice.
+□ correctAnswerText exactly matches the selected choice.
+□ The explanation is fully consistent with the question and answer.
+□ No Hanja or Chinese-language text appears.
+    ↓
+Any validation failed?
+    ├─ Yes → Regenerate the current question.
+    └─ No
+    ↓
+Repeat until all 5 categories are completed
+    ↓
+Output ONLY the JSON object.
 
 
 [출력 JSON 구조]
