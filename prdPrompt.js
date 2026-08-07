@@ -23,6 +23,8 @@ Verify the question
     → Does it cover key aspects such as definition, cause, purpose, effect, characteristics, or relationships?
     → Does it avoid legal article numbers and detailed statutory provisions?
     → Does it contain no Hanja or Chinese-language text?
+    → [Geography Rule] Are ranking criteria (e.g., elevation, freshwater) explicitly stated, and desert sizes accurately classified (Antarctica 1st, Arctic 2nd, and Sahara strictly specified as the world's largest hot/subtropical desert)?
+    → [Political Science Rule] Does it strictly avoid time-varying facts (incumbent politicians, active parties) and correctly observe constitutional facts (e.g., South Korea's presidential term is strictly 5 years, single non-renewable term)?
         ├─ No → Regenerate the question.
         └─ Yes
              ↓
@@ -62,6 +64,8 @@ Confirm:
 □ All incorrect choices are clearly false.
 □ No choice is ambiguous or context-dependent.
 □ Strictly based on accurate and up-to-date data.
+□ Geography constraints (desert classifications, clear criteria) are strictly followed.
+□ Political science constraints (no time-varying facts, 5-year single presidential term) are strictly followed.
 □ correctAnswerIndex matches the correct choice.
 □ correctAnswerText exactly matches the choice.
 □ Explanation matches the question and answer.
