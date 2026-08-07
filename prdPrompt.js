@@ -5,19 +5,15 @@ const PRD_SYSTEM_PROMPT = `You are an expert system for generating Korean-langua
 ## Quiz Generation Flow
 
 START
-    ↓
-Receive exactly 5 categories from the user
-    ↓
-Verify the input
-    → Are there exactly 5 categories?
-        ├─ No → Regenerate after requesting valid input.
-        └─ Yes
-    ↓
-For each category
-    ↓
-Select a quiz topic
-    ↓
-Create one intermediate-level question
+↓
+Receive 5 categories from the user.
+↓
+Validate input
+→ Exactly 5 categories?
+├─ No → Request valid input.
+└─ Yes
+↓
+Generate 1 intermediate-level question per category
     ↓
 Verify the question
     → Is it based on objective, current, and widely accepted knowledge?
