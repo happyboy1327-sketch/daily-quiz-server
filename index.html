@@ -424,43 +424,53 @@
         // ==========================================================
         // 복습 모드
         // ==========================================================
+        
+
         function showReviewMode() {
             pageTitle.textContent = '📝 오답 복습 모드';
             navButtons.innerHTML = '';
-            
-            const wrongAnswers = getWrongAnswers();
-            
+    
+          const wrongAnswers = getWrongAnswers();
+    
             if (wrongAnswers.length === 0) {
                 quizContainer.innerHTML = `<p style="text-align: center; color: #6c757d;">현재 저장된 오답 문제가 없습니다.<br>메인 퀴즈에서 문제를 틀리면 자동 저장됩니다!</p>`;
             } else {
                 const reviewListHtml = wrongAnswers.map((item, index) => {
-                    const correctAnswerText = item.choices?.[item.correctAnswerIndex] ?? '정답 정보 없음';
-                    const userAnswerText = item.choices?.[item.userAnswerIndex] ?? '선택 정보 없음';
+                const correctAnswerText = item.choices?.[item.correctAnswerIndex] ?? '정답 정보 없음';
+                const userAnswerText = item.choices?.[item.userAnswerIndex] ?? '선택 정보 없음';
 
-                    return `
-                        <li class="review-item">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                                <div class="question-text" style="width: 80%;">Q: ${formatText(item.question)}</div>
-                                <button class="btn-danger" style="padding: 4px 10px; font-size: 0.8em; margin: 0;" onclick="deleteSingleWrongAnswer(${index})">🗑</button>
-                            </div>
-                            <p>선택했던 오답: <span style="color: #dc3545; font-weight: bold;">${formatText(userAnswerText)}</span></p>
-                            <p class="correct-answer">정답: ${formatText(correctAnswerText)}</p>
-                            <div class="review-explanation">해설: ${formatText(item.explanation) || '해설이 제공되지 않았습니다.'}</div>
-                            <p style="font-size: 0.8em; color: #6c757d; margin-top: 8px;">(저장 시간: ${item.savedTime})</p>
-                        </li>
-                    `;
-                }).join('');
+                return `
+                    <li class="review-item">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div class="question-text" style="width: 80%;">Q: ${formatText(item.question)}</div>
+                        <button class="btn-danger" style="padding: 4px 10px; font-size: 0.8em; margin: 0;" onclick="deleteSingleWrongAnswer(${index})">🗑</button>
+                       </div>
+                        <p>선택했던 오답: <span style="color: #dc3545; font-weight: bold;">${formatText(userAnswerText)}</span></p>
+                        <p class="correct-answer">정답: ${formatText(correctAnswerText)}</p>
+                        <div class="review-explanation">해설: ${formatText(item.explanation) || '해설이 제공되지 않았습니다.'}</div>
+                        <p style="font-size: 0.8em; color: #6c757d; margin-top: 8px;">(저장 시간: ${item.savedTime})</p>
+                    </li>
+                 `;
+            }).join('');
 
-                quizContainer.innerHTML = `
-                    <h3 style="margin-top: 0;">총 ${wrongAnswers.length}개의 복습 문제</h3>
-                    <ul id="review-list">
-                        ${reviewListHtml}
-                    </ul>
-                    <button class="btn-danger" onclick="clearWrongAnswers()">복습 문제 전체 삭제</button>
-                `;
-            }
-            showHomeButtons();
-        }
+            quizContainer.innerHTML = `
+                <!-- 제목 및 퀴즈 시작 버튼 영역 -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="margin: 0;">총 ${wrongAnswers.length}개의 복습 문제</h3>
+                    <button class="btn-primary" style="margin: 0;" onclick="startQuiz()">🎯 퀴즈 시작</button>
+                </div>
+
+                <!-- 내부 스크롤 리스트 영역 -->
+                <ul id="review-list" style="max-height: 60vh; overflow-y: auto; padding-right: 8px; list-style: none; padding-left: 0;">
+                    ${reviewListHtml}
+                </ul>
+
+                <!-- 하단 전체 삭제 버튼 -->
+                <button class="btn-danger" style="margin-top: 12px;" onclick="clearWrongAnswers()">복습 문제 전체 삭제</button>
+             `;
+         }
+         showHomeButtons();
+     }
 
         function showHomeButtons() {
             navButtons.innerHTML = `
