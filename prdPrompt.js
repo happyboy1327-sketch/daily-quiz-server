@@ -54,6 +54,7 @@ The explanation MUST begin with:
 Then:
 → Explain why the correct answer is correct.
 → Explain why each incorrect choice is wrong.
+→ Use precise and standard terminology to avoid ambiguity (e.g., strictly distinguish legal terms like '연임', '중임').
 → Do not use vague explanations.
 → Reject choices that are partially true, debatable, or require additional context.
 → If an incorrect choice could reasonably be correct, regenerate the question.
