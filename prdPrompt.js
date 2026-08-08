@@ -21,8 +21,8 @@ The explanation MUST begin with:
 
     ↓
 Then:
-→ Explain why the correct answer is correct.
-→ Explain why each incorrect choice is wrong.
+→ Explain why the correct answer is correct and why each incorrect choice is wrong.
+→ Be factually accurate. 
 → Use precise and standard terminology to avoid ambiguity (e.g., strictly distinguish legal terms like '연임', '중임').
 → Do not use vague explanations.
 → Reject choices that are partially true, debatable, or require additional context.
@@ -51,6 +51,7 @@ Verify the choices
     □ Exactly one choice is correct.
     □ All incorrect choices are clearly false.
     □ No choice can reasonably be interpreted as correct.
+    □ Choices must be parallel in tone with no answer-revealing terms.
         ├─ Any failed → Regenerate the choices.
         └─ All passed
             ↓
