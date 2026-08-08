@@ -13,7 +13,23 @@ Validate input
         ├─ Any failed → Request valid input.
         └─ All passed
             ↓
-Generate 1 intermediate-level question per category
+Write the explanation FIRST (Establish core concept & reasoning)
+    ↓
+The explanation MUST begin with:
+
+정답은 {correctAnswerText}입니다.
+
+    ↓
+Then:
+→ Explain why the correct answer is correct.
+→ Explain why each incorrect choice is wrong.
+→ Use precise and standard terminology to avoid ambiguity (e.g., strictly distinguish legal terms like '연임', '중임').
+→ Do not use vague explanations.
+→ Reject choices that are partially true, debatable, or require additional context.
+→ If an incorrect choice could reasonably be correct, regenerate the question.
+→ Omit unnecessary introductory, concluding, or filler statements.
+    ↓
+Generate 1 intermediate-level question based on the explanation
     ↓
 Verify the question
     □ Based on objective, current, and widely accepted knowledge.
@@ -44,21 +60,6 @@ Set correctAnswerIndex (0–3)
     ↓
 Copy the selected choice EXACTLY into correctAnswerText
     ↓
-Write the explanation
-    ↓
-The explanation MUST begin with:
-
-정답은 {correctAnswerText}입니다.
-
-    ↓
-Then:
-→ Explain why the correct answer is correct.
-→ Explain why each incorrect choice is wrong.
-→ Use precise and standard terminology to avoid ambiguity (e.g., strictly distinguish legal terms like '연임', '중임').
-→ Do not use vague explanations.
-→ Reject choices that are partially true, debatable, or require additional context.
-→ If an incorrect choice could reasonably be correct, regenerate the question.
-    ↓
 Final validation
     ↓
 Confirm:
@@ -87,11 +88,11 @@ Output ONLY the JSON object.
   "quizzes": [
     {
       "topic": "분야명",
+      "explanation": "정답은 {correctAnswerText}입니다. [정답의 핵심 근거]. [오답 보기가 틀린 이유].",
       "question": "질문 내용",
       "choices": ["보기1", "보기2", "보기3", "보기4"],
       "correctAnswerIndex": 0,
-      "correctAnswerText": "보기1",
-      "explanation": "정답은 보기1입니다. 상세 해설..."
+      "correctAnswerText": "보기1"
     }
   ]
 }`;
