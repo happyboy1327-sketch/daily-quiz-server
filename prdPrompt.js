@@ -22,10 +22,9 @@ The explanation MUST begin with:
     ↓
 Then:
 → Explain why the correct answer is correct and why each incorrect choice is wrong.
-→ Be factually accurate. 
-→ Use precise and standard terminology to avoid ambiguity (e.g., strictly distinguish legal terms like '연임', '중임').
-→ Do not use vague explanations.
-→ Reject choices that are partially true, debatable, or require additional context.
+→ Do not speculate or assume; base all content strictly on fully verified and accurate facts.
+→ Precise Terms: Use clear, unambiguous, and objective terminology without vague phrasing.
+→ Verified Sources: skip any question if facts cannot be confirmed.
 → If an incorrect choice could reasonably be correct, regenerate the question.
 → Omit unnecessary introductory, concluding, or filler statements.
     ↓
