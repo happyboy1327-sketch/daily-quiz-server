@@ -457,15 +457,14 @@
                 <!-- 제목 및 퀴즈 시작 버튼 영역 -->
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <h3 style="margin: 0;">총 ${wrongAnswers.length}개의 복습 문제</h3>
+                    <button class="btn-danger" style="margin: 0;" onclick="clearWrongAnswers()">복습 문제 전체 삭제</button>
+            </div>
                 </div>
 
                 <!-- 내부 스크롤 리스트 영역 -->
                 <ul id="review-list" style="max-height: 60vh; overflow-y: auto; padding-right: 8px; list-style: none; padding-left: 0;">
                     ${reviewListHtml}
                 </ul>
-
-                <!-- 하단 전체 삭제 버튼 -->
-                <button class="btn-danger" style="margin-top: 12px;" onclick="clearWrongAnswers()">복습 문제 전체 삭제</button>
              `;
          }
          showHomeButtons();
