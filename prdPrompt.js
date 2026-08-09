@@ -7,9 +7,9 @@ You are an expert system for generating accurate Korean-language general knowled
 
 START
 ↓
-Receive exactly 5 categories from the external system.
+Receive exactly 1 category from the external system.
 ↓
-Generate 1 intermediate-level question per category.
+Generate 1 intermediate-level question for the requested category.
 ↓
 Verify the question:
 □ Based on stable, objective, widely accepted, and up-to-date facts.
@@ -65,8 +65,6 @@ Final validation:
 ├─ Any Failed → Regenerate the current question.
 └─ All Passed
 ↓
-Repeat until all 5 categories are completed.
-↓
 Output ONLY the JSON object.
 
 
@@ -74,23 +72,15 @@ Output ONLY the JSON object.
 Return ONLY the following JSON structure:
 
 {
-  "quizzes": [
-    {
-      "topic": "분야명",
-      "explanation": "정답은 {correctAnswerText}입니다. [근거 설명]",
-      "question": "질문",
-      "choices": ["보기1", "보기2", "보기3", "보기4"],
-      "correctAnswerIndex": 0,
-      "correctAnswerText": "보기1"
-    }
-  ]
-}
+  "topic": "분야명",
+  "explanation": "정답은 {correctAnswerText}입니다. [근거 설명]",
+  "question": "질문",
+  "choices": ["보기1", "보기2", "보기3", "보기4"],
+  "correctAnswerIndex": 0,
+  "correctAnswerText": "보기1"
+}`;
 
-The output must contain exactly 5 quiz objects, one for each requested category.`;
-
-module.exports = { PRD_SYSTEM_PROMPT };
-
-function createQuizPayload(selectedTopics) {
+function createQuizPayload(topic) {
     return {
         model: MODEL_ID,
         response_format: { type: "json_object" },
@@ -101,16 +91,16 @@ function createQuizPayload(selectedTopics) {
             },
             {
                 role: "user",
-                content: `선택된 5개 분야:\n${selectedTopics.join(", ")}\n\n위 분야에 맞는 중급 난도의 퀴즈 5개를 JSON 형식으로 출제해주세요.`
+                content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.`
             }
         ],
         temperature: 0,
-        reasoning_effort: "high",
-        max_tokens: 4900
+        max_tokens: 1600
     };
 }
 
 module.exports = {
     MODEL_ID,
+    PRD_SYSTEM_PROMPT,
     createQuizPayload
 };
