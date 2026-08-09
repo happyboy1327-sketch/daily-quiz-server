@@ -149,7 +149,7 @@ function createQuizPayload(selectedTopics) {
         ],
         temperature: 0.006,
         reasoning_effort: "high",
-        max_tokens: 4500
+        max_tokens: 4900
     };
 }
 
