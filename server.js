@@ -832,9 +832,10 @@ REJECT (valid: false) if any rule fails.
 
 ### CRITICAL RULES
 1. Distractor Check:
-   - Test every wrong choice against the question prompt.
-   - If any wrong choice also fits the condition, REJECT.
-
+   - REJECT only if a wrong choice is a valid or functionally equivalent alternative answer.
+   - Do NOT reject simply because a wrong choice shares the same topic if it fails the core condition.
+   - Ensure 1:1 mapping: The explanation must explicitly address and invalidate each wrong choice.
+   
 2. [Premise & Explanation Match / Century Calculation]
    - Check century math (e.g., 19세기 = 1800년대).
    - [Premise Check] Is the Question's premise 100% historically/factually true? If the premise itself is false, REJECT.
@@ -869,7 +870,7 @@ REJECT (valid: false) if any rule fails.
                 'Authorization': `Bearer ${MISTRAL_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            timeout: 25000
+            timeout: 27000
         });
 
         const rawContent = response.data?.choices?.[0]?.message?.content;
