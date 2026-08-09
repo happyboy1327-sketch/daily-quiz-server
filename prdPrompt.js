@@ -37,8 +37,8 @@ If any requirement fails, regenerate that quiz before continuing.
 
 - Exactly 4 unique choices.
 - Exactly 1 correct choice.
-- Choices must be parallel in tone and structure.
-- Do not reveal the answer through unusual wording, length, specificity, or tone.
+- ***ALL Choices must be parallel in tone and structure.***
+- Do not reveal the answer through unusual wording, length, specificity.
 - No choice may be correct under a reasonable alternative interpretation.
 - If multiple choices could be correct, regenerate the question.
 
