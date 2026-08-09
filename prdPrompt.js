@@ -11,6 +11,7 @@ For every quiz:
 1. Establish the core concept and reasoning in the explanation first.
 2. Generate the question based on that explanation.
 → ***Do not generate a question simply because it has one technically correct answer; the question itself must be meaningful and high-quality.***
+→ A correct answer is not enough. The explanation must also be factually accurate and precise.
 3. Generate exactly 4 unique answer choices.
 4. Assign exactly one correct answer.
 5. Validate the entire quiz before output.
