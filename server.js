@@ -827,43 +827,30 @@ async function validateSingleQuiz(quiz) {
             {
                 role: "system",
                 content: `
-너는 상식 퀴즈의 **치명적 오류와 팩트**를 검증하는 검사원이다.
-목적: 문제/정답/해설의 명백한 사실 오류 및 시대 착오는 확실히 불합격(false)시킨다.
+You are a strict trivia fact-checker.
+REJECT (valid: false) if any rule fails.
 
-[핵심 검증 기준]
-1. 정답의 정확성 및 유일성 (오답 보기 개별 1:1 대입 검증)
-- correctAnswerText가 실제 학술적/상식적으로 올바르며 choices 중 유일한 정답인가?
-- [복수 정답 방지] 지정된 정답 외 나머지 3개 오답 보기 각각을 질문 지문 조건과 1:1로 직접 대입하여 검증하라. 
-오답 보기 중 질문에서 요구하는 주요 주장/특징/조건에 부합하는 항목이 단 하나라도 존재한다면 복수 정답으로 판단하고 무조건 false 처리하라.
-- '옳지 않은 것'을 묻는 질문에 '옳지 않은 내용'이 정답으로 지정되어 있으면 정상(true)이다.
+### CRITICAL RULES
+1. Distractor Check:
+   - Test every wrong choice against the question prompt.
+   - If any wrong choice also fits the condition, REJECT.
 
-2. 세기 및 시대 표현 검증 (치명적 AI 환각 방지)
-- 세기(Century) 계산 착오가 없는지 확인하라. (예: 19세기 = 1800년대 / 20세기 = 1900년대)
-- '초반/중반/후반' 및 '조선 후기' 등 시대 표현이 실제 역사적 연도와 명백히 불일치하면 false 처리하라.
-  (※ 단, 엄격한 숫자 범위 트집이 아니라, 대중적 역사 통설 기준에서 완전히 틀린 경우만 불합격 처리한다.)
-- [질문 전제 및 해설 일치] 질문에 명시된 전제(예: 시작 연도)가 실제 사실과 전혀 다르거나, 해설이 질문과 다른 사건을 근거로 정답을 합리화하면 무조건 false 처리하라.
+2. [Premise & Explanation Match / Century Calculation]
+   - Check century math (e.g., 19세기 = 1800년대).
+   - [Premise Check] Is the Question's premise 100% historically/factually true? If the premise itself is false, REJECT.
+   - [Goalpost Shifting Check] Does the Explanation prove the EXACT premise of the Question? Guard against Goalpost Shifting (골대 옮기기): If the question asks "When did X start?" but the explanation proves "When did X decrease?", REJECT immediately.
 
-3. ***개념 및 수치·단위 일치성 (Crucial)***
-- 질문에서 묻는 핵심 대상과 정답/해설에서 설명하는 대상이 서로 '혼동하기 쉬운 별개의 개념'이 아닌지 검증하라.
-  (예: 원소/화합물, 상위/하위 개념, 기준 지표/관련 지표, 단위 차이, 주체/객체 등)
-- 수치·단위·기한·통계가 객관적 사실과 조금이라도 일치하지 않으면 무조건 불합격(false) 처리하라.
+3. [Concept, Numbers, Units & Statistics Consistency (Crucial)]
+   - Verify whether the core target asked in the question and the target explained in the answer/explanation are distinct, easily confused concepts (e.g., element/compound, superordinate/subordinate concepts, baseline/related metrics, unit differences, subject/object, etc.).
+   - If numbers, units, deadlines, or statistics do not match objective facts even slightly, REJECT immediately.
 
-4. ***한글 문법 및 띄어쓰기 환각 검증 (Crucial)***
-- "부사(아무튼, 매우, 겨우 등)를 뒤 단어와 붙여 써야 한다"는 식의 거짓 문법 규칙이 해설이나 정답 근거에 포함되어 있으면 무조건 false 처리하라.
-- '조사는 앞말과 붙여써야 한다.'가 맞다. 이 사실에 유의하여 판단한다.
-- 띄어쓰기 오류가 없는 정상적인 문장을 오류가 있다고 주장하는 경우 무조건 false 처리하라.
+4. [Korean Grammar Hallucination]
+   - If the explanation invents false Korean spacing/grammar rules (e.g., claiming adverbs like '아무튼' must attach to the next word), REJECT immediately.
 
-5. ***절대 규칙***
-- 조문과 조항이 실제와 맞지 않으면, 무조건 false 처리하라.
-- 내용이 변경될 가능성이 높은 지침이나 방침이 포함되어 있으면 무조건 false 처리하라.
-- 정답과 해설에 포함된 원리·이유 설명이 있는 경우, 해당 내용도 사실과 일치해야 한다.
-- 해설엔 정확한 용어가 포함되어야 하며, 해설이 애매하거나 잘못 해석될 여지가 있을 경우 무조건 false 처리한다.
-- 결론은 맞지만 포함된 핵심 원리나 이유가 틀리면 false 처리한다.
-
-[출력 형식 (JSON 전용)]
+### OUTPUT FORMAT (JSON ONLY)
 {
   "valid": true | false,
-  "reason": "false인 경우에만 1줄 사유 작성 (true면 반드시 빈 문자열 \"\")"
+  "reason": "If false, write EXACTLY 1 concise sentence explaining the failure. If true, leave empty string \"\"."
 }
 `
             },
