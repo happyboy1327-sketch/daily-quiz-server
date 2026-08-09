@@ -15,6 +15,7 @@ Verify the question:
 □ Based on stable, objective, widely accepted, and up-to-date facts.
 □ Scope, assumptions, units, dates, and classification criteria are explicit when relevant.
 □ Tests conceptual understanding, not simple memorization.
+□ Covers key aspects such as definition, cause, purpose, effect, distintive characteristics, or relationships.
 □ Exactly one objectively correct answer exists.
 □ Avoid subjective comparisons, unresolved controversies, time-varying political facts, legal article numbers, and detailed statutory provisions.
 □ For South Korean politics, use the stable fact that the presidential term is 5 years and re-election is prohibited.
