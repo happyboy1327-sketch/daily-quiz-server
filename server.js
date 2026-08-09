@@ -780,8 +780,8 @@ function normalizeChoice(choice, topic) {
 }
 
 function hasDuplicateChoices(quiz) {
-    const normalized = quiz.choices.map(choice => normalizeChoice(choice, quiz.topic));
-    return new Set(normalized).size !== normalized.length;
+    const norm = quiz.choices.map(c => normalizeChoice(c, quiz.topic).toLowerCase());
+    return norm.some((a, i) => norm.some((b, j) => i !== j && (a.includes(b) || b.includes(a))));
 }
 
 function autoFixQuiz(quiz) {
