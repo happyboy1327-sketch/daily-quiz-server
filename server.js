@@ -974,10 +974,7 @@ function validateSpellingAnswer(quiz) {
         }
     }
 
-    return true;
-}
-
-
+    
 
 async function fetchNewQuizData() {
     if (!MISTRAL_API_KEY) {
@@ -990,27 +987,49 @@ async function fetchNewQuizData() {
 
     for (let generationAttempt = 1; generationAttempt <= 3; generationAttempt++) {
         try {
-            const payload = createQuizPayload(selectedTopics);
-            const response = await axios.post(API_URL, payload, {
-                headers: {
-                    'Authorization': `Bearer ${MISTRAL_API_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                timeout: 70000
-            });
-            
-            const message = response.data?.choices?.[0]?.message;
-            if (!message?.content) throw new Error("API 응답 내용이 비어있습니다.");
+            const rawQuizzes = new Array(selectedTopics.length);
+            let topicIndex = 0;
 
-            let rawContent = message.content;
-            if (Array.isArray(rawContent)) {
-                const textPart = rawContent.find(p => p.type === "text" && typeof p.text === "string");
-                rawContent = textPart?.text;
+            // API 429 방지용 동시 실행 제한 (2개씩 실행)
+            const CONCURRENCY_LIMIT = 2;
+
+            // 일하는 비동기 워커 함수
+            async function fetchWorker() {
+                while (topicIndex < selectedTopics.length) {
+                    const currentIndex = topicIndex++;
+                    const topic = selectedTopics[currentIndex];
+
+                    const payload = createQuizPayload(selectedTopics);
+                    const response = await axios.post(API_URL, payload, {
+                        headers: {
+                            'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        timeout: 30000
+                    });
+
+                    const message = response.data?.choices?.[0]?.message;
+                    if (!message?.content) throw new Error(`[${topic}] API 응답이 비어있습니다.`);
+
+                    let rawContent = message.content;
+                    if (Array.isArray(rawContent)) {
+                        const textPart = rawContent.find(p => p.type === "text" && typeof p.text === "string");
+                        rawContent = textPart?.text;
+                    }
+
+                    const cleanJson = extractJsonFromText(rawContent);
+                    rawQuizzes[currentIndex] = JSON.parse(cleanJson);
+                }
             }
 
-            const cleanJson = extractJsonFromText(rawContent);
-            const parsed = JSON.parse(cleanJson);
-            const rawQuizzes = parsed.quizzes || (Array.isArray(parsed) ? parsed : null);
+            // 워커 2개 동시에 가동
+            const workers = Array.from(
+                { length: Math.min(CONCURRENCY_LIMIT, selectedTopics.length) },
+                () => fetchWorker()
+            );
+
+            // 모든 퀴즈 조회가 끝날 때까지 대기
+            await Promise.all(workers);
 
             if (!Array.isArray(rawQuizzes) || rawQuizzes.length !== 5) {
                 throw new Error(`퀴즈 개수 오류 (기대값 5개, 수신 ${rawQuizzes?.length}개)`);
