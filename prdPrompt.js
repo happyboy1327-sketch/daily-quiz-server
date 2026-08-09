@@ -60,7 +60,7 @@ Then:
 
 When category is "한글 맞춤법":
 
-- Follow the provided rule data exactly; never invent, reinterpret, or override rules.
+- Use the provided SPELLING_DATA as the source of truth; never invent, reinterpret, or override rules.
 - 'allowed' = correct, 'forbidden' = incorrect.
 - Use only established Korean spelling, grammar, and spacing rules.
 - Do not reject expressions merely because they are uncommon or unnatural.
