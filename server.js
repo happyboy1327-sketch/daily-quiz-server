@@ -61,57 +61,392 @@ let LAST_TOPICS = [];
 let fetchPromise = null;
 
 const SPELLING_DATA = [
-  // [띄어쓰기]
-  { correct: "할 일", wrong: ["할일"], category: "띄어쓰기" },
-  { correct: "몇 가지", wrong: ["몇가지"], category: "띄어쓰기" },
-  { correct: "것 같다", wrong: ["것같다"], category: "띄어쓰기" },
-  { correct: "뿐만 아니라", wrong: ["뿐만아니라"], category: "띄어쓰기" },
-  { correct: "할 수밖에 없다", wrong: ["할수밖에없다"], category: "띄어쓰기" },
-  { correct: "곧바로", wrong: ["곧 바로"], category: "띄어쓰기" },
-  { correct: "몇몇", wrong: ["몇 몇"], category: "띄어쓰기" },
-  { correct: "맡아서 하다", wrong: ["맡아서하다"], category: "띄어쓰기" },
 
-  // [의존 명사 - 띄어쓰기 필수 항목들]
-  { correct: "할 수 있다", wrong: ["할수있다"], category: "의존 명사" },
-  { correct: "먹은 지 오래되었다", wrong: ["먹은지 오래되었다"], category: "의존 명사" },
-  { correct: "아는 만큼", wrong: ["아는만큼"], category: "의존 명사" },
-  { correct: "김철수 씨", wrong: ["김철수씨"], category: "의존 명사" },
-  { correct: "뿐이다", wrong: ["뿐 이다"], category: "의존 명사" },
+    // =========================================================
+    // 띄어쓰기
+    // =========================================================
 
-  // [조사 - 붙여쓰기 필수 항목들]
-  { correct: "학교에서만이라도", wrong: ["학교 에서 만 이라도", "학교에서 만이라도"], category: "조사" },
+    {
+        id: "SPACING_DEPENDENT_NOUN_IL",
+        category: "의존 명사",
+        allowed: ["할 일"],
+        forbidden: ["할일"],
+        questionType: "single_correct",
+        explanation: "'일'은 의존 명사이므로 앞말과 띄어 쓴다."
+    },
 
-  // [보조 용언 - 붙여쓰기가 규정상 절대 금지되는 케이스들]
-  { correct: "읽어도 보고", wrong: ["읽어도보고"], category: "보조 용언" },
-  { correct: "떠내려가 버리다", wrong: ["떠내려가버리다"], category: "보조 용언" },
-  { correct: "깨뜨려 버리다", wrong: ["깨뜨려버리다"], category: "보조 용언" },
+    {
+        id: "SPACING_DEPENDENT_NOUN_GAJI",
+        category: "의존 명사",
+        allowed: ["몇 가지"],
+        forbidden: ["몇가지"],
+        questionType: "single_correct",
+        explanation: "'가지'는 의존 명사이므로 앞말과 띄어 쓴다."
+    },
 
-  // [어미 활용]
-  { correct: "되겠다", wrong: ["되갯다", "되겟다", "돼겠다", "됬겠다", "돼갰다"], category: "어미 활용" },
-  { correct: "됐다", wrong: ["됬다"], category: "어미 활용" },
-  { correct: "안 돼", wrong: ["안되"], category: "어미 활용" },
-  { correct: "돼서", wrong: ["되서"], category: "어미 활용" },
-  { correct: "하려고", wrong: ["할려고"], category: "어미" },
-  { correct: "할게", wrong: ["할께"], category: "어미" },
+    {
+        id: "SPACING_DEPENDENT_NOUN_GEOT",
+        category: "의존 명사",
+        allowed: ["것 같다"],
+        forbidden: ["것같다"],
+        questionType: "single_correct",
+        explanation: "'것'은 의존 명사이므로 앞말과 띄어 쓴다."
+    },
 
-  // [표기 / 맞춤법]
-  { correct: "웬일", wrong: ["왠일"], category: "표기" },
-  { correct: "어이없다", wrong: ["어의없다"], category: "표기" },
-  { correct: "금세", wrong: ["금새"], category: "표기" },
-  { correct: "며칠", wrong: ["몇일"], category: "표기" },
-  { correct: "오랜만", wrong: ["오랫만"], category: "표기" },
-  { correct: "설거지", wrong: ["설겆이"], category: "표기" },
-  { correct: "오랫동안", wrong: ["오랜동안"], category: "표기" },
-  { correct: "깨끗이", wrong: ["깨끗히"], category: "표기" },
+    {
+        id: "SPACING_PUNMAN",
+        category: "띄어쓰기",
+        allowed: ["뿐만 아니라"],
+        forbidden: ["뿐만아니라"],
+        questionType: "single_correct",
+        explanation: "'뿐만 아니라'는 올바르게 띄어 쓴다."
+    },
 
-  // [사이시옷]
-  { correct: "나뭇잎", wrong: ["나무잎"], category: "사이시옷" },
-  { correct: "고깃집", wrong: ["고기집"], category: "사이시옷" },
-  { correct: "전셋집", wrong: ["전세집"], category: "사이시옷" },
-  { correct: "장맛비", wrong: ["장마비"], category: "사이시옷" },
-  { correct: "뒷받침", wrong: ["뒤받침"], category: "사이시옷" },
-  { correct: "머리말", wrong: ["머릿말"], category: "사이시옷" },
-  { correct: "어젯밤", wrong: ["어제 밤", "어제밤"], category: "사이시옷" }
+    {
+        id: "SPACING_SU_BAKKE",
+        category: "조사",
+        allowed: ["할 수밖에 없다"],
+        forbidden: ["할수밖에 없다", "할 수 밖에 없다", "할수밖에없다"],
+        questionType: "single_correct",
+        explanation: "'수'는 의존 명사이므로 띄어 쓰고, '밖에'는 조사이므로 앞말에 붙여 쓴다."
+    },
+
+    {
+        id: "SPACING_GOTBARO",
+        category: "띄어쓰기",
+        allowed: ["곧바로"],
+        forbidden: ["곧 바로"],
+        questionType: "single_correct",
+        explanation: "'곧바로'는 한 단어로 굳어진 부사이다."
+    },
+
+    {
+        id: "SPACING_MYEOTMYES",
+        category: "띄어쓰기",
+        allowed: ["몇몇"],
+        forbidden: ["몇 몇"],
+        questionType: "single_correct",
+        explanation: "'몇몇'은 한 단어이므로 붙여 쓴다."
+    },
+
+    {
+        id: "SPACING_MATASEO_HADA",
+        category: "띄어쓰기",
+        allowed: ["맡아서 하다"],
+        forbidden: ["맡아서하다"],
+        questionType: "single_correct",
+        explanation: "'맡아서'와 '하다'는 각각의 용언이므로 띄어 쓴다."
+    },
+
+
+    // =========================================================
+    // 의존 명사
+    // =========================================================
+
+    {
+        id: "SPACING_DEPENDENT_NOUN_SU",
+        category: "의존 명사",
+        allowed: ["할 수 있다"],
+        forbidden: ["할수있다"],
+        questionType: "single_correct",
+        explanation: "'수'는 의존 명사이므로 앞말과 띄어 쓴다."
+    },
+
+    {
+        id: "SPACING_DEPENDENT_NOUN_JI",
+        category: "의존 명사",
+        allowed: ["먹은 지 오래되었다"],
+        forbidden: ["먹은지 오래되었다"],
+        questionType: "single_correct",
+        explanation: "시간의 경과를 나타내는 의존 명사 '지'는 앞말과 띄어 쓴다."
+    },
+
+    {
+        id: "SPACING_DEPENDENT_NOUN_MANKUM",
+        category: "의존 명사",
+        allowed: ["아는 만큼"],
+        forbidden: ["아는만큼"],
+        questionType: "single_correct",
+        explanation: "'만큼'이 의존 명사로 쓰인 경우 앞말과 띄어 쓴다."
+    },
+
+    {
+        id: "SPACING_DEPENDENT_NOUN_SSI",
+        category: "의존 명사",
+        allowed: ["김철수 씨"],
+        forbidden: ["김철수씨"],
+        questionType: "single_correct",
+        explanation: "사람의 성이나 이름 뒤에 쓰이는 '씨'는 띄어 쓴다."
+    },
+
+    {
+        id: "SPACING_BBUN_IDA",
+        category: "조사",
+        allowed: ["뿐이다"],
+        forbidden: ["뿐 이다"],
+        questionType: "single_correct",
+        explanation: "이 구성에서 '뿐'은 조사이므로 앞말에 붙여 쓰고 '이다'도 붙여 쓴다."
+    },
+
+
+    // =========================================================
+    // 조사
+    // =========================================================
+
+    {
+        id: "SPACING_PARTICLE_MAN_IRADO",
+        category: "조사",
+        allowed: ["학교에서만이라도"],
+        forbidden: [
+            "학교 에서만이라도",
+            "학교에서 만이라도",
+            "학교에서만 이라도",
+            "학교 에서 만 이라도"
+        ],
+        questionType: "single_correct",
+        explanation: "'에서', '만', '이라도'는 모두 조사이므로 앞말에 붙여 쓴다."
+    },
+
+
+    // =========================================================
+    // 보조 용언
+    // =========================================================
+
+    {
+        id: "SPACING_AUXILIARY_VERB_01",
+        category: "보조 용언",
+        allowed: [
+            "깨뜨려 버렸다",
+            "깨뜨려버렸다"
+        ],
+        forbidden: [],
+        questionType: "multiple_allowed",
+        explanation:
+            "보조 용언은 띄어 쓰는 것을 원칙으로 하되, 일정한 구성에서는 붙여 쓰기도 허용된다."
+    },
+
+    {
+        id: "SPACING_AUXILIARY_VERB_02",
+        category: "보조 용언",
+        allowed: [
+            "읽어 보고",
+            "읽어보고"
+        ],
+        forbidden: [],
+        questionType: "multiple_allowed",
+        explanation:
+            "본용언에 '-아/-어'가 연결되고 보조 용언이 이어지는 경우 띄어 쓰는 것을 원칙으로 하되 붙여 쓰기도 허용된다."
+    },
+
+
+    // =========================================================
+    // 어미 활용
+    // =========================================================
+
+    {
+        id: "ENDING_DOEGETDA",
+        category: "어미 활용",
+        allowed: ["되겠다"],
+        forbidden: [
+            "되갯다",
+            "되겟다",
+            "돼겠다",
+            "됬겠다",
+            "돼갰다"
+        ],
+        questionType: "single_correct",
+        explanation: "'되다'에 '-겠-'과 '-다'가 결합한 형태는 '되겠다'이다."
+    },
+
+    {
+        id: "ENDING_DWAETDA",
+        category: "어미 활용",
+        allowed: ["됐다"],
+        forbidden: ["됬다"],
+        questionType: "single_correct",
+        explanation: "'되었다'가 줄어든 말은 '됐다'이다."
+    },
+
+    {
+        id: "ENDING_AN_DWAE",
+        category: "어미 활용",
+        allowed: ["안 돼"],
+        forbidden: ["안되"],
+        questionType: "single_correct",
+        explanation: "'되다'의 활용형 '돼'를 사용하며, 이 구성에서는 '안 돼'로 띄어 쓴다."
+    },
+
+    {
+        id: "ENDING_DWAEOSEO",
+        category: "어미 활용",
+        allowed: ["돼서"],
+        forbidden: ["되서"],
+        questionType: "single_correct",
+        explanation: "'되다'에 '-어서'가 결합한 형태는 '돼서'이다."
+    },
+
+    {
+        id: "ENDING_HARYEOGO",
+        category: "어미 활용",
+        allowed: ["하려고"],
+        forbidden: ["할려고"],
+        questionType: "single_correct",
+        explanation: "'하다'의 활용형은 '하려고'이다."
+    },
+
+    {
+        id: "ENDING_HALGE",
+        category: "어미 활용",
+        allowed: ["할게"],
+        forbidden: ["할께"],
+        questionType: "single_correct",
+        explanation: "약속이나 의지를 나타내는 종결 어미는 '-ㄹ게'로 적으므로 '할게'가 올바르다."
+    },
+
+
+    // =========================================================
+    // 표기 / 맞춤법
+    // =========================================================
+
+    {
+        id: "SPELLING_WENIL",
+        category: "표기",
+        allowed: ["웬일"],
+        forbidden: ["왠일"],
+        questionType: "single_correct",
+        explanation: "'웬일'이 올바른 표기이다."
+    },
+
+    {
+        id: "SPELLING_EOI_EOPDA",
+        category: "표기",
+        allowed: ["어이없다"],
+        forbidden: ["어의없다"],
+        questionType: "single_correct",
+        explanation: "'어이없다'가 올바른 표기이다."
+    },
+
+    {
+        id: "SPELLING_GEUMSE",
+        category: "표기",
+        allowed: ["금세"],
+        forbidden: ["금새"],
+        questionType: "single_correct",
+        explanation: "지금 바로 또는 얼마 지나지 않은 때를 나타내는 말은 '금세'로 적는다."
+    },
+
+    {
+        id: "SPELLING_MYEOCHIL",
+        category: "표기",
+        allowed: ["며칠"],
+        forbidden: ["몇일"],
+        questionType: "single_correct",
+        explanation: "날짜를 나타내는 말은 '며칠'로 적는다."
+    },
+
+    {
+        id: "SPELLING_ORENMAN",
+        category: "표기",
+        allowed: ["오랜만"],
+        forbidden: ["오랫만"],
+        questionType: "single_correct",
+        explanation: "'오랜만'이 올바른 표기이다."
+    },
+
+    {
+        id: "SPELLING_SEOLGEOJI",
+        category: "표기",
+        allowed: ["설거지"],
+        forbidden: ["설겆이"],
+        questionType: "single_correct",
+        explanation: "'설거지'가 올바른 표기이다."
+    },
+
+    {
+        id: "SPELLING_ORAETDONGAN",
+        category: "표기",
+        allowed: ["오랫동안"],
+        forbidden: ["오랜동안"],
+        questionType: "single_correct",
+        explanation: "'오랫동안'이 올바른 표기이다."
+    },
+
+    {
+        id: "SPELLING_KKAEKKEUSHI",
+        category: "표기",
+        allowed: ["깨끗이"],
+        forbidden: ["깨끗히"],
+        questionType: "single_correct",
+        explanation: "'깨끗이'가 올바른 표기이다."
+    },
+
+
+    // =========================================================
+    // 사이시옷
+    // =========================================================
+
+    {
+        id: "SISIOS_NAMUTIP",
+        category: "사이시옷",
+        allowed: ["나뭇잎"],
+        forbidden: ["나무잎"],
+        questionType: "single_correct",
+        explanation: "사이시옷 규정에 따라 '나뭇잎'으로 적는다."
+    },
+
+    {
+        id: "SISIOS_GOGITJIP",
+        category: "사이시옷",
+        allowed: ["고깃집"],
+        forbidden: ["고기집"],
+        questionType: "single_correct",
+        explanation: "사이시옷 규정에 따라 '고깃집'으로 적는다."
+    },
+
+    {
+        id: "SISIOS_JONSETJIP",
+        category: "사이시옷",
+        allowed: ["전셋집"],
+        forbidden: ["전세집"],
+        questionType: "single_correct",
+        explanation: "사이시옷 규정에 따라 '전셋집'으로 적는다."
+    },
+
+    {
+        id: "SISIOS_JANGMATBI",
+        category: "사이시옷",
+        allowed: ["장맛비"],
+        forbidden: ["장마비"],
+        questionType: "single_correct",
+        explanation: "사이시옷 규정에 따라 '장맛비'로 적는다."
+    },
+
+    {
+        id: "SISIOS_DWITBATCIM",
+        category: "사이시옷",
+        allowed: ["뒷받침"],
+        forbidden: ["뒤받침"],
+        questionType: "single_correct",
+        explanation: "사이시옷 규정에 따라 '뒷받침'으로 적는다."
+    },
+
+    {
+        id: "SISIOS_MEORIMAL",
+        category: "사이시옷",
+        allowed: ["머리말"],
+        forbidden: ["머릿말"],
+        questionType: "single_correct",
+        explanation: "'머리말'은 사이시옷을 적지 않는다."
+    },
+
+    {
+        id: "SISIOS_EOJESBAM",
+        category: "사이시옷",
+        allowed: ["어젯밤"],
+        forbidden: ["어제 밤", "어제밤"],
+        questionType: "single_correct",
+        explanation: "사이시옷 규정에 따라 '어젯밤'으로 적는다."
+    }
 ];
 
 
@@ -298,27 +633,55 @@ async function validateQuizAccuracy(quizzes) {
 }
 
 function validateSpellingAnswer(quiz) {
-    // 1️⃣ 첫 번째 return true : '한글 맞춤법' 분야가 아닌 경우 검사 없이 통과
-    if (quiz.topic !== "한글 맞춤법") return true; 
+    if (quiz.topic !== "한글 맞춤법") return true;
 
-    const isNegativeQuestion = /틀린|잘못|적절하지\s*않은/.test(quiz.question);
-    const targetAnswer = quiz.correctAnswerText;
+    const isNegative = /틀린|잘못|적절하지\s*않은|옳지\s*않은|바르지\s*않은/.test(quiz.question);
+    const answer = String(quiz.correctAnswerText || "").trim();
 
-    for (const item of SPELLING_DATA) {
-        if (!isNegativeQuestion && item.wrong.includes(targetAnswer)) {
-            console.error(`[검증 실패] '올바른 표기' 문제인데 정답이 틀린 표기임: "${targetAnswer}"`);
+    // 정답이 어떤 규칙에 속하는지 확인
+    const rules = SPELLING_DATA.filter(rule =>
+        rule.allowed?.includes(answer) || rule.forbidden?.includes(answer)
+    );
+
+    // DB에 없는 표현은 통과시키지 않음
+    if (rules.length === 0) {
+        console.error(`[맞춤법 검증 실패] DB에 없는 표현: "${answer}"`);
+        return false;
+    }
+
+    for (const rule of rules) {
+        const isAllowed = rule.allowed?.includes(answer);
+        const isForbidden = rule.forbidden?.includes(answer);
+
+        // DB 규칙 자체가 충돌하면 실패
+        if (isAllowed && isForbidden) {
+            console.error(`[맞춤법 검증 실패] DB 규칙 충돌: "${answer}"`);
             return false;
         }
 
-        if (isNegativeQuestion && targetAnswer === item.correct) {
-            console.error(`[검증 실패] '틀린 표기' 문제인데 정답이 올바른 표기임: "${targetAnswer}"`);
+        // 복수 허용 표현은 단일 정답 문제로 사용하지 않음
+        if (rule.questionType === "multiple_allowed") {
+            console.error(`[맞춤법 검증 실패] 복수 허용 규칙: "${answer}"`);
+            return false;
+        }
+
+        // 긍정형 → allowed만 정답 가능
+        if (!isNegative && !isAllowed) {
+            console.error(`[맞춤법 검증 실패] 올바른 표기 문제의 잘못된 정답: "${answer}"`);
+            return false;
+        }
+
+        // 부정형 → forbidden만 정답 가능
+        if (isNegative && !isForbidden) {
+            console.error(`[맞춤법 검증 실패] 틀린 표기 문제의 올바른 정답: "${answer}"`);
             return false;
         }
     }
 
-    // 2️⃣ 두 번째 return true : 반복문을 다 돌았는데도 걸리는 게 없는 경우 (정상이거나 DB에 없는 단어)
-    return true; 
+    return true;
 }
+
+
 
 async function fetchNewQuizData() {
     if (!MISTRAL_API_KEY) {
