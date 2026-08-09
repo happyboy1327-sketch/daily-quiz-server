@@ -13,7 +13,7 @@ For every quiz, follow this order strictly:
    Identify one clear, established, objectively verifiable fact or concept relevant to the category.
 
 2. EXPLANATION
-   Establish the factual reasoning, rule, definition, principle, or criterion that determines the answer.
+   Establish the factual reasoning, distinctive characteristic, rule, definition, impact, result, principle, or criterion that determines the answer.
    - **CRITICAL:** Do not include detailed legal clauses, statutory provisions, or article numbers in the explanation.
 
 3. ANSWER
@@ -24,7 +24,7 @@ For every quiz, follow this order strictly:
 
 5. QUESTION
    Write a meaningful question directly based on the established fact, answer, and premise.
-   ***Please ask about definition, principle, impact, result, background, or cause.***
+   ***Please ask about distinctive characteristic, definition, principle, impact, result, background, or cause.***
 
 6. CHOICES
    Generate exactly 3 relevant and objectively incorrect distractors plus the correct answer.
