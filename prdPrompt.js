@@ -31,6 +31,8 @@ Verify the choices:
 □ Every distractor is clearly false under the question's stated criteria.
 □ No ambiguity, partial correctness, alternative valid interpretation, or context dependence.
 □ All choices are parallel in structure, tone, length, and conceptual category.
+□ FOR KOREAN LANGUAGE/GRAMMAR QUESTIONS: Distractors MUST be clear orthographical errors/non-standard forms.
+NEVER pair a standard word with its valid abbreviation or synonym (e.g., DO NOT use '이따' and '이따가' together as one is an abbreviation of the other and both are standard).
 □ No near-duplicate or wordplay distractors.
 ├─ Any Failed → Regenerate.
 └─ All passed
@@ -56,9 +58,9 @@ Then:
 ↓
 Final validation:
 □ Question, choices, answer, and explanation are mutually consistent.
-□ All factual claims are verified against reliable authoritative sources.
+□ All factual claims (including background facts for wrong choices) are verified against reliable authoritative sources.
 □ Exactly one correct answer exists.
-□ No ambiguous or debatable choice remains.
+□ No ambiguous, debatable, or valid-abbreviation choice remains.
 □ Explanation contains no factual or legal-reference errors.
 □ correctAnswerIndex matches the correct choice.
 □ correctAnswerText exactly matches the choice.
