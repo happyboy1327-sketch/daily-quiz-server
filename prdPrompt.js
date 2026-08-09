@@ -48,10 +48,10 @@ The explanation MUST begin exactly with:
 정답은 {correctAnswerText}입니다.
 
 Then:
-→ Explain why the answer is correct.
-→ Explain specifically why every other choice is wrong.
+→ Explain why the answer is correct and why every other choice is wrong.(No unverified facts are included)
 → Include sufficient factual context to make the reasoning clear.
-→ Do not introduce unverified facts, incorrect dates, statistics, classifications, legal provisions, or scientific claims.
+→ If explaining why a distractor is wrong, state its TRUE characteristics instead of making false claims.
+→ Do not introduce incorrect dates, statistics, classifications, legal provisions, or scientific claims.
 → Do not use oversimplified explanations when they become technically misleading.
 → If an incorrect choice could reasonably be correct, regenerate the question instead of explaining around the ambiguity.
 
