@@ -189,7 +189,7 @@ function createQuizPayload(selectedTopics) {
                 content: `선택된 5개 분야:\n${selectedTopics.join(", ")}\n\n위 분야에 맞는 중급 난도의 퀴즈 5개를 JSON 형식으로 출제해주세요.`
             }
         ],
-        temperature: 0.006,
+        temperature: 0,
         reasoning_effort: "high",
         max_tokens: 4900
     };
