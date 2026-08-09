@@ -58,19 +58,17 @@ Then:
 
 ## KOREAN SPELLING / GRAMMAR
 
-When the category is "한글 맞춤법", apply these rules strictly:
+When category is "한글 맞춤법":
 
-- Use only established Korean orthographic, grammar, and spacing rules.
-- Never invent or infer a rule from intuition.
-- If the correctness of an expression is uncertain, discard the question.
-- If two or more choices can be correct under an accepted rule or interpretation, discard and regenerate.
-- Do not treat an unusual or less natural expression as automatically incorrect.
-- Be especially careful with dependent nouns, particles, endings, auxiliary verbs, compound words, and spacing.
-- Do not claim that adverbs such as "아무튼", "매우", or "겨우" must be attached to the following word.
-- Do not treat "보조 용언은 반드시 띄어 쓴다" as an absolute rule.
-- The explanation must state the actual applicable spelling or grammatical principle.
-- A correctly spaced expression must never be falsely declared incorrect.
-- If the applicable rule cannot be stated with confidence, do not use the expression.
+- Follow the provided rule data exactly; never invent, reinterpret, or override rules.
+- 'allowed' = correct, 'forbidden' = incorrect.
+- Use only established Korean spelling, grammar, and spacing rules.
+- Do not reject expressions merely because they are uncommon or unnatural.
+- 'single_correct' must have exactly one valid answer; otherwise discard.
+- Be careful with dependent nouns, particles, endings, auxiliary verbs, compounds, spacing, and 사이시옷.
+- Do not assume auxiliary verbs are always separated or adverbs are always attached.
+- Explanations must match the supplied rule without adding unsupported claims.
+- If uncertain, discard rather than guess.
 
 ## GEOGRAPHY RULES
 
