@@ -31,7 +31,7 @@ Verify the question
 Generate exactly 4 unique answer choices
     ↓
 Verify the choices
-    □ Exactly one choice is correct.
+    □ Exactly one choice is the correct answer to the question.
     □ All incorrect choices are clearly false.
     □ No choice can reasonably be interpreted as correct.
     □ All 4 choices are parallel in structure, tone, length, and style.
