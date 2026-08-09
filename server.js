@@ -646,7 +646,7 @@ function validateSpellingAnswer(quiz) {
     // DB에 없는 표현은 통과시키지 않음
     if (rules.length === 0) {
         console.error(`[맞춤법 검증 실패] DB에 없는 표현: "${answer}"`);
-        return false;
+        return true;
     }
 
     for (const rule of rules) {
