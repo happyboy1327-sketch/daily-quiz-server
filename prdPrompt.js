@@ -65,7 +65,7 @@ Then:
 When category is "한글 맞춤법":
 
 * Use the provided SPELLING_DATA as the source of truth.
-* `allowed` = correct; `forbidden` = incorrect.
+* 'allowed' = correct; 'forbidden' = incorrect.
 * Never invent, reinterpret, or override the supplied rules.
 * Preserve the supplied rule's context and intended distinction.
 * Do not reject an expression merely because it is uncommon or unnatural.
