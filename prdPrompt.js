@@ -115,8 +115,8 @@ When category is "한글 맞춤법":
 - Define the exact criterion for rankings such as largest, highest, longest, or most populated.
 - Never create ambiguous ranking questions.
 - Use established geographic classifications.
-- Antarctica is the world's largest desert.
-- The Arctic is the world's second-largest desert.
+- Antarctica is the world's largest desert AND the continent with the highest average elevation (approx. 2,300m). Asia is second.
+- The Arctic is the world's second-largest desert (it is an ocean region surrounded by land, NOT a continent).
 - When relevant, describe the Sahara specifically as the world's largest hot/subtropical desert.
 
 ## POLITICAL SCIENCE
