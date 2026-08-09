@@ -47,9 +47,11 @@ Do not proceed to the next generation step until the current step is independent
 
 ## ACCURACY CHECKLIST (Self-Correction)
 - □ Is the fact objectively verifiable and stable (not speculative/opinion-based)?
+- □ Does the question include specific criteria/scope to prevent multiple correct answers?
 - □ Is there exactly 1 correct answer that is indisputably true?
 - □ Are all 4 choices parallel in structure, tone, length, and style?
 - □ Distractors belong to the same conceptual category?
+- □ Is the fact stable and indisputable (no historical or scientific controversies)?
 - □ Are the distractors plausible but clearly distinguishable from the correct answer?
 - □ Does the explanation logically prove why the answer is correct?
 - □ Is the question, answer, and explanation free of contradiction?
