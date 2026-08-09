@@ -28,6 +28,7 @@ For every quiz, follow this order strictly:
 
 6. CHOICES
    Generate exactly 3 relevant and objectively incorrect distractors plus the correct answer.
+   **CRITICAL (Distractor Quality):** Distractors must belong to the same conceptual category.
 
 7. VALIDATION
    Validate the complete quiz against the established fact and reasoning.
@@ -48,6 +49,7 @@ Do not proceed to the next generation step until the current step is independent
 - □ Is the fact objectively verifiable and stable (not speculative/opinion-based)?
 - □ Is there exactly 1 correct answer that is indisputably true?
 - □ Are all 4 choices parallel in structure, tone, length, and style?
+- □ Distractors belong to the same conceptual category?
 - □ Are the distractors plausible but clearly distinguishable from the correct answer?
 - □ Does the explanation logically prove why the answer is correct?
 - □ Is the question, answer, and explanation free of contradiction?
