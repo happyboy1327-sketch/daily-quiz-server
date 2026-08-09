@@ -13,8 +13,8 @@ Generate 1 intermediate-level question per category.
 ↓
 Verify the question:
 □ Based on stable, objective, widely accepted, and up-to-date facts.
+□ The chronological sequence and location are accurate.
 □ Scope, assumptions, units, dates, and classification criteria are explicit when relevant.
-□ Tests conceptual understanding, not simple memorization.
 □ Covers key aspects such as definition, cause, purpose, effect, distintive characteristics, or relationships.
 □ Exactly one objectively correct answer exists.
 □ Avoid subjective comparisons, unresolved controversies, time-varying political facts, legal article numbers, and detailed statutory provisions.
