@@ -213,12 +213,12 @@
         }
 
         function formatText(str) {
-            if (!str) return '';
-            let formatted = escapeHtml(str);
-            formatted = formatted.replace(/```(?:[a-zA-Z]*)\n?([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-            formatted = formatted.replace(/\n/g, '<br>');
-            return formatted;
-        }
+    if (!str) return '';
+    let formatted = String(str); // 👈 escapeHtml 대신 String으로 바로 변환
+    formatted = formatted.replace(/```(?:[a-zA-Z]*)\n?([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    formatted = formatted.replace(/\n/g, '<br>');
+    return formatted;
+}
 
         // ==========================================================
         // Local Storage 오답 노트
