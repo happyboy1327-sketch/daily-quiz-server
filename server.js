@@ -60,6 +60,7 @@ let LAST_FETCH_TIME = 0;
 let LAST_TOPICS = [];
 let fetchPromise = null;
 
+
 const SPELLING_DATA = [
 
     // =========================================================
@@ -332,7 +333,7 @@ const SPELLING_DATA = [
         allowed: ["금세"],
         forbidden: ["금새"],
         questionType: "single_correct",
-        explanation: "지금 바로 또는 얼마 지나지 않은 때를 나타내는 말은 '금세'로 적는다."
+        explanation: "'금세'는 '금시에'가 줄어든 말이므로 '금세'로 적으며, '금새'로 적지 않는다. 지금 바로 또는 얼마 지나지 않은 때를 나타내는 말이 들어가야 한다."
     },
 
     {
@@ -446,8 +447,119 @@ const SPELLING_DATA = [
         forbidden: ["어제 밤", "어제밤"],
         questionType: "single_correct",
         explanation: "사이시옷 규정에 따라 '어젯밤'으로 적는다."
-    }
-];
+    },
+    {   
+        id: "RULE_BULGYEON_BULGYEON",
+        category: "표현",
+        allowed: ["문제가 불거지다"], 
+        forbidden: ["문제가 붉어지다", "논란이 붉어지다", "갈등이 붉어지다"],
+        questionType: "single_correct",
+        explantion: "'불거지다'는 속에 있던 것이 밖으로 드러나거나 문제가 드러나는 뜻이며, '붉어지다'와 혼동하지 않는다."
+    },
+{
+    id: "RULE_DWAEDO_DWAE",
+    category: "표기",
+    allowed: ["안 돼", "돼요", "돼서", "되면", "되고", "될 수 있다"],
+    forbidden: ["안 되", "되요", "되서", "돼면", "돼고", "됄 수 있다"],
+    questionType: "single_correct",
+    explantion: "'돼'는 '되어'가 줄어든 말이며, '되'는 뒤에 다른 어미가 이어지는 경우 등에 쓴다. '돼'와 '되'는 문맥에 따라 구별한다."
+},
+{
+    id: "RULE_AN_ANH",
+    category: "표기",
+    allowed: ["안 먹다", "안 된다", "먹지 않다", "하지 않았다", "좋지 않다", "그렇지 않다"],
+    forbidden: ["않 먹다", "않 된다", "먹지 안다", "하지 안았다", "좋지 안다", "그렇지 안다"],
+    questionType: "single_correct",
+    explantion: "'안'은 부사이고, '않다'는 '아니하다'의 준말로 용언의 일부로 쓰인다."
+},
+{
+    id: "RULE_WAEN_WAEN",
+    category: "표기",
+    allowed: ["왠지", "왠지 모르게", "웬일", "웬 사람", "웬만하면", "웬 떡"],
+    forbidden: ["웬지", "웬지 모르게", "왠일", "왠 사람", "왠만하면", "왠 떡"],
+    questionType: "single_correct",
+    explantion: "'왠지'는 '왜인지'가 줄어든 말이며, '웬'은 '어찌 된'이나 '어떠한'의 뜻을 나타내는 관형사이다."
+},
+{
+    id: "RULE_MYEOTCHIL",
+    category: "표기",
+    allowed: ["며칠", "며칠 동안", "며칠 전", "며칠 후", "며칠째"],
+    forbidden: ["몇일", "몇일 동안", "몇일 전", "몇일 후", "몇일째"],
+    questionType: "single_correct",
+    explantion: "'며칠'은 '몇'과 '일'의 결합으로 볼 수 있지만 표준어에서는 '며칠'로 적으며, '몇일'로 적지 않는다."
+},
+{
+    id: "RULE_GEUMSE_GEUMSAE",
+    category: "표기",
+    allowed: ["금세 끝났다", "금세 도착했다", "금세 잊었다", "금세 변했다"],
+    forbidden: ["금새 끝났다", "금새 도착했다", "금새 잊었다", "금새 변했다"],
+    questionType: "single_correct",
+    explantion: 
+},
+{
+    id: "RULE_ORAENMAN",
+    category: "표기",
+    allowed: ["오랜만이다", "오랜만에 만나다", "정말 오랜만이야", "오랜만에 연락하다"],
+    forbidden: ["오랫만이다", "오랫만에 만나다", "정말 오랫만이야", "오랫만에 연락하다"],
+    questionType: "single_correct",
+    explantion: "'오랜만'은 '오래간만'의 준말이므로 '오랜만'으로 적는다."
+},
+{
+    id: "RULE_BANDEUSI_BANDEUSI",
+    category: "표현",
+    allowed: ["반드시 지켜야 한다", "반드시 성공한다", "반듯이 앉다", "반듯이 놓다"],
+    forbidden: ["반듯이 지켜야 한다", "반듯이 성공한다", "반드시 앉다", "반드시 놓다"],
+    questionType: "single_correct",
+    explantion: "'반드시'는 '틀림없이 꼭'의 뜻이고, '반듯이'는 '반듯하게'의 뜻이므로 의미에 따라 구별한다."
+},
+{
+    id: "RULE_BAE_DA_BAE_DA",
+    category: "표현",
+    allowed: ["옷에 냄새가 배다", "습관이 몸에 배다", "칼로 나무를 베다", "베개를 베다"],
+    forbidden: ["옷에 냄새가 베다", "습관이 몸에 베다", "칼로 나무를 배다", "베개를 배다"],
+    questionType: "single_correct",
+    explantion: "'배다'는 냄새나 습관 등이 스며들거나 익숙해지는 뜻이고, '베다'는 칼 등으로 자르거나 베개를 받치는 뜻이다."
+},
+{
+    id: "RULE_PUN_PUN",
+    category: "띄어쓰기",
+    allowed: ["할 뿐이다", "알 뿐이다", "너뿐이다", "그 사람뿐이다", "이것뿐이다"],
+    forbidden: ["할뿐이다", "알뿐이다", "너 뿐이다", "그 사람 뿐이다", "이것 뿐이다"],
+    questionType: "single_correct",
+    explantion: "'뿐'은 의존 명사로 쓰일 때 앞말과 띄어 쓰고, 조사로 쓰일 때에는 앞말에 붙여 쓴다."
+},
+{
+    id: "RULE_DAERO_DAERO",
+    category: "띄어쓰기",
+    allowed: ["들은 대로 말하다", "아는 대로 하다", "법대로 처리하다", "예정대로 진행하다", "마음대로 하다"],
+    forbidden: ["들은대로 말하다", "아는대로 하다", "법 대로 처리하다", "예정 대로 진행하다", "마음 대로 하다"],
+    questionType: "single_correct",
+    explantion: "'대로'는 의존 명사로 쓰이면 앞말과 띄어 쓰고, 조사로 쓰이면 앞말에 붙여 쓴다."
+},
+{
+    id: "RULE_MANKEUM_MANKEUM",
+    category: "띄어쓰기",
+    allowed: ["노력한 만큼", "먹을 만큼 먹다", "너만큼 잘하다", "그만큼 중요하다", "나만큼은 안다"],
+    forbidden: ["노력한만큼", "먹을만큼 먹다", "너 만큼 잘하다", "그 만큼 중요하다", "나 만큼은 안다"],
+    questionType: "single_correct",
+    explantion: "'만큼'은 의존 명사로 쓰이면 앞말과 띄어 쓰고, 조사로 쓰이면 앞말에 붙여 쓴다."
+},
+{
+    id: "RULE_LGE_LGE",
+    category: "표기",
+    allowed: ["내가 할게", "다녀올게", "연락할게", "어디로 갈까"],
+    forbidden: ["내가 할께", "다녀올께", "연락할께", "어디로 갈가"],
+    questionType: "single_correct",
+    explantion: "소리는 된소리로 나더라도 약속이나 의지를 나타내는 '-ㄹ게'는 '-ㄹ께'로 적지 않는다. 반면 '-ㄹ까'는 된소리를 반영하여 적는다."
+},
+{
+    id: "RULE_ISSDA_EOPDA",
+    category: "표기",
+    allowed: ["있어", "있고", "있으니", "없어", "없고", "없으니"],
+    forbidden: ["이써", "이꼬", "이쓰니", "업써", "업꼬", "업쓰니"],
+    questionType: "single_correct",
+    explantion: "'있다'와 '없다'의 활용형은 발음대로 적지 않고 형태를 밝혀 적는다."
+}];
 
 
 const ALL_TOPICS = [
