@@ -28,6 +28,7 @@ For every quiz, follow this order strictly:
 
 6. CHOICES
    Generate exactly 3 relevant and objectively incorrect distractors plus the correct answer.
+   **NO NEAR-DUPLICATE WORDPLAY: Do not create distractors by adding/removing suffixes or slightly altering the correct answer string. Each choice must be an independent, standalone concept.
    **CRITICAL (Distractor Quality):** Distractors must belong to the same conceptual category.
 
 7. VALIDATION
@@ -50,6 +51,7 @@ Do not proceed to the next generation step until the current step is independent
 - □ Does the question include specific criteria/scope to prevent multiple correct answers?
 - □ Is there exactly 1 correct answer that is indisputably true?
 - □ Are all 4 choices parallel in structure, tone, length, and style?
+- □ Are all 4 choices distinct, parallel concepts from the same domain without wordplay variations?
 - □ Distractors belong to the same conceptual category?
 - □ Is the fact stable and indisputable (no historical or scientific controversies)?
 - □ Are the distractors plausible but clearly distinguishable from the correct answer?
