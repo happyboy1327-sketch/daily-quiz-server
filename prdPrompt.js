@@ -14,6 +14,7 @@ For every quiz, follow this order strictly:
 
 2. EXPLANATION
    Establish the factual reasoning, rule, definition, principle, or criterion that determines the answer.
+   - **CRITICAL:** Do not include detailed legal clauses, statutory provisions, or article numbers in the explanation.
 
 3. ANSWER
    Determine exactly one correct answer from the established explanation.
