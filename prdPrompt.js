@@ -52,6 +52,21 @@ If any step is uncertain, ambiguous, inaccurate, or unsupported, discard the cur
 - Do not oversimplify a concept if doing so makes the explanation inaccurate.
 - Do not use Hanja or Chinese-language text.
 
+## CONSISTENCY
+
+- The question, choices, correct answer, and explanation must describe the same fact, scope, and interpretation.
+- The explanation must justify the selected correct choice, not merely state a related fact.
+- The explanation must never identify a different answer than correctAnswerText.
+- Do not introduce information in the explanation that changes the question's scope or makes another choice correct.
+- If the explanation and answer do not match exactly, discard and regenerate the quiz.
+
+## STYLE CONSISTENCY
+
+- Use a consistent tone and grammatical style across the question and all choices.
+- Choices must use the same sentence structure, grammatical form, and level of specificity whenever possible.
+- Do not mix noun phrases, sentences, questions, or different grammatical endings within the same choice set unless the question requires it.
+- Do not make the correct choice stylistically different from the distractors.
+
 ## CHOICES
 
 - Exactly 4 unique choices.
