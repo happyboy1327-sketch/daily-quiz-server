@@ -82,14 +82,29 @@ Return ONLY the following JSON structure:
   "correctAnswerText": "보기1"
 }`;
 
-function createQuizPayload(topic) {
+/**
+ * 퀴즈 생성 Payload 구성
+ * @param {string} topic - 분야명 (예: "한글 맞춤법")
+ * @param {Array} [spellingData] - server.js에 존재하는 SPELLING_DATA 배열
+ */
+function createQuizPayload(topic, spellingData = null) {
+    let systemPrompt = PRD_SYSTEM_PROMPT;
+
+    // 토픽이 "한글 맞춤법"이고 동적으로 넘겨받은 데이터가 존재할 때만 시스템 프롬프트에 결합
+    if (topic === "한글 맞춤법" && Array.isArray(spellingData) && spellingData.length > 0) {
+        systemPrompt += `\n\n## Mandatory Spelling Reference Dataset
+When generating questions for "한글 맞춤법", you MUST strictly use the following dataset.
+Use 'allowed' terms for correct answers and 'forbidden' terms for distractors/wrong choices:
+${JSON.stringify(spellingData, null, 2)}`;
+    }
+
     return {
         model: MODEL_ID,
         response_format: { type: "json_object" },
         messages: [
             {
                 role: "system",
-                content: PRD_SYSTEM_PROMPT
+                content: systemPrompt
             },
             {
                 role: "user",
