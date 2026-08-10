@@ -36,12 +36,13 @@ You MUST satisfy EVERY single rule below before outputting.
 → If uncertain about any distractor's exact background or function, DO NOT attempt to explain or mention that distractor.
 □ NO STATUTORY CLAUSES: Do not include legal article or clause numbers (e.g., specific article/section citations).
 
-## 4. ACCURACY CHECKLIST
+## 5. ACCURACY CHECKLIST
 □ Are all titles of movies, animations, books, and artworks 100% real and verified?
 □ Are all facts 100% real and verified?
 □ Does the question refrain from falsely attributing modern technology (e.g., 3D CGI) to incorrect historical eras (e.g., 1980s)?
+□ For "first ever" (최초) or "record-holding" (최고) claims, are they strictly verified historical milestones? If uncertain, DO NOT generate "first ever" questions.
 
-### 5. OUTPUT FORMAT
+### 6. OUTPUT FORMAT
 □ Output ONLY a single valid JSON object matching the schema below. No surrounding conversational text.
 
 {
