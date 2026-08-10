@@ -760,15 +760,6 @@ function shuffleArray(array, seed) {
     return array;
 }
 
-function debugQuiz(quizzes) {
-  quizzes.forEach((q, i) => {
-    const str = JSON.stringify(q);
-    const bad = [...str].filter(c => HANJA_AND_FOREIGN_REGEX.test(c));
-    if (bad.length) {
-      console.log(`[Quiz #${i + 1}] 차단된 문자:`, [...new Set(bad)]);
-    }
-  });
-}
 
 function getSelectedTopics() {
     const availableTopics = ALL_TOPICS.filter(topic => !LAST_TOPICS.includes(topic));
@@ -1053,8 +1044,14 @@ async function fetchNewQuizData() {
                 // 1. 한자 / 금지 언어 포함 여부 검증
                 const fullText = [quiz.question, ...quiz.choices, quiz.explanation, quiz.correctAnswerText].join(" ");
                 if (HANJA_AND_FOREIGN_REGEX.test(fullText)) {
-                    throw new Error("금지된 한자/외국 문자 포함");
-                }
+    // 정규식에 걸린 문장 부호/외국어만 추출해서 중복 제거
+    const badChars = [...new Set([...fullText].filter(c => HANJA_AND_FOREIGN_REGEX.test(c)))];
+    
+    // 콘솔에 어떤 문자가 걸렸는지 바로 출력
+    console.log("❌ 차단된 문자 목록:", badChars);
+
+    throw new Error(`금지된 한자/외국 문자 포함: ${badChars.join(", ")}`);
+}
 
                 // 2. 한글 맞춤법 전용 오답 DB 대조
                 if (!validateSpellingAnswer(quiz)) {
