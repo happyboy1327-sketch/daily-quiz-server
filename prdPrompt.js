@@ -33,6 +33,9 @@ You MUST satisfy EVERY single rule below before outputting.
 ### 4. EXPLANATION CONSTRAINTS
 □ Explanation MUST begin EXACTLY with: 정답은 {correctAnswerText}입니다.
 □ Explain why the correct answer is right and why each distractor is wrong using ONLY verified real world facts.
+□ NO HALLUCINATED DISTRACTOR EXPLANATIONS: You may briefly explain why a distractor is wrong ONLY IF the fact is 100% verified and indisputable.
+→ If uncertain about any distractor's exact background or function, DO NOT attempt to explain or mention that distractor.
+□ NO STATUTORY CLAUSES: Do not include legal article or clause numbers (e.g., specific article/section citations).
 
 ### 5. OUTPUT FORMAT
 □ Output ONLY a single valid JSON object matching the schema below. No surrounding conversational text.
