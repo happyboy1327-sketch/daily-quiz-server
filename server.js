@@ -760,6 +760,16 @@ function shuffleArray(array, seed) {
     return array;
 }
 
+function debugQuiz(quizzes) {
+  quizzes.forEach((q, i) => {
+    const str = JSON.stringify(q);
+    const bad = [...str].filter(c => HANJA_AND_FOREIGN_REGEX.test(c));
+    if (bad.length) {
+      console.log(`[Quiz #${i + 1}] 차단된 문자:`, [...new Set(bad)]);
+    }
+  });
+}
+
 function getSelectedTopics() {
     const availableTopics = ALL_TOPICS.filter(topic => !LAST_TOPICS.includes(topic));
     const topicPool = availableTopics.length >= 5 ? availableTopics : ALL_TOPICS;
