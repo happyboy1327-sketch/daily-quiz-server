@@ -98,10 +98,13 @@ function createQuizPayload(topic, spellingData = null) {
         Math.random() < 0.7;
 
     if (shouldUseSpellingData) {
+       const randomIndex = Math.floor(Math.random() * spellingData.length);
+        const selectedSpelling = spellingData[randomIndex];
+      
         systemPrompt += `\n\n## Mandatory Spelling Reference Dataset
 When generating questions for "한글 맞춤법", you MUST strictly use the following dataset.
 Use 'allowed' terms for correct answers and 'forbidden' terms for distractors/wrong choices:
-${JSON.stringify(spellingData, null, 2)}`;
+${JSON.stringify(selectedSpelling, null, 2)}`;
     }
 
     return {
