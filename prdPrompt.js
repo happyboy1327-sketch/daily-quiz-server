@@ -90,8 +90,14 @@ Return ONLY the following JSON structure:
 function createQuizPayload(topic, spellingData = null) {
     let systemPrompt = PRD_SYSTEM_PROMPT;
 
-    // 토픽이 "한글 맞춤법"이고 동적으로 넘겨받은 데이터가 존재할 때만 시스템 프롬프트에 결합
-    if (topic === "한글 맞춤법" && Array.isArray(spellingData) && spellingData.length > 0) {
+    // 토픽이 "한글 맞춤법"이고 데이터가 존재하며, 70% 확률(Math.random() < 0.7)에 해당할 때만 결합
+    const shouldUseSpellingData = 
+        topic === "한글 맞춤법" && 
+        Array.isArray(spellingData) && 
+        spellingData.length > 0 && 
+        Math.random() < 0.7;
+
+    if (shouldUseSpellingData) {
         systemPrompt += `\n\n## Mandatory Spelling Reference Dataset
 When generating questions for "한글 맞춤법", you MUST strictly use the following dataset.
 Use 'allowed' terms for correct answers and 'forbidden' terms for distractors/wrong choices:
