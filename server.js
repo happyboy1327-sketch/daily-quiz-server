@@ -934,11 +934,6 @@ function validateSpellingAnswer(quiz) {
         rule.allowed?.includes(answer) || rule.forbidden?.includes(answer)
     );
 
-    // DB에 없는 표현은 통과시키지 않음
-    if (rules.length === 0) {
-        console.error(`[맞춤법 검증 실패] DB에 없는 표현: "${answer}"`);
-        return true;
-    }
 
     for (const rule of rules) {
         const isAllowed = rule.allowed?.includes(answer);
