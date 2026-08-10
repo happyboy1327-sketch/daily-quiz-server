@@ -214,6 +214,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "경제": [
+    // [유형 1: 미시경제 - 시장 구조 및 가격 결정 유형]
     { role: "user", content: "선택된 분야:\n경제\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
@@ -223,7 +224,20 @@ const FEW_SHOT_DATABASE = {
         choices: ["기회비용", "매몰비용", "한계비용", "고정비용"],
         correctAnswerIndex: 0,
         correctAnswerText: "기회비용",
-        explanation: "정답은 기회비용입니다. 기회비용은 어떤 자원을 선택함으로 인해 포기한 나머지 대안들의 가치 중 가장 큰 가치를 의미합니다."
+        explanation: "정답은 기회비용입니다. 기회비용은 어떤 자원을 선택함으로 인해 포기한 나머지 대안들의 가치 중 가장 큰 가치를 의미합니다. 매몰비용은 이미 지출하여 회수할 수 없는 비용, 한계비용은 생산량을 1단위 증가시킬 때 추가로 드는 비용, 고정비용은 생산량과 상관없이 일정하게 발생하는 비용입니다."
+      })
+    },
+    // [유형 2: 거시경제 - 지표 정확성 및 지출 접근법 구성 요소 유형]
+    { role: "user", content: "선택된 분야:\n경제\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    {
+      role: "assistant",
+      content: JSON.stringify({
+        topic: "경제",
+        question: "한 나라의 국경 안에서 일정 기간 동안 생산된 최종 재화와 서비스의 시장 가치를 뜻하는 국내총생산(GDP)의 지출 접근법 구성 요소에 해당하지 않는 것은 무엇입니까?",
+        choices: ["주식 거래액", "가계 소비 지출", "정부 소비 지출 및 투자", "순수출"],
+        correctAnswerIndex: 0,
+        correctAnswerText: "주식 거래액",
+        explanation: "정답은 주식 거래액입니다. 국내총생산(GDP)은 당해 연도에 새로 생산된 재화와 서비스의 가치만을 포함하며, 기존 자산의 소유권 이전일 뿐인 주식 거래액은 당해 생산 활동이 아니므로 GDP 산출에서 제외됩니다. GDP 지출 접근법의 구성 요소는 가계 소비(C), 기업 투자(I), 정부 지출(G), 순수출(NX)로 이루어집니다. (※ GDP는 국내총생산, GNP는 국민총생산임)"
       })
     }
   ],
@@ -284,7 +298,7 @@ function createQuizPayload(topic, spellingData = null) {
       { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.` }
     ],
     temperature: 0,
-    reasoning_effort: 'high',
+    reasoning_effort: 'xhigh',
     max_tokens: 1600
   };
 }
