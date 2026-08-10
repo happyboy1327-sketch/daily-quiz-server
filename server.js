@@ -749,7 +749,7 @@ const ALL_TOPICS = [
     "경제", "지리", "정치", "심리학"
 ];
 
-const HANJA_AND_FOREIGN_REGEX = /[^\u0000-\u007F\u2000-\u206F가-힣ㄱ-ㅎㅏ-ㅣ]/;
+const HANJA_AND_FOREIGN_REGEX = /[\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u024F\u0300-\u036F\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF\u3040-\u309F\u30A0-\u30FF\u0400-\u04FF]/;
 
 function shuffleArray(array, seed) {
     const rng = seedrandom(seed); 
