@@ -997,7 +997,7 @@ async function fetchNewQuizData() {
                     const topic = selectedTopics[currentIndex];
 
                     // 1개 분야별 payload 생성
-                    const payload = createQuizPayload(topic);
+                    const payload = createQuizPayload(topic, SPELLING_DATA);
                     const response = await axios.post(API_URL, payload, {
                         headers: {
                             'Authorization': `Bearer ${MISTRAL_API_KEY}`,
