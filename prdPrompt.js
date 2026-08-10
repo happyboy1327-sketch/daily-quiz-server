@@ -49,7 +49,7 @@ The explanation MUST begin exactly with:
 정답은 {correctAnswerText}입니다.
 
 Then:
-→ Explain why the answer is correct and why every other choice is wrong.(No unverified facts are included)
+→ Explain why the answer is correct and why every other choice is wrong.(Unverified facts are never included.)
 → Include sufficient factual context to make the reasoning clear.
 → If explaining why a distractor is wrong, state its TRUE real-world characteristics (e.g., Kim Yu-sin was a vital general in unification, but he was not a king) instead of making false claims or history/science hallucinations.
 → Do not introduce incorrect dates, statistics, classifications, legal provisions, or scientific claims.
