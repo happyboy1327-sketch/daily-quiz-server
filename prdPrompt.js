@@ -27,7 +27,6 @@ You MUST satisfy EVERY single rule below before outputting.
 □ Exactly 4 choices, exactly 1 correct answer.
 □ All 4 choices MUST target the EXACT same phrase structure, rule, or conceptual category. NEVER mix different or unrelated grammar rules or categories in the choices.
 □ Character set restriction: Use ONLY standard Korean, numbers, and basic ASCII (English, punctuation).
-□ ABSOLUTE PROHIBITION: NEVER use foreign diacritics or accents (e.g., 'é', 'è', 'céladon') or non Korean scripts (Chinese, Cyrillic, Japanese) in choices or questions.
 □ FOR KOREAN GRAMMAR: Distractors MUST be clear orthographical errors. NEVER pair a standard word with its valid abbreviation or synonym.
 
 ### 4. EXPLANATION CONSTRAINTS
