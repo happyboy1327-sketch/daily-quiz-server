@@ -13,9 +13,9 @@ Generate 1 intermediate-level question for the requested category.
 ↓
 Verify the question:
 □ Based on stable, objective, widely accepted, and up-to-date facts.
-□ The chronological sequence and location are accurate.
+□ The chronological sequence, historical alliances, roles, and locations are accurate (e.g., Silla allied with Tang, NOT Baekje; King vs. General roles must be strictly distinguished).
 □ Scope, assumptions, units, dates, and classification criteria are explicit when relevant.
-□ Covers key aspects such as definition, cause, purpose, effect, distintive characteristics, or relationships.
+□ Covers key aspects such as definition, cause, purpose, effect, distinctive characteristics, or relationships.
 □ Exactly one objectively correct answer exists.
 □ Avoid subjective comparisons, unresolved controversies, time-varying political facts, legal article numbers, and detailed statutory provisions.
 □ For South Korean politics, use the stable fact that the presidential term is 5 years and re-election is prohibited.
@@ -31,6 +31,7 @@ Verify the choices:
 □ Every distractor is clearly false under the question's stated criteria.
 □ No ambiguity, partial correctness, alternative valid interpretation, or context dependence.
 □ All choices are parallel in structure, tone, length, and conceptual category.
+□ Use ONLY standard Korean, numbers, and basic ASCII (English/punctuation). STRICTLY PROHIBIT diacritics, accents (e.g., 'é', 'céladon'), or non-Korean scripts (Chinese, Cyrillic, Japanese) unless explicitly required by a foreign language test topic.
 □ FOR KOREAN LANGUAGE/GRAMMAR QUESTIONS: Distractors MUST be clear orthographical errors/non-standard forms.
 NEVER pair a standard word with its valid abbreviation or synonym (e.g., DO NOT use '이따' and '이따가' together as one is an abbreviation of the other and both are standard).
 □ No near-duplicate or wordplay distractors.
@@ -50,25 +51,24 @@ The explanation MUST begin exactly with:
 Then:
 → Explain why the answer is correct and why every other choice is wrong.(No unverified facts are included)
 → Include sufficient factual context to make the reasoning clear.
-→ If explaining why a distractor is wrong, state its TRUE characteristics instead of making false claims.
+→ If explaining why a distractor is wrong, state its TRUE real-world characteristics (e.g., Kim Yu-sin was a vital general in unification, but he was not a king) instead of making false claims or history/science hallucinations.
 → Do not introduce incorrect dates, statistics, classifications, legal provisions, or scientific claims.
 → Do not use oversimplified explanations when they become technically misleading.
 → If an incorrect choice could reasonably be correct, regenerate the question instead of explaining around the ambiguity.
-
 ↓
 Final validation:
 □ Question, choices, answer, and explanation are mutually consistent.
 □ All factual claims (including background facts for wrong choices) are verified against reliable authoritative sources.
 □ Exactly one correct answer exists.
 □ No ambiguous, debatable, or valid-abbreviation choice remains.
-□ Explanation contains no factual or legal-reference errors.
+□ No foreign diacritics/accents or unpermitted character sets included in choices.
+□ Explanation contains no factual, historical, or legal-reference errors.
 □ correctAnswerIndex matches the correct choice.
 □ correctAnswerText exactly matches the choice.
 ├─ Any Failed → Regenerate the current question.
 └─ All Passed
 ↓
 Output ONLY the JSON object.
-
 
 ## OUTPUT FORMAT
 Return ONLY the following JSON structure:
