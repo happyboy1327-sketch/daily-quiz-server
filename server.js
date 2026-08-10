@@ -848,6 +848,10 @@ REJECT (valid: false) if any rule fails.
 4. [Korean Grammar Hallucination]
    - If the explanation invents false Korean spacing/grammar rules (e.g., claiming adverbs like '아무튼' must attach to the next word), REJECT immediately.
 
+5. [Answer Leak & Self-Revealing Choice Check]
+   - If a question asks for comparisons (e.g., "가장 빠른/큰/높은 것은?"), check if the choices contain explicit numerical values or hints that directly give away the answer.
+   - If the answer is trivially exposed by merely comparing the numbers provided inside the choice text, REJECT immediately.
+
 ### OUTPUT FORMAT (JSON ONLY)
 {
   "valid": true | false,
