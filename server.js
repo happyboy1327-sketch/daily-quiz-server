@@ -787,16 +787,19 @@ function hasDuplicateChoices(quiz) {
 function autoFixQuiz(quiz) {
     if (!quiz || !Array.isArray(quiz.choices)) return quiz;
 
-    quiz.choices = quiz.choices.map(c => 
-        String(c || '').trim().replace(/^["'`]|["'`]$/g, '').replace(/\*\*(.*?)\*\*/g, '$1').trim()
-    );
-
-    if (quiz.correctAnswerText) {
-        quiz.correctAnswerText = String(quiz.correctAnswerText)
+    // 중복 전처리 로직 공통화
+    const cleanText = text => 
+        String(text || '')
             .trim()
             .replace(/^["'`]|["'`]$/g, '')
             .replace(/\*\*(.*?)\*\*/g, '$1')
+            .replace(/\s*\([^)]*\d[^)]*\)/g, '')
             .trim();
+
+    quiz.choices = quiz.choices.map(cleanText);
+
+    if (quiz.correctAnswerText) {
+        quiz.correctAnswerText = cleanText(quiz.correctAnswerText);
     }
 
     const textIndex = quiz.choices.findIndex(choice => choice === quiz.correctAnswerText);
