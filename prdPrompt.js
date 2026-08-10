@@ -24,7 +24,7 @@ You MUST satisfy EVERY single rule below before outputting.
 □ For Geography: Specify ranking criteria (e.g., Antarctica is the largest desert overall, Sahara is the largest hot desert).
 
 ### 3. CHOICES AND CHARACTER SET CONSTRAINTS
-□ Exactly 4 choices, exactly 1 correct answer.
+□ Exactly 4 choices, exactly 1 correct answer. Construct all options to ensure that exactly one indisputably correct answer exists; explicitly state spatial and temporal prerequisites in the question (e.g., distinguishing 'Korean Peninsula' from 'South Korea'); and ensure every incorrect option possesses a scientifically or academically proven 1-to-1 refutation.
 □ All 4 choices MUST target the EXACT same phrase structure, rule, or conceptual category. NEVER mix different or unrelated grammar rules or categories in the choices.
 □ Character set restriction: Use ONLY standard Korean, numbers, and basic ASCII (English, punctuation).
 □ FOR KOREAN GRAMMAR: Distractors MUST be clear orthographical errors. NEVER pair a standard word with its valid abbreviation or synonym.
