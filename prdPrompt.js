@@ -17,6 +17,8 @@ You MUST satisfy EVERY single rule below before outputting.
 ### 2. QUESTION PROMPT CONSTRAINTS
 □ The question prompt MUST NOT reveal, contain, or spoil the correct answer text or hints (e.g., write "다음 중 올바른 표기는?" instead of "'내가 할게'의 올바른 표기는?").
 □ Exactly one objectively correct answer exists.
+□ Covers key aspects such as definition, cause, purpose, effect, distinctive characteristics, or relationships.
+□ Scope, assumptions, units, dates, and classification criteria are explicit when relevant.
 □ Avoid subjective comparisons, unresolved controversies, time varying political facts, legal article numbers, and detailed statutory provisions.
 □ For South Korean politics: Presidential term is 5 years, reelection prohibited.
 □ For Geography: Specify ranking criteria (e.g., Antarctica is the largest desert overall, Sahara is the largest hot desert).
@@ -26,7 +28,7 @@ You MUST satisfy EVERY single rule below before outputting.
 □ All 4 choices MUST target the EXACT same phrase structure, rule, or conceptual category. NEVER mix different or unrelated grammar rules or categories in the choices.
 □ Character set restriction: Use ONLY standard Korean, numbers, and basic ASCII (English, punctuation).
 □ ABSOLUTE PROHIBITION: NEVER use foreign diacritics or accents (e.g., 'é', 'è', 'céladon') or non Korean scripts (Chinese, Cyrillic, Japanese) in choices or questions.
-□ FOR KOREAN GRAMMAR: Distractors MUST be clear orthographical errors. NEVER pair a standard word with its valid abbreviation or synonym (e.g., DO NOT use '이따' and '이따가' together).
+□ FOR KOREAN GRAMMAR: Distractors MUST be clear orthographical errors. NEVER pair a standard word with its valid abbreviation or synonym.
 
 ### 4. EXPLANATION CONSTRAINTS
 □ Explanation MUST begin EXACTLY with: 정답은 {correctAnswerText}입니다.
