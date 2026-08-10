@@ -7,8 +7,8 @@ You are an expert system for generating accurate Korean-language general knowled
 You MUST satisfy EVERY single rule below before outputting.
 
 ### 1. ABSOLUTE TRUTH AND FACTUALITY (NO SPECULATION)
-□ ****Do NOT guess, speculate, or fabricate any statements under any circumstances.**** 
-□ ***Based on stable, objective, widely accepted, and up-to-date facts.***
+□ **Do NOT guess, speculate, or fabricate any statements under any circumstances.** 
+□ **Based on stable, objective, widely accepted, and up-to-date facts.**
 □ The chronological sequence, historical alliances, roles, and locations are accurate (e.g., Silla allied with Tang, NOT Baekje; King vs. General roles must be strictly distinguished).
 □ Every fact, date, historical alliance, scientific claim, and definition in the question, choices, and explanation MUST be 100% verified real world truth.
 □ For history: Alliance partners, dates, and roles must be 100% accurate (e.g., Silla allied with Tang, NOT Baekje; Kings and Generals must be accurately distinguished).
@@ -55,50 +55,72 @@ You MUST satisfy EVERY single rule below before outputting.
 }`;
 
 /**
- * 퀴즈 생성 Payload 구성
- * @param {string} topic - 분야명 (예: "한글 맞춤법")
- * @param {Array} [spellingData] - server.js에 존재하는 SPELLING_DATA 배열
+ * 퓨샷(Few-Shot) 데이터베이스
  */
-function createQuizPayload(topic, spellingData = null) {
-    let systemPrompt = PRD_SYSTEM_PROMPT;
-
-    // 토픽이 "한글 맞춤법"이고 데이터가 존재하며, 70% 확률(Math.random() < 0.7)에 해당할 때만 결합
-    const shouldUseSpellingData = 
-        topic === "한글 맞춤법" && 
-        Array.isArray(spellingData) && 
-        spellingData.length > 0 && 
-        Math.random() < 0.7;
-
-    if (shouldUseSpellingData) {
-       const randomIndex = Math.floor(Math.random() * spellingData.length);
-        const selectedSpelling = spellingData[randomIndex];
-      
-        systemPrompt += `\n\n## Mandatory Spelling Reference Dataset
-When generating questions for "한글 맞춤법", you MUST strictly use the following dataset.
-Use 'allowed' terms for correct answers and 'forbidden' terms for distractors/wrong choices:
-${JSON.stringify(selectedSpelling, null, 2)}`;
+const FEW_SHOT_DATABASE = {
+  "한글 맞춤법": [
+    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    {
+      role: "assistant",
+      content: JSON.stringify({
+        topic: "한글 맞춤법",
+        question: "다음 중 표준 맞춤법에 맞는 올바른 표기는 무엇입니까?",
+        choices: ["할게", "할께", "할게여", "할꺼야"],
+        correctAnswerIndex: 0,
+        correctAnswerText: "할게",
+        explanation: "정답은 할게입니다. 어미 '-ㄹ게'는 된소리로 발음되더라도 표기할 때는 기본 형태인 '-ㄹ게'로 적는 것이 올바른 맞춤법입니다. '할께', '할게여', '할꺼야'는 모두 된소리 표기 오류입니다."
+      })
     }
+  ],
+  "DEFAULT": [
+    { role: "user", content: "선택된 분야:\n과학\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    {
+      role: "assistant",
+      content: JSON.stringify({
+        topic: "과학",
+        question: "햇빛이 공기 중의 물방울을 통과할 때 꺾이고 분산되어 나타나는 기상 현상인 무지개와 가장 밀접한 빛의 성질은 무엇입니까?",
+        choices: ["빛의 굴절", "빛의 회절", "빛의 간섭", "빛의 편광"],
+        correctAnswerIndex: 0,
+        correctAnswerText: "빛의 굴절",
+        explanation: "정답은 빛의 굴절입니다. 무지개는 태양광이 공기보다 밀도가 높은 물방울에 진입할 때 속도 차이로 인해 진행 방향이 꺾이는 '굴절'과, 파장에 따라 꺾이는 각도가 달라 색이 나누어지는 '분산' 현상이 복합적으로 작용하여 형성됩니다. 반면 빛의 회절은 빛이 장애물 모서리를 돌아 들어가는 현상이고, 간섭은 두 파동이 겹쳐 세기가 변하는 현상이며, 편광은 특정 진동 방향의 빛만 투과하는 현상으로 무지개의 직접적인 원인이 아닙니다."
+      })
+    }
+  ]
+};
 
-    return {
-        model: MODEL_ID,
-        response_format: { type: "json_object" },
-        messages: [
-            {
-                role: "system",
-                content: systemPrompt
-            },
-            {
-                role: "user",
-                content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.`
-            }
-        ],
-        temperature: 0,
-        max_tokens: 1600
-    };
+function getFewShotMessages(topic) {
+  return FEW_SHOT_DATABASE[topic] || FEW_SHOT_DATABASE["DEFAULT"];
+}
+
+function createQuizPayload(topic, spellingData = null) {
+  let systemPrompt = PRD_SYSTEM_PROMPT;
+
+  const shouldUseSpellingData =
+    topic === "한글 맞춤법" &&
+    Array.isArray(spellingData) &&
+    spellingData.length > 0 &&
+    Math.random() < 0.7;
+
+  if (shouldUseSpellingData) {
+    const selectedSpelling = spellingData[Math.floor(Math.random() * spellingData.length)];
+    systemPrompt += `\n\n## Mandatory Spelling Reference Dataset\nWhen generating questions for "한글 맞춤법", you MUST strictly use the following dataset.\nUse 'allowed' terms for correct answers and 'forbidden' terms for distractors/wrong choices:\n${JSON.stringify(selectedSpelling, null, 2)}`;
+  }
+
+  return {
+    model: MODEL_ID,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: systemPrompt },
+      ...getFewShotMessages(topic),
+      { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.` }
+    ],
+    temperature: 0,
+    max_tokens: 1600
+  };
 }
 
 module.exports = {
-    MODEL_ID,
-    PRD_SYSTEM_PROMPT,
-    createQuizPayload
+  MODEL_ID,
+  PRD_SYSTEM_PROMPT,
+  createQuizPayload
 };
