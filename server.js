@@ -856,6 +856,10 @@ REJECT (valid: false) if any rule fails.
    - If a question asks for comparisons (e.g., "가장 빠른/큰/높은 것은?"), check if the choices contain explicit numerical values or hints that directly give away the answer.
    - If the answer is trivially exposed by merely comparing the numbers provided inside the choice text, REJECT immediately.
 
+6. [Explanation Factuality & Historical Accuracy (Crucial)]
+   - Strictly verify whether ALL historical facts, dates, relationships (e.g., who was whose teacher/king/general), and achievements mentioned inside the Explanation are 100% real-world true.
+   - REJECT immediately if the Explanation fabricates false historical claims or false biographies about distractors (e.g., falsely claiming person X was a teacher of person Y, or misrepresenting a figure's historical stance/role).
+
 ### OUTPUT FORMAT (JSON ONLY)
 {
   "valid": true | false,
