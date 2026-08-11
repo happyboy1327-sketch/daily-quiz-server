@@ -286,12 +286,36 @@ function createQuizPayload(topic, spellingData = null) {
 
   if (shouldUseSpellingData) {
     const selectedSpelling = spellingData[Math.floor(Math.random() * spellingData.length)];
-    systemPrompt += `\n\n## Mandatory Spelling Reference Dataset\nWhen generating questions for "한글 맞춤법", you MUST strictly use the following dataset.\nUse 'allowed' terms for correct answers and 'forbidden' terms for distractors/wrong choices:\n${JSON.stringify(selectedSpelling, null, 2)}`;
+    systemPrompt += `\n\n## Mandatory Spelling Reference Dataset\nWhen generating questions for "한글 맞춤법", you MUST strictly use the following dataset:\n${JSON.stringify(selectedSpelling, null, 2)}`;
   }
 
   return {
     model: MODEL_ID,
-    response_format: { type: "json_object" },
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "quiz_schema",
+        strict: true,
+        schema: {
+          type: "object",
+          properties: {
+            topic: { type: "string" },
+            question: { type: "string" },
+            choices: {
+              type: "array",
+              items: { type: "string" },
+              minItems: 4,
+              maxItems: 4
+            },
+            correctAnswerIndex: { type: "integer", minimum: 0, maximum: 3 },
+            correctAnswerText: { type: "string" },
+            explanation: { type: "string" }
+          },
+          required: ["topic", "question", "choices", "correctAnswerIndex", "correctAnswerText", "explanation"],
+          additionalProperties: false
+        }
+      }
+    },
     messages: [
       { role: "system", content: systemPrompt },
       ...getFewShotMessages(topic),
@@ -299,7 +323,7 @@ function createQuizPayload(topic, spellingData = null) {
     ],
     temperature: 0,
     reasoning_effort: 'high',
-    max_tokens: 1600
+    max_tokens: 3000
   };
 }
 
