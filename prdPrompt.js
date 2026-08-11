@@ -32,7 +32,7 @@ You MUST satisfy EVERY single rule below before outputting.
 □ NEVER list 4 true facts of the SAME entity and ask the user to pick one.
   - Distractors MUST belong to a DIFFERENT person, era, or concept (e.g., If the question is about King Sejong, distractors MUST be achievements of King Yeongjo, Jeongjo, or Gwanghaegun).
 □ All 4 choices MUST target the EXACT same phrase structure, rule, or conceptual category. NEVER mix different or unrelated grammar rules or categories in the choices.
-□ Character set restriction: Use ONLY standard Korean, numbers, and basic ASCII (English, punctuation).
+□ Character set restriction: Use ONLY standard Korean, numbers, and basic ASCII (English, punctuation). NEVER use the Hanja.
 □ FOR KOREAN GRAMMAR: Distractors MUST be clear orthographical errors. NEVER pair a standard word with its valid abbreviation or synonym.
 
 ### 4. EXPLANATION CONSTRAINTS
