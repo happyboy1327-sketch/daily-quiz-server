@@ -328,8 +328,9 @@ function createQuizPayload(topic, spellingData = null) {
       { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.` }
     ],
     temperature: 0,
+    top_p= 0.1, 
     reasoning_effort: 'high',
-    max_tokens: 3000
+    max_tokens: 2000
   };
 }
 
