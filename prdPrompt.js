@@ -53,7 +53,7 @@ You MUST satisfy EVERY single rule below before outputting.
 
 {
   "topic": "분야명",
-  "explanation": "정답은 {correctAnswerText}입니다. [근거 설명]",
+  "explanation": "정답은 {correctAnswerText}입니다. [모든 오답의 명확한 근거 설명]",
   "question": "[전제와 조건이 명확한 질문]",
   "choices": ["보기1", "보기2", "보기3", "보기4"],
   "correctAnswerIndex": 0,
