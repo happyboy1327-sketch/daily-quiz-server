@@ -1018,7 +1018,14 @@ async function fetchNewQuizData() {
                     const parsed = JSON.parse(cleanJson);
                     
                     // 단일 객체 형태로 리턴된 퀴즈 보장
-                    rawQuizzes[currentIndex] = parsed.quizzes ? parsed.quizzes[0] : parsed;
+                    const quiz = parsed.quizzes ? parsed.quizzes[0] : parsed;
+
+                    // ⭐️ [추가된 로직] AI가 멋대로 바꾼 분야명을 원래 요청한 topic("과학", "코딩" 등)으로 덮어씀
+                    if (quiz) {
+                        quiz.topic = topic;
+                    }
+
+                    rawQuizzes[currentIndex] = quiz;
                 }
             }
 
