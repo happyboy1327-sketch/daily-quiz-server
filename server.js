@@ -868,8 +868,8 @@ REJECT (valid: false) if any rule fails.
                 content: JSON.stringify(quiz)
             }
         ],
-        temperature: 0.01,
-        max_tokens: 1250
+        temperature: 0,
+        max_tokens: 1350
     };
 
     try {
