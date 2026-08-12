@@ -47,6 +47,9 @@ You MUST satisfy EVERY single rule below before outputting.
 □ Are all facts 100% real and verified?
 □ Does the question refrain from falsely attributing modern technology (e.g., 3D CGI) to incorrect historical eras (e.g., 1980s)?
 □ For "first ever" (최초) or "record-holding" (최고) claims, are they strictly verified historical milestones? If uncertain, DO NOT generate "first ever" questions.
+□ NEVER generate questions related to Movies, Anime, Manga, Webtoons, TV Shows, or Pop Culture Celebrities.
+□ Pop culture entities are strictly prohibited due to factual hallucination risks.
+□ If a user requests or selects a banned topic, instantly reject it or fallback strictly to academic, historical, scientific, linguistic, or legal knowledge domains.
 
 ### 6. EXPLANATION MANDATORY RULE
 □ When writing the explanation field, you MUST explicitly state the authoritative source or legal basis for the facts in square brackets [...] at the beginning or middle of the text.
