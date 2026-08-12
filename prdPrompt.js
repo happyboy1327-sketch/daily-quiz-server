@@ -48,7 +48,12 @@ You MUST satisfy EVERY single rule below before outputting.
 □ Does the question refrain from falsely attributing modern technology (e.g., 3D CGI) to incorrect historical eras (e.g., 1980s)?
 □ For "first ever" (최초) or "record-holding" (최고) claims, are they strictly verified historical milestones? If uncertain, DO NOT generate "first ever" questions.
 
-### 6. OUTPUT FORMAT
+### 6. EXPLANATION MANDATORY RULE
+□ When writing the explanation field, you MUST explicitly state the authoritative source or legal basis for the facts in square brackets [...] at the beginning or middle of the text.
+□ Examples: [Source: National Institute of Korean Language], [Basis: Constitution Article 70], [Source: KACPR Guidelines]
+□ Every explanation must include a clear, verifiable citation in brackets without exception.
+
+### 7. OUTPUT FORMAT
 □ Output ONLY a single valid JSON object matching the schema below. No surrounding conversational text.
 
 {
@@ -75,7 +80,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["임기 5년, 단임제", "임기 4년, 연임 가능", "임기 5년, 중임 가능", "임기 6년, 단임제"],
         correctAnswerIndex: 0,
         correctAnswerText: "임기 5년, 단임제",
-        explanation: "정답은 임기 5년, 단임제입니다. 대한민국 현행 헌법 제70조에 따라 대통령의 임기는 5년이며 중임 및 연임이 불가능한 단임제를 채택하고 있습니다."
+        explanation: "정답은 임기 5년, 단임제입니다. [근거: 대한민국 헌법 제70조] '대통령의 임기는 5년으로 하며, 중임할 수 없다'고 명시되어 있어 연임 및 중임이 불가능한 5년 단임제를 채택하고 있습니다."
       })
     }
   ],
@@ -90,7 +95,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["정중부", "경대승", "이의민", "최충헌"],
         correctAnswerIndex: 0,
         correctAnswerText: "정중부",
-        explanation: "정답은 정중부입니다. 정중부는 1170년 이의방, 이고 등과 함께 무신정변을 일으켜 무신정권을 수립했습니다. 경대승은 1179년 정중부를 제거하고 권력을 잡은 인물이며, 이의민은 경대승 사후 권력을 잡은 무신이고, 최충헌은 1196년 이의민을 제거하여 최씨 무신집권기를 연 인물입니다."
+        explanation: "정답은 정중부입니다. [출처: 고려사 권128 열전 정중부전] 정중부는 1170년 이의방, 이고 등과 함께 무신정변을 일으켜 고려 무신정권을 수립했습니다. 경대승(1179년 정중부 제거), 이의민, 최충헌(1196년 최씨 집권기)은 이후 차례로 권력을 잡은 인물들입니다."
       })
     },
     // [유형 2: 세계사 - 배경 및 국가별 비교 유형]
@@ -100,10 +105,10 @@ const FEW_SHOT_DATABASE = {
       content: JSON.stringify({
         topic: "역사",
         question: "18세기 후반 풍부한 자본과 자원, 정치적 안정을 바탕으로 세계 최초로 산업 혁명이 시작된 국가는 어디입니까?",
-        choices: ["영국", "프랑스", "독일", "미국"],
-        correctAnswerIndex: 0,
+        choices: ["프랑스", "영국", "독일", "미국"],
+        correctAnswerIndex: 1,
         correctAnswerText: "영국",
-        explanation: "정답은 영국입니다. 영국은 18세기 후반 인클로저 운동으로 인한 노동력 확보, 풍부한 석탄 및 철광석 자원, 명예혁명 이후의 정치적 안정을 바탕으로 가장 먼저 산업 혁명을 달성했습니다. 프랑스는 19세기 초, 미국과 독일은 19세기 중후반에 본격적인 산업화를 추진했습니다."
+        explanation: "정답은 영국입니다. [출처: 서양사개론 / 세계사 표준 교과] 영국은 18세기 후반 인클로저 운동으로 인한 노동력 확보, 풍부한 석탄·철광석 자원, 명예혁명 이후 정치적 안정을 바탕으로 최초로 산업 혁명을 달성했습니다."
       })
     }
   ],
@@ -117,7 +122,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["인왕제색도", "몽유도원도", "고사관수도", "금강전도"],
         correctAnswerIndex: 0,
         correctAnswerText: "인왕제색도",
-        explanation: "정답은 인왕제색도입니다. 인왕제색도는 정선이 1751년에 그린 대표작입니다. 몽유도원도는 조선 전기 안견의 작품이며 고사관수도는 조선 전기 강희안의 작품입니다."
+        explanation: "정답은 인왕제색도입니다. [출처: 국보 제216호 지정정보 및 국립중앙박물관] 인왕제색도는 겸재 정선이 1751년에 그린 대표작입니다. 몽유도원도는 조선 전기 안견, 고사관수도는 조선 전기 강희안의 작품입니다."
       })
     }
   ],
@@ -128,10 +133,10 @@ const FEW_SHOT_DATABASE = {
       content: JSON.stringify({
         topic: "한글 맞춤법",
         question: "상대방에게 약속이나 의지를 나타내는 종결어미의 올바른 표기로 적절한 것은 무엇입니까?",
-        choices: ["내가 할게", "내가 할께", "내가 할개", "내가 할게유"],
+        choices: ["내가 할게", "내가 할께", "내가 할개", "내가 할 게"],
         correctAnswerIndex: 0,
         correctAnswerText: "내가 할게",
-        explanation: "정답은 내가 할게입니다. 약속이나 의지를 나타내는 종결어미는 된소리로 발음되더라도 '-ㄹ게'로 적는 것이 올바른 맞춤법입니다."
+        explanation: "정답은 내가 할게입니다. [출처: 국립국어원 한글 맞춤법 제53항] 약속이나 의지를 나타내는 종결어미는 된소리로 발음되더라도 '-ㄹ게'로 적는 것이 올바른 표기법입니다."
       })
     }
   ],
@@ -145,7 +150,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["피싱", "랜섬웨어", "스파이웨어", "애드웨어"],
         correctAnswerIndex: 0,
         correctAnswerText: "피싱",
-        explanation: "정답은 피싱입니다. 피싱은 사용자를 속여 금융 정보나 로그인 정보를 탈취하는 사기 기법입니다. 랜섬웨어는 파일을 암호화하여 금전을 요구하는 악성코드입니다."
+        explanation: "정답은 피싱입니다. [출처: 한국인터넷진흥원(KISA) 정보보호 용어집] 피싱(Phishing)은 금융기관이나 유명 기관을 사칭하여 개인정보 및 금융 정보를 탈취하는 사기 기법입니다."
       })
     }
   ],
@@ -159,7 +164,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["직접적인 군사 훈련 및 전투 참여 권리", "생존과 발달을 누릴 권리", "아동의 최선의 이익을 우선할 권리", "표현의 자유를 누릴 권리"],
         correctAnswerIndex: 0,
         correctAnswerText: "직접적인 군사 훈련 및 전투 참여 권리",
-        explanation: "정답은 직접적인 군사 훈련 및 전투 참여 권리입니다. 유엔 아동권리협약 제38조는 아동의 군사 참여 및 위험 노출을 철저히 금지하고 있습니다."
+        explanation: "정답은 직접적인 군사 훈련 및 전투 참여 권리입니다. [출처: 유엔 아동권리협약(UN CRC) 제38조] 협약 제38조에 따라 15세 미만 아동의 군사 직접 참여 및 전투 위험 노출은 엄격히 금지됩니다."
       })
     }
   ],
@@ -173,7 +178,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["이산화탄소", "산소", "질소", "헬륨"],
         correctAnswerIndex: 0,
         correctAnswerText: "이산화탄소",
-        explanation: "정답은 이산화탄소입니다. 이산화탄소는 대기 중 열을 흡수하여 온실효과를 일으키는 주요 가스입니다."
+        explanation: "정답은 이산화탄소입니다. [출처: 기후변화에 관한 정부간 협의체(IPCC) 보고서] 이산화탄소(CO2)는 화석연료 연소 시 발생하는 대표적인 인위적 온실가스로, 지구 온난화 기여도가 가장 높습니다."
       })
     }
   ],
@@ -187,7 +192,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["빛의 굴절", "빛의 회절", "빛의 간섭", "빛의 편광"],
         correctAnswerIndex: 0,
         correctAnswerText: "빛의 굴절",
-        explanation: "정답은 빛의 굴절입니다. 무지개는 태양광이 공기보다 밀도가 높은 물방울에 진입할 때 속도 차이로 인해 진행 방향이 꺾이는 '굴절'과, 파장에 따라 꺾이는 각도가 달라 색이 나누어지는 '분산' 현상이 복합적으로 작용하여 형성됩니다. 반면 빛의 회절은 빛이 장애물 모서리를 돌아 들어가는 현상이고, 간섭은 두 파동이 겹쳐 세기가 변하는 현상이며, 편광은 특정 진동 방향의 빛만 투과하는 현상으로 무지개의 직접적인 원인이 아닙니다."
+        explanation: "정답은 빛의 굴절입니다. [출처: 물리학 총론 / 기상청 학술 자료] 무지개는 태양광이 물방울 경계면을 통과할 때 매질 차이로 발생하는 '굴절'과 파장별 각도 차이인 '분산'이 결합하여 형성됩니다."
       })
     }
   ],
@@ -197,11 +202,11 @@ const FEW_SHOT_DATABASE = {
       role: "assistant",
       content: JSON.stringify({
         topic: "코딩",
-        question: "프로그래밍에서 복수의 데이터를 하나의 연속된 변수에 순서대로 저장하기 위해 사용하는 자료구조는 무엇입니까?",
-        choices: ["배열", "조건문", "반복문", "함수"],
-        correctAnswerIndex: 0,
+        question: "프로그래밍에서 복수의 데이터를 하나의 연속된 메모리 공간에 순서대로 저장하기 위해 사용하는 자료구조는 무엇입니까?",
+        choices: ["조건문", "반복문", "배열", "함수"],
+        correctAnswerIndex: 2,
         correctAnswerText: "배열",
-        explanation: "정답은 배열입니다. 배열은 동일한 타입의 데이터 요소들을 인덱스 순서대로 저장하는 자료구조입니다."
+        explanation: "정답은 배열입니다. [출처: 컴퓨터 과학 정통 학술 표준 / ISO C 표준 문서] 배열(Array)은 동일한 타입의 요소들을 연속된 메모리 공간에 인덱스(Index) 순으로 저장하는 기본 선형 자료구조입니다."
       })
     }
   ],
@@ -215,7 +220,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["가슴 뼈 중앙 아래쪽 절반 부위", "왼쪽 흉부 심장 바로 위 부위", "명치 끝 부위", "쇄골 바로 아래 부위"],
         correctAnswerIndex: 0,
         correctAnswerText: "가슴 뼈 중앙 아래쪽 절반 부위",
-        explanation: "정답은 가슴 뼈 중앙 아래쪽 절반 부위입니다. 정확한 압박 지점을 눌러야 늑골 골절 위험을 줄이고 혈액 순환을 도울 수 있습니다."
+        explanation: "정답은 가슴 뼈 중앙 아래쪽 절반 부위입니다. [출처: 질병관리청 및 대한심폐소생협회 KACPR 가이드라인] 가슴뼈(흉골) 중앙 아래쪽 절반 부위를 정확히 압박해야 장기 손상 위험을 줄이고 유효 혈류량을 확보할 수 있습니다."
       })
     }
   ],
@@ -230,7 +235,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["기회비용", "매몰비용", "한계비용", "고정비용"],
         correctAnswerIndex: 0,
         correctAnswerText: "기회비용",
-        explanation: "정답은 기회비용입니다. 기회비용은 어떤 자원을 선택함으로 인해 포기한 나머지 대안들의 가치 중 가장 큰 가치를 의미합니다. 매몰비용은 이미 지출하여 회수할 수 없는 비용, 한계비용은 생산량을 1단위 증가시킬 때 추가로 드는 비용, 고정비용은 생산량과 상관없이 일정하게 발생하는 비용입니다."
+        explanation: "정답은 기회비용입니다. [출처: 맨큐의 경제학 / 경제학 원론] 기회비용(Opportunity Cost)은 한 자원을 사용할 때 포기한 대안들 중 가장 가치가 큰 대안의 가치를 뜻합니다."
       })
     },
     // [유형 2: 거시경제 - 지표 정확성 및 지출 접근법 구성 요소 유형]
@@ -243,7 +248,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["주식 거래액", "가계 소비 지출", "정부 소비 지출 및 투자", "순수출"],
         correctAnswerIndex: 0,
         correctAnswerText: "주식 거래액",
-        explanation: "정답은 주식 거래액입니다. 국내총생산(GDP)은 당해 연도에 새로 생산된 재화와 서비스의 가치만을 포함하며, 기존 자산의 소유권 이전일 뿐인 주식 거래액은 당해 생산 활동이 아니므로 GDP 산출에서 제외됩니다. GDP 지출 접근법의 구성 요소는 가계 소비(C), 기업 투자(I), 정부 지출(G), 순수출(NX)로 이루어집니다. (※ GDP는 국내총생산, GNP는 국민총생산임)"
+        explanation: "정답은 주식 거래액입니다. [출처: 한국은행 국민계정 작성 기준(SNA)] GDP는 당해 연도 생산 가치만 산출하므로 단순 자산 이전인 기존 주식 거래액은 제외됩니다. GDP 지출 접근법은 C(소비)+I(투자)+G(정부지출)+NX(순수출)로 구성됩니다."
       })
     }
   ],
@@ -257,7 +262,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["남극 사막", "사하라 사막", "고비 사막", "아라비아 사막"],
         correctAnswerIndex: 0,
         correctAnswerText: "남극 사막",
-        explanation: "정답은 남극 사막입니다. 사막은 강수량을 기준으로 정의되므로 한대 사막인 남극 사막이 전체 지구 사막 중 가장 큽니다. 사하라 사막은 열대/아열대 사막 중 가장 큽니다."
+        explanation: "정답은 남극 사막입니다. [출처: 미국 지질조사국(USGS) 및 세계 지리 표준 데이터] 사막은 연간 강수량(250mm 이하)을 기준으로 구분하므로 한대 사막인 남극 사막(약 1,400만 km²)이 세계에서 가장 넓은 사막입니다."
       })
     }
   ],
@@ -271,7 +276,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["확증 편향", "후광 효과", "동조 효과", "가용성 편향"],
         correctAnswerIndex: 0,
         correctAnswerText: "확증 편향",
-        explanation: "정답은 확증 편향입니다. 확증 편향은 주관적 신념을 강화하는 방향으로 정보를 선택적으로 수집하고 해석하는 현상입니다."
+        explanation: "정답은 확증 편향입니다. [출처: 인지심리학 표준 학술 용어 (P. Wason의 개념)] 확증 편향(Confirmation Bias)은 자신의 주관적 신념에 부합하는 정보만 취사선택하는 대표적인 인지적 편향 현상입니다."
       })
     }
   ]
@@ -328,7 +333,7 @@ function createQuizPayload(topic, spellingData = null) {
       { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.` }
     ],
     temperature: 0, 
-    max_tokens: 2500
+    max_tokens: 2250
   };
 }
 
