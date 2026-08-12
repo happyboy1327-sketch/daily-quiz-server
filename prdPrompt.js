@@ -1,4 +1,4 @@
-const MODEL_ID = "mistral-large-latest";
+const MODEL_ID = "open-mistral-nemo";
 
 const PRD_SYSTEM_PROMPT = `
 You are an expert system for generating accurate Korean-language general knowledge quizzes.
