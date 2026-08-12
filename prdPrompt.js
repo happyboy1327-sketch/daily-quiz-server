@@ -329,7 +329,6 @@ function createQuizPayload(topic, spellingData = null) {
     ],
     temperature: 0, 
     reasoning_effort: 'high', 
-    frequency_penalty: -1,
     max_tokens: 2500
   };
 }
