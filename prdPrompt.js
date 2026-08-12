@@ -111,7 +111,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["프랑스", "영국", "독일", "미국"],
         correctAnswerIndex: 1,
         correctAnswerText: "영국",
-        explanation: "정답은 영국입니다. [출처: 서양사개론 / 세계사 표준 교과] 영국은 18세기 후반 인클로저 운동으로 인한 노동력 확보, 풍부한 석탄·철광석 자원, 명예혁명 이후 정치적 안정을 바탕으로 최초로 산업 혁명을 달성했습니다."
+        explanation: "정답은 영국입니다. [출처: 서양사개론(민석홍 저) 및 교육부 검정 세계사 교과서] 영국은 18세기 후반 인클로저 운동으로 인한 노동력 확보, 풍부한 석탄·철광석 자원, 명예혁명 이후 정치적 안정을 바탕으로 최초로 산업 혁명을 달성했습니다."
       })
     }
   ],
@@ -195,7 +195,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["빛의 굴절", "빛의 회절", "빛의 간섭", "빛의 편광"],
         correctAnswerIndex: 0,
         correctAnswerText: "빛의 굴절",
-        explanation: "정답은 빛의 굴절입니다. [출처: 물리학 총론 / 기상청 학술 자료] 무지개는 태양광이 물방울 경계면을 통과할 때 매질 차이로 발생하는 '굴절'과 파장별 각도 차이인 '분산'이 결합하여 형성됩니다."
+        explanation: "정답은 빛의 굴절입니다. [출처: 한국물리학회 물리학용어집 및 기상청 기상백서] 무지개는 태양광이 물방울 경계면을 통과할 때 매질 차이로 발생하는 '굴절'과 파장별 각도 차이인 '분산'이 결합하여 형성됩니다."
       })
     }
   ],
@@ -209,7 +209,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["조건문", "반복문", "배열", "함수"],
         correctAnswerIndex: 2,
         correctAnswerText: "배열",
-        explanation: "정답은 배열입니다. [출처: 컴퓨터 과학 정통 학술 표준 / ISO C 표준 문서] 배열(Array)은 동일한 타입의 요소들을 연속된 메모리 공간에 인덱스(Index) 순으로 저장하는 기본 선형 자료구조입니다."
+        explanation: "정답은 배열입니다. [출처: ISO/IEC 9899 C 프로그래밍 언어 표준 명세서] 배열(Array)은 동일한 타입의 요소들을 연속된 메모리 공간에 인덱스(Index) 순으로 저장하는 기본 선형 자료구조입니다."
       })
     }
   ],
@@ -238,7 +238,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["기회비용", "매몰비용", "한계비용", "고정비용"],
         correctAnswerIndex: 0,
         correctAnswerText: "기회비용",
-        explanation: "정답은 기회비용입니다. [출처: 맨큐의 경제학 / 경제학 원론] 기회비용(Opportunity Cost)은 한 자원을 사용할 때 포기한 대안들 중 가장 가치가 큰 대안의 가치를 뜻합니다."
+        explanation: "정답은 기회비용입니다. [출처: 맨큐의 경제학(Principles of Economics)] 기회비용(Opportunity Cost)은 한 자원을 사용할 때 포기한 대안들 중 가장 가치가 큰 대안의 가치를 뜻합니다."
       })
     },
     // [유형 2: 거시경제 - 지표 정확성 및 지출 접근법 구성 요소 유형]
@@ -279,7 +279,7 @@ const FEW_SHOT_DATABASE = {
         choices: ["확증 편향", "후광 효과", "동조 효과", "가용성 편향"],
         correctAnswerIndex: 0,
         correctAnswerText: "확증 편향",
-        explanation: "정답은 확증 편향입니다. [출처: 인지심리학 표준 학술 용어 (P. Wason의 개념)] 확증 편향(Confirmation Bias)은 자신의 주관적 신념에 부합하는 정보만 취사선택하는 대표적인 인지적 편향 현상입니다."
+        explanation: "정답은 확증 편향입니다. [출처: 한국심리학회 심리학용어사전 (P. Wason 이론)] 확증 편향(Confirmation Bias)은 자신의 주관적 신념에 부합하는 정보만 취사선택하는 대표적인 인지적 편향 현상입니다."
       })
     }
   ]
