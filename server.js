@@ -395,24 +395,22 @@ async function fetchNewQuizData() {
     const selectedTopics = getSelectedTopics();
     console.log(`[API] 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`);
 
-    let jinaData = null;
-    if (selectedTopics.includes("한글 맞춤법")) {
-        jinaData = await fetchJinaSpellingData();
-    }
 
     for (let generationAttempt = 1; generationAttempt <= 3; generationAttempt++) {
         try {
             const rawQuizzes = new Array(selectedTopics.length);
             let topicIndex = 0;
-            const CONCURRENCY_LIMIT = 2;
+            const CONCURRENCY_LIMIT = 1;
 
             async function fetchWorker() {
                 while (topicIndex < selectedTopics.length) {
                     const currentIndex = topicIndex++;
                     const topic = selectedTopics[currentIndex];
 
-                    const spellingParam = (topic === "한글 맞춤법" && jinaData) ? jinaData : SPELLING_DATA;
-
+                    let spellingParam = SPELLING_DATA;
+                    if (topic === "한글 맞춤법") {
+                        spellingParam = await fetchJinaSpellingData();
+                    }
                     // 기존 createQuizPayload 호출
                     const payload = createQuizPayload(topic, spellingParam);
 
@@ -445,7 +443,7 @@ async function fetchNewQuizData() {
 
                     rawQuizzes[currentIndex] = quiz;
                     // API 연속 충격 완화를 위한 300ms 딜레이
-                    await new Promise(res => setTimeout(res, 300));
+                    await new Promise(res => setTimeout(res, 800));
                 }
             }
 
