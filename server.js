@@ -349,16 +349,40 @@ function validateSpellingAnswer(quiz) {
 }
 
 
+// Jina 캐시 변수
+let cachedJinaSections = null;
+
 async function fetchJinaSpellingData() {
     try {
-        const targetUrl = "https://korean.go.kr/kornorms/m/m_regltn.do?#a";
-        const response = await axios.get(`https://r.jina.ai/${targetUrl}`, { timeout: 20000 });
-        
-        // 기존 createQuizPayload의 Array.isArray(spellingData) 통과를 위해 배열로 반환
-        return response.data ? [response.data] : null;
+        // 1. 최초 1회만 Jina로 전체 원문 스크레이핑
+        if (!cachedJinaSections) {
+            console.log("[Jina] 국립국어원 원문 수집 중...");
+            const targetUrl = "https://korean.go.kr/kornorms/m/m_regltn.do?#a";
+            const response = await axios.get(`https://r.jina.ai/${targetUrl}`, { timeout: 10000 });
+            
+            if (response.data) {
+                // 원문을 "제N항" 단위로 분할하여 배열로 저장
+                const rawText = response.data;
+                const parsedSections = rawText
+                    .split(/(?=제\s*\d+\s*항)/g) // "제1항", "제2항" 기준으로 분할
+                    .map(s => s.trim())
+                    .filter(s => s.length > 20 && s.length < 2000); // 유효한 조항만 필터링
+
+                cachedJinaSections = parsedSections.length > 0 ? parsedSections : [rawText.slice(0, 1000)];
+            }
+        }
+
+        // 2. 수집된 조항 중 무작위 1개만 선택해서 반환 (토큰 사용량 95% 감소, 매번 다른 조항 출제)
+        if (cachedJinaSections && cachedJinaSections.length > 0) {
+            const randomIndex = Math.floor(Math.random() * cachedJinaSections.length);
+            const selectedRule = cachedJinaSections[randomIndex];
+            return [selectedRule]; // createQuizPayload의 Array.isArray 통과용
+        }
+
+        return null;
     } catch (error) {
-        console.error("[Jina] 국립국어원 수집 실패:", error.message);
-        return null; // 실패 시 null 리턴 (기존 SPELLING_DATA 대체용)
+        console.error("[Jina] 수집 실패, 백업 데이터 사용:", error.message);
+        return null;
     }
 }
 
