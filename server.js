@@ -352,7 +352,7 @@ function validateSpellingAnswer(quiz) {
 async function fetchJinaSpellingData() {
     try {
         const targetUrl = "https://korean.go.kr/kornorms/m/m_regltn.do?#a";
-        const response = await axios.get(`https://r.jina.ai/${targetUrl}`, { timeout: 10000 });
+        const response = await axios.get(`https://r.jina.ai/${targetUrl}`, { timeout: 20000 });
         
         // 기존 createQuizPayload의 Array.isArray(spellingData) 통과를 위해 배열로 반환
         return response.data ? [response.data] : null;
