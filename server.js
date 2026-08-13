@@ -348,6 +348,20 @@ function validateSpellingAnswer(quiz) {
     return true;
 }
 
+
+async function fetchJinaSpellingData() {
+    try {
+        const targetUrl = "https://korean.go.kr/kornorms/m/m_regltn.do?#a";
+        const response = await axios.get(`https://r.jina.ai/${targetUrl}`, { timeout: 10000 });
+        
+        // 기존 createQuizPayload의 Array.isArray(spellingData) 통과를 위해 배열로 반환
+        return response.data ? [response.data] : null;
+    } catch (error) {
+        console.error("[Jina] 국립국어원 수집 실패:", error.message);
+        return null; // 실패 시 null 리턴 (기존 SPELLING_DATA 대체용)
+    }
+}
+
 async function fetchNewQuizData() {
     if (!MISTRAL_API_KEY) {
         console.error("[ERROR] MISTRAL_API_KEY 환경변수가 설정되지 않았습니다.");
@@ -356,6 +370,11 @@ async function fetchNewQuizData() {
 
     const selectedTopics = getSelectedTopics();
     console.log(`[API] 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`);
+
+    let jinaData = null;
+    if (selectedTopics.includes("한글 맞춤법")) {
+        jinaData = await fetchJinaSpellingData();
+    }
 
     for (let generationAttempt = 1; generationAttempt <= 3; generationAttempt++) {
         try {
@@ -368,7 +387,11 @@ async function fetchNewQuizData() {
                     const currentIndex = topicIndex++;
                     const topic = selectedTopics[currentIndex];
 
-                    const payload = createQuizPayload(topic, SPELLING_DATA);
+                    const spellingParam = (topic === "한글 맞춤법" && jinaData) ? jinaData : SPELLING_DATA;
+
+                    // 기존 createQuizPayload 호출
+                    const payload = createQuizPayload(topic, spellingParam);
+
                     // postWithRetry 적용
                     const response = await postWithRetry(API_URL, payload, {
                         headers: {
