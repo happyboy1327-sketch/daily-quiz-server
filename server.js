@@ -358,7 +358,7 @@ async function fetchJinaSpellingData() {
         if (!cachedJinaSections) {
             console.log("[Jina] 국립국어원 원문 수집 중...");
             const targetUrl = "https://korean.go.kr/kornorms/m/m_regltn.do?#a";
-            const response = await axios.get(`https://r.jina.ai/${targetUrl}`, { timeout: 10000 });
+            const response = await axios.get(`https://r.jina.ai/${targetUrl}`, { timeout: 30000 });
             
             if (response.data) {
                 // 원문을 "제N항" 단위로 분할하여 배열로 저장
