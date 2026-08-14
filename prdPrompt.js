@@ -145,7 +145,7 @@ const FEW_SHOT_DATABASE = {
       role: "assistant",
       content: JSON.stringify({
         topic: "한글 맞춤법",
-        explanation: "정답은 내가 할게입니다. [출처: 국립국어원 한글 맞춤법 제53항] 약속이나 의지를 나타내는 종결어미는 된소리로 발음되더라도 '-ㄹ게'로 적는 것이 올바른 표기법입니다.",
+        explanation: "정답은 내가 할게입니다. [출처: 국립국어원 한글 맞춤법(https://korean.go.kr/kornorms/m/m_regltn.do?#a)] 약속이나 의지를 나타내는 종결어미는 된소리로 발음되더라도 '-ㄹ게'로 적는 것이 올바른 표기법입니다.",
         question: "상대방에게 약속이나 의지를 나타내는 종결어미의 올바른 표기로 적절한 것은 무엇입니까?",
         choices: ["내가 할게", "내가 할께", "내가 할개", "내가 할 게"],
         correctAnswerIndex: 0,
