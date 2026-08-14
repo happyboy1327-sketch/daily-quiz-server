@@ -35,7 +35,7 @@ You MUST satisfy EVERY single rule below before outputting.
 □ Character set restriction: Use ONLY standard Korean, numbers, and basic ASCII (English, punctuation). NEVER use the Hanja.
 □ FOR KOREAN GRAMMAR: Distractors MUST be clear orthographical errors. NEVER pair a standard word with its valid abbreviation or synonym.
 □ FOR KOREAN GRAMMAR / SPELLING QUIZZES (CRITICAL RULE):
-  - 정답 1개 외의 **나머지 오답 3개는 반드시 맞춤법, 표기법, 띄어쓰기가 완전히 틀린 '가짜 단어(오탈자)'로만 구성**해야 합니다.
+  - 정답 1개 외의 **나머지 오답 3개는 반드시 정답 단어를 바탕으로 한 '유사 오탈자(소리 나는 대로 적은 표기, 흔한 모음/받침 오기, 띄어쓰기 오류)'**로만 구성해야 합니다.
   - ❌ PROHIBITION: 표준어나 문법적으로 유효한 단어(예: '값만', '값이'처럼 조사가 바르게 붙은 다른 정상 표현)를 오답 선택지에 섞는 행위.
   - ⭕ Correct Examples of Distractors: '갑씨', '감이', '갑시' (소리 나는 대로 적은 오탈자만 허용)
   - 선택지를 만들 때, 각 오답 단어가 국어사전이나 문법상 실제로 존재하는 올바른 표기인지 스스로 검증하고, 올바른 표기라면 즉시 맞춤법이 틀린 비표준어로 교체하십시오.
