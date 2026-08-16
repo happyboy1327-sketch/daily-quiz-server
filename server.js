@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const seedrandom = require('seedrandom');
 const crypto = require('crypto');
+const https = require('https');
 const cheerio = require('cheerio');
 
 const { createQuizPayload } = require('./prdPrompt');
@@ -350,70 +351,75 @@ function validateSpellingAnswer(quiz) {
     return true;
 }
 
-
 // Jina 캐시 변수
-async function fetchJinaSpellingData() {
-    try {
-        console.log("[Jina] 국립국어원 무작위 단건 탐색 중...");
-        const targetUrl = "https://korean.go.kr/kornorms/m/m_regltn.do?";
+
+
+function fetchJinaSpellingData() {
+    return new Promise((resolve) => {
+        const url = 'https://r.jina.ai/https://korean.go.kr/kornorms/m/m_regltn.do';
         
-        // Jina AI를 통해 HTML 형식으로 응답 수신
-        const response = await axios.get(`https://r.jina.ai/${targetUrl}`, {
-            headers: { 'Accept': 'text/html' },
-            timeout: 35000 
-        });
-        
-        if (response.data) {
-            const $ = cheerio.load(response.data);
-            
-            // 1. '제N항'을 포함하는 h6 태그들만 탐색 (텍스트 추출은 아직 안 함)
-            const ruleElements = $('h6').filter((_, el) => $(el).text().trim().match(/^제\s*\d+\s*항/)); // .get() 제거
-
-            if (ruleElements.length === 0) return null;
-
-            // 2. 💡 전체를 수집하지 않고, 여기서 무작위로 딱 1개만 선택!
-            const randomIndex = Math.floor(Math.random() * ruleElements.length);
-            const selectedRule = ruleElements.eq(randomIndex);
-
-            // 3. 선택된 단 1개의 조항에 대해서만 텍스트 및 예시 추출
-            const ruleText = selectedRule.text().replace(/\s+/g, ' ').trim();
-            let exampleText = "";
-            
-            let nextSibling = selectedRule.closest('.black14_word').length 
-                ? selectedRule.closest('.black14_word').next() 
-                : selectedRule.next();
-            
-            while (nextSibling.length) {
-                // 다음 조항이나 대제목을 만나면 탐색 종료
-                if (nextSibling.find('h6').length || nextSibling.hasClass('black14_word') || nextSibling.is('h4, h5')) {
-                    break;
-                }
-                
-                // 긴 해설문(.explnaArea)은 건너뜀
-                if (nextSibling.hasClass('explnaArea')) {
-                    nextSibling = nextSibling.next();
-                    continue;
-                }
-                
-                // 예시 텍스트 추출
-                if (nextSibling.hasClass('subList_ex')) {
-                    exampleText += nextSibling.text().replace(/\s+/g, ' ').trim() + "\n";
-                }
-                
-                nextSibling = nextSibling.next();
+        // Jina AI에 HTML 구조를 유지해달라는 헤더 설정
+        const options = {
+            headers: {
+                'Accept': 'text/html',
+                'X-Return-Format': 'html'
             }
-            
-            // 4. 딱 1개의 조항만 포맷팅하여 바로 반환
-            const formattedRule = `[${ruleText}]\n\n[예시]\n${exampleText.trim() || '예시 없음'}`;
-            return [formattedRule];
-        }
-        
-        return null;
-    } catch (error) {
-        console.error("[Jina] 수집 실패, 백업 데이터 사용:", error.message);
-        return null;
-    }
+        };
+
+        https.get(url, options, (res) => {
+            let data = '';
+
+            res.on('data', (chunk) => { data += chunk; });
+
+            res.on('end', () => {
+                if (!data) return resolve(null);
+
+                const $ = cheerio.load(data);
+                
+                // 1. '제N항' 탐색 (Cheerio 객체 유지)
+                const ruleElements = $('h6').filter((_, el) => $(el).text().trim().match(/^제\s*\d+\s*항/));
+                if (ruleElements.length === 0) return resolve(null);
+
+                // 2. 무작위 1개 추출
+                const randomIndex = Math.floor(Math.random() * ruleElements.length);
+                const selectedRule = ruleElements.eq(randomIndex);
+
+                // 3. 텍스트 및 예시 추출
+                const ruleText = selectedRule.text().replace(/\s+/g, ' ').trim();
+                let exampleText = "";
+                
+                let nextSibling = selectedRule.closest('.black14_word').length 
+                    ? selectedRule.closest('.black14_word').next() 
+                    : selectedRule.next();
+                
+                while (nextSibling.length) {
+                    if (nextSibling.find('h6').length || nextSibling.hasClass('black14_word') || nextSibling.is('h4, h5')) {
+                        break;
+                    }
+                    if (nextSibling.hasClass('explnaArea')) {
+                        nextSibling = nextSibling.next();
+                        continue;
+                    }
+                    if (nextSibling.hasClass('subList_ex')) {
+                        exampleText += nextSibling.text().replace(/\s+/g, ' ').trim() + "\n";
+                    }
+                    nextSibling = nextSibling.next();
+                }
+                
+                resolve([`[${ruleText}]\n\n[예시]\n${exampleText.trim() || '예시 없음'}`]);
+            });
+
+        }).on('error', (err) => {
+            console.error('[Jina] 수집 실패:', err.message);
+            resolve(null);
+        });
+    });
 }
+
+// Node.js 실행 테스트
+fetchJinaSpellingData().then((result) => {
+    console.log("✅ 수집 결과:\n", result ? result[0] : "수집 실패");
+});
 
 async function fetchNewQuizData() {
     if (!MISTRAL_API_KEY) {
