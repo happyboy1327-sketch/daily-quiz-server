@@ -327,11 +327,12 @@ function createQuizPayload(topic, spellingData = null) {
     systemPrompt += `\n\n## Mandatory Spelling Reference Dataset\nWhen generating questions for "한글 맞춤법", you MUST strictly use the following dataset:\n${JSON.stringify(selectedSpelling, null, 2)}`;
   }
 
-  const randomSeed = Math.floor(Math.random() * 1000000);
+  const seedValue = Math.floor(Math.random() * 1000000);
   const timestamp = Date.now();
    
   return {
   model: MODEL_ID,
+  random_seed: seedValue,
   response_format: {
     type: "json_schema",
     json_schema: {
@@ -365,7 +366,7 @@ function createQuizPayload(topic, spellingData = null) {
     messages: [
       { role: "system", content: systemPrompt },
       ...getFewShotMessages(topic),
-      { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요. (Request ID: ${timestamp}-${randomSeed})` }
+      { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요. (Request ID: ${timestamp}-${seedValue})` }
     ],
     temperature: 0.1, 
     max_tokens: 2300
