@@ -367,8 +367,7 @@ async function fetchJinaSpellingData() {
             const $ = cheerio.load(response.data);
             
             // 1. '제N항'을 포함하는 h6 태그들만 탐색 (텍스트 추출은 아직 안 함)
-            const ruleElements = Array.from(doc.querySelectorAll('h6'))
-                                      .filter(h6 => h6.textContent.trim().match(/^제\s*\d+\s*항/));
+            const ruleElements = $('h6').filter((_, el) => $(el).text().trim().match(/^제\s*\d+\s*항/)).get();
             
             if (ruleElements.length === 0) return null;
 
@@ -380,28 +379,28 @@ async function fetchJinaSpellingData() {
             const ruleText = selectedRule.textContent.replace(/\s+/g, ' ').trim();
             let exampleText = "";
             
-            let nextSibling = selectedRule.closest('.black14_word') 
-                                ? selectedRule.closest('.black14_word').nextElementSibling 
-                                : selectedRule.nextElementSibling;
+            let nextSibling = selectedRule.closest('.black14_word').length 
+                ? selectedRule.closest('.black14_word').next() 
+                : selectedRule.next();
             
-            while (nextSibling) {
-                // 다음 조항이나 큰 제목이 나오면 탐색 종료
-                if (nextSibling.querySelector('h6') || nextSibling.classList?.contains('black14_word') || nextSibling.tagName === 'H4' || nextSibling.tagName === 'H5') {
+            while (nextSibling.length) {
+                // 다음 조항이나 대제목을 만나면 탐색 종료
+                if (nextSibling.find('h6').length || nextSibling.hasClass('black14_word') || nextSibling.is('h4, h5')) {
                     break;
                 }
                 
-                // 긴 해설문(.explnaArea) 제외
-                if (nextSibling.classList?.contains('explnaArea')) {
-                    nextSibling = nextSibling.nextElementSibling;
+                // 긴 해설문(.explnaArea)은 건너뜀
+                if (nextSibling.hasClass('explnaArea')) {
+                    nextSibling = nextSibling.next();
                     continue;
                 }
                 
-                // 예시 텍스트 누적
-                if (nextSibling.classList?.contains('subList_ex')) {
-                    exampleText += nextSibling.textContent.replace(/\s+/g, ' ').trim() + "\n";
+                // 예시 텍스트 추출
+                if (nextSibling.hasClass('subList_ex')) {
+                    exampleText += nextSibling.text().replace(/\s+/g, ' ').trim() + "\n";
                 }
                 
-                nextSibling = nextSibling.nextElementSibling;
+                nextSibling = nextSibling.next();
             }
             
             // 4. 딱 1개의 조항만 포맷팅하여 바로 반환
