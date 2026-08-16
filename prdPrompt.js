@@ -316,7 +316,6 @@ function createQuizPayload(topic, spellingData = null) {
 
   return {
   model: MODEL_ID,
-  random_seed: seedValue,
   response_format: {
     type: "json_schema",
     json_schema: {
