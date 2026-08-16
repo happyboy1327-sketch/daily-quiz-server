@@ -355,7 +355,7 @@ function validateSpellingAnswer(quiz) {
 async function fetchJinaSpellingData() {
     try {
         console.log("[Jina] 국립국어원 무작위 단건 탐색 중...");
-        const targetUrl = "https://korean.go.kr/kornorms/m/m_regltn.do?#a";
+        const targetUrl = "https://korean.go.kr/kornorms/m/m_regltn.do?";
         
         // Jina AI를 통해 HTML 형식으로 응답 수신
         const response = await axios.get(`https://r.jina.ai/${targetUrl}`, {
@@ -367,13 +367,13 @@ async function fetchJinaSpellingData() {
             const $ = cheerio.load(response.data);
             
             // 1. '제N항'을 포함하는 h6 태그들만 탐색 (텍스트 추출은 아직 안 함)
-            const ruleElements = $('h6').filter((_, el) => $(el).text().trim().match(/^제\s*\d+\s*항/)).get();
-            
+            const ruleElements = $('h6').filter((_, el) => $(el).text().trim().match(/^제\s*\d+\s*항/)); // .get() 제거
+
             if (ruleElements.length === 0) return null;
 
             // 2. 💡 전체를 수집하지 않고, 여기서 무작위로 딱 1개만 선택!
             const randomIndex = Math.floor(Math.random() * ruleElements.length);
-            const selectedRule = ruleElements[randomIndex];
+            const selectedRule = ruleElements.eq(randomIndex);
 
             // 3. 선택된 단 1개의 조항에 대해서만 텍스트 및 예시 추출
             const ruleText = selectedRule.textContent.replace(/\s+/g, ' ').trim();
