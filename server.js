@@ -376,7 +376,7 @@ async function fetchJinaSpellingData() {
             const selectedRule = ruleElements.eq(randomIndex);
 
             // 3. 선택된 단 1개의 조항에 대해서만 텍스트 및 예시 추출
-            const ruleText = selectedRule.textContent.replace(/\s+/g, ' ').trim();
+            const ruleText = selectedRule.text().replace(/\s+/g, ' ').trim();
             let exampleText = "";
             
             let nextSibling = selectedRule.closest('.black14_word').length 
