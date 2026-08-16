@@ -461,11 +461,15 @@ async function fetchNewQuizData() {
                         const textPart = rawContent.find(p => p.type === "text" && typeof p.text === "string");
                         rawContent = textPart?.text;
                     }
+                    // 📍 [검증 1] API가 내뱉은 생 원본 텍스트 확인
+                    console.log(`\n=== [1. API Raw Content - ${topic}] ===\n`, rawContent);
 
                     const cleanJson = extractJsonFromText(rawContent);
+                    console.log(`\n=== [2. Cleaned JSON Text - ${topic}] ===\n`, cleanJson);
                     const parsed = JSON.parse(cleanJson);
                     
                     const quiz = parsed.quizzes ? parsed.quizzes[0] : parsed;
+                    console.log(`\n=== [3. Parsed Choices - ${topic}] ===\n`, quiz?.choices);
 
                     if (quiz) {
                         quiz.topic = topic;
@@ -492,7 +496,10 @@ async function fetchNewQuizData() {
             const topicSet = new Set();
 
             for (let quiz of rawQuizzes) {
+                console.log(`\n=== [4. Before autoFix - ${quiz.topic}] ===\n`, quiz.choices);
                 quiz = autoFixQuiz(quiz);
+
+                console.log(`\n=== [5. After autoFix - ${quiz.topic}] ===\n`, quiz.choices);
 
                 const fullText = [quiz.question, ...quiz.choices, quiz.explanation, quiz.correctAnswerText].join(" ");
                 if (HANJA_AND_FOREIGN_REGEX.test(fullText)) {
