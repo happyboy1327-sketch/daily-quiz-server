@@ -360,7 +360,7 @@ async function fetchJinaSpellingData() {
         // Jina AI를 통해 HTML 형식으로 응답 수신
         const response = await axios.get(`https://r.jina.ai/${targetUrl}`, {
             headers: { 'Accept': 'text/html' },
-            timeout: 30000 
+            timeout: 35000 
         });
         
         if (response.data) {
@@ -460,6 +460,10 @@ async function fetchNewQuizData() {
                         const textPart = rawContent.find(p => p.type === "text" && typeof p.text === "string");
                         rawContent = textPart?.text;
                     }
+
+                    if (typeof rawContent === "string") {
+                   rawContent = rawContent.replace(/\u00a0/g, ' ').trim();
+                   }
                     // 📍 [검증 1] API가 내뱉은 생 원본 텍스트 확인
                     console.log(`\n=== [1. API Raw Content - ${topic}] ===\n`, rawContent);
 
@@ -476,7 +480,7 @@ async function fetchNewQuizData() {
 
                     rawQuizzes[currentIndex] = quiz;
                     // API 연속 충격 완화를 위한 300ms 딜레이
-                    await new Promise(res => setTimeout(res, 800));
+                    await new Promise(res => setTimeout(res, 900));
                 }
             }
 
