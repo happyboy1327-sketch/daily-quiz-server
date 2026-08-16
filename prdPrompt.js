@@ -306,6 +306,7 @@ const FEW_SHOT_DATABASE = {
         correctAnswerText: "지구"
       })
     }
+   ]
 };
 
 function getFewShotMessages(topic) {
