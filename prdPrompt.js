@@ -292,7 +292,20 @@ const FEW_SHOT_DATABASE = {
         correctAnswerText: "확증 편향"
       })
     }
-  ]
+  ],
+   "DEFAULT": [
+    { role: "user", content: "선택된 분야:\n일반\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    {
+      role: "assistant",
+      content: JSON.stringify({
+        topic: "일반",
+        explanation: "정답은 지구입니다. [출처: 한국천문연구원] 태양계에서 단단한 지표면과 풍부한 액체 상태의 물을 가지고 있는 행성은 지구입니다.",
+        question: "태양계의 3번째 행성이자 현재 생명체가 존재하는 것으로 확인된 유일한 천체는 무엇입니까?",
+        choices: ["수성", "화성", "금성", "지구"],
+        correctAnswerIndex: 3,
+        correctAnswerText: "지구"
+      })
+    }
 };
 
 function getFewShotMessages(topic) {
@@ -350,8 +363,8 @@ function createQuizPayload(topic, spellingData = null) {
       ...getFewShotMessages(topic),
       { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.` }
     ],
-    temperature: 0, 
-    max_tokens: 2250
+    temperature: 0.1, 
+    max_tokens: 2300
   };
 }
 
