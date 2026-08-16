@@ -366,9 +366,9 @@ function createQuizPayload(topic, spellingData = null) {
     messages: [
       { role: "system", content: systemPrompt },
       ...getFewShotMessages(topic),
-      { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요. (Request ID: ${timestamp}-${seedValue})` }
+      { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 항시 다른 내용으로 출제해주세요. (Request ID: ${timestamp}-${seedValue})` }
     ],
-    temperature: 0.1, 
+    temperature: 0.25, 
     max_tokens: 2300
   };
 }
