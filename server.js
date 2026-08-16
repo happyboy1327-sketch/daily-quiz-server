@@ -4,6 +4,8 @@ const cors = require('cors');
 const path = require('path');
 const seedrandom = require('seedrandom');
 const crypto = require('crypto');
+const cheerio = require('cheerio');
+
 const { createQuizPayload } = require('./prdPrompt');
 
 const app = express();
@@ -362,8 +364,7 @@ async function fetchJinaSpellingData() {
         });
         
         if (response.data) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(response.data, "text/html");
+            const $ = cheerio.load(response.data);
             
             // 1. '제N항'을 포함하는 h6 태그들만 탐색 (텍스트 추출은 아직 안 함)
             const ruleElements = Array.from(doc.querySelectorAll('h6'))
