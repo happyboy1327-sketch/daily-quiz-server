@@ -350,35 +350,64 @@ function validateSpellingAnswer(quiz) {
 
 
 // Jina 캐시 변수
-let cachedJinaSections = null;
-
 async function fetchJinaSpellingData() {
     try {
-        // 1. 최초 1회만 Jina로 전체 원문 스크레이핑
-        if (!cachedJinaSections) {
-            console.log("[Jina] 국립국어원 원문 수집 중...");
-            const targetUrl = "https://korean.go.kr/kornorms/m/m_regltn.do?#a";
-            const response = await axios.get(`https://r.jina.ai/${targetUrl}`, { timeout: 30000 });
+        console.log("[Jina] 국립국어원 무작위 단건 탐색 중...");
+        const targetUrl = "https://korean.go.kr/kornorms/m/m_regltn.do?#a";
+        
+        // Jina AI를 통해 HTML 형식으로 응답 수신
+        const response = await axios.get(`https://r.jina.ai/${targetUrl}`, {
+            headers: { 'Accept': 'text/html' },
+            timeout: 30000 
+        });
+        
+        if (response.data) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(response.data, "text/html");
             
-            if (response.data) {
-                // 원문을 "제N항" 단위로 분할하여 배열로 저장
-                const rawText = response.data;
-                const parsedSections = rawText
-                    .split(/(?=제\s*\d+\s*항)/g) // "제1항", "제2항" 기준으로 분할
-                    .map(s => s.trim())
-                    .filter(s => s.length > 20 && s.length < 2000); // 유효한 조항만 필터링
+            // 1. '제N항'을 포함하는 h6 태그들만 탐색 (텍스트 추출은 아직 안 함)
+            const ruleElements = Array.from(doc.querySelectorAll('h6'))
+                                      .filter(h6 => h6.textContent.trim().match(/^제\s*\d+\s*항/));
+            
+            if (ruleElements.length === 0) return null;
 
-                cachedJinaSections = parsedSections.length > 0 ? parsedSections : [rawText.slice(0, 1000)];
+            // 2. 💡 전체를 수집하지 않고, 여기서 무작위로 딱 1개만 선택!
+            const randomIndex = Math.floor(Math.random() * ruleElements.length);
+            const selectedRule = ruleElements[randomIndex];
+
+            // 3. 선택된 단 1개의 조항에 대해서만 텍스트 및 예시 추출
+            const ruleText = selectedRule.textContent.replace(/\s+/g, ' ').trim();
+            let exampleText = "";
+            
+            let nextSibling = selectedRule.closest('.black14_word') 
+                                ? selectedRule.closest('.black14_word').nextElementSibling 
+                                : selectedRule.nextElementSibling;
+            
+            while (nextSibling) {
+                // 다음 조항이나 큰 제목이 나오면 탐색 종료
+                if (nextSibling.querySelector('h6') || nextSibling.classList?.contains('black14_word') || nextSibling.tagName === 'H4' || nextSibling.tagName === 'H5') {
+                    break;
+                }
+                
+                // 긴 해설문(.explnaArea) 제외
+                if (nextSibling.classList?.contains('explnaArea')) {
+                    nextSibling = nextSibling.nextElementSibling;
+                    continue;
+                }
+                
+                // 예시 텍스트 누적
+                if (nextSibling.classList?.contains('subList_ex')) {
+                    exampleText += nextSibling.textContent.replace(/\s+/g, ' ').trim() + "\n";
+                }
+                
+                nextSibling = nextSibling.nextElementSibling;
             }
+            
+            // 4. 딱 1개의 조항만 포맷팅하여 바로 반환
+            const formattedRule = `[${ruleText}]\n\n[예시]\n${exampleText.trim() || '예시 없음'}`;
+            return [formattedRule];
         }
-
-        // 2. 수집된 조항 중 무작위 1개만 선택해서 반환 (토큰 사용량 95% 감소, 매번 다른 조항 출제)
-        if (cachedJinaSections && cachedJinaSections.length > 0) {
-            const randomIndex = Math.floor(Math.random() * cachedJinaSections.length);
-            const selectedRule = cachedJinaSections[randomIndex];
-            return [selectedRule]; // createQuizPayload의 Array.isArray 통과용
-        }
-
+        
         return null;
     } catch (error) {
         console.error("[Jina] 수집 실패, 백업 데이터 사용:", error.message);
