@@ -444,7 +444,9 @@ async function fetchNewQuizData() {
 
                     let spellingParam = SPELLING_DATA;
                     if (topic === "한글 맞춤법") {
-                        spellingParam = await fetchJinaSpellingData();
+                    const fetchedData = await fetchJinaSpellingData();
+             // 수집 성공 시 크롤링 데이터 사용, 실패(null/undefined) 시 기본 SPELLING_DATA 유지
+                    spellingParam = fetchedData || SPELLING_DATA; 
                     }
                     // 기존 createQuizPayload 호출
                     const payload = createQuizPayload(topic, spellingParam);
