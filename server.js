@@ -417,9 +417,6 @@ function fetchJinaSpellingData() {
 }
 
 // Node.js 실행 테스트
-fetchJinaSpellingData().then((result) => {
-    console.log("✅ 수집 결과:\n", result ? result[0] : "수집 실패");
-});
 
 async function fetchNewQuizData() {
     if (!MISTRAL_API_KEY) {
