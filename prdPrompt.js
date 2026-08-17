@@ -351,7 +351,7 @@ function createQuizPayload(topic, spellingData = null) {
       ...getFewShotMessages(topic),
       { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 항시 다른 내용으로 출제해주세요.` }
     ],
-    temperature: 0.25, 
+    temperature: 0.4, 
     max_tokens: 2300
   };
 }
