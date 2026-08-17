@@ -63,7 +63,7 @@ let fetchPromise = null;
 /**
  * 💡 [핵심 추가] 429 Too Many Requests 대응 지수 백오프 API 호출 래퍼
  */
-async function postWithRetry(url, payload, options = {}, maxRetries = 3, baseDelayMs = 2500) {
+async function postWithRetry(url, payload, options = {}, maxRetries = 2, baseDelayMs = 2500) {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
             return await axios.post(url, payload, options);
@@ -361,6 +361,7 @@ function fetchJinaSpellingData() {
         // Jina AI에 HTML 구조를 유지해달라는 헤더 설정
         const options = {
             headers: {
+                'Authorization': `Bearer ${process.env.JINA_API_KEY}`,
                 'Accept': 'text/html',
                 'X-Return-Format': 'html'
             }
