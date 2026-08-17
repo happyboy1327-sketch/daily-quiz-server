@@ -368,7 +368,28 @@ function fetchJinaSpellingData() {
         };
 
         https.get(url, options, (res) => {
-            let data = '';
+    // 429 원인 확인용
+    if (res.statusCode === 429) {
+        let errorData = '';
+
+        res.on('data', (chunk) => {
+            errorData += chunk;
+        });
+
+        res.on('end', () => {
+            console.error('[Jina 429]', {
+                statusCode: res.statusCode,
+                headers: res.headers,
+                body: errorData
+            });
+
+            resolve(null);
+        });
+
+        return;
+    }
+
+    let data = '';
 
             res.on('data', (chunk) => { data += chunk; });
 
