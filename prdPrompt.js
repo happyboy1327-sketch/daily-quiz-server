@@ -83,7 +83,7 @@ You MUST satisfy EVERY single rule below before outputting.
  */
 const FEW_SHOT_DATABASE = {
   "정치": [
-    { role: "user", content: "선택된 분야:\n정치\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n정치\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -98,7 +98,7 @@ const FEW_SHOT_DATABASE = {
   ],
   "역사": [
     // [유형 1: 한국사 - 인물 및 정변 타임라인 유형]
-    { role: "user", content: "선택된 분야:\n역사\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n역사\n\n공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -111,7 +111,7 @@ const FEW_SHOT_DATABASE = {
       })
     },
     // [유형 2: 세계사 - 배경 및 국가별 비교 유형]
-    { role: "user", content: "선택된 분야:\n역사\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n역사\n\n공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -125,7 +125,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "문화예술": [
-    { role: "user", content: "선택된 분야:\n문화예술\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n문화예술\n\n공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -139,7 +139,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "한글 맞춤법": [
-    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -153,7 +153,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "디지털 리터러시": [
-    { role: "user", content: "선택된 분야:\n디지털 리터러시\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n디지털 리터러시\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -167,7 +167,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "인권 리터러시": [
-    { role: "user", content: "선택된 분야:\n인권 리터러시\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n인권 리터러시\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -181,7 +181,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "환경": [
-    { role: "user", content: "선택된 분야:\n환경\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n환경\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -195,7 +195,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "과학": [
-    { role: "user", content: "선택된 분야:\n과학\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n과학\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -209,7 +209,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "코딩": [
-    { role: "user", content: "선택된 분야:\n코딩\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n코딩\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -222,23 +222,28 @@ const FEW_SHOT_DATABASE = {
       })
     }
   ],
-  "안전 및 건강상식": [
-    { role: "user", content: "선택된 분야:\n안전 및 건강상식\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
-    {
-      role: "assistant",
-      content: JSON.stringify({
-        topic: "안전 및 건강상식",
-        explanation: "정답은 가슴 뼈 중앙 아래쪽 절반 부위입니다. [출처: 질병관리청 및 대한심폐소생협회 KACPR 가이드라인] 가슴뼈(흉골) 중앙 아래쪽 절반 부위를 정확히 압박해야 장기 손상 위험을 줄이고 유효 혈류량을 확보할 수 있습니다.",
-        question: "심정지 환자 발생 시 시행하는 심폐소생술에서 가슴 압박의 올바른 위치는 어디입니까?",
-        choices: ["가슴 뼈 중앙 아래쪽 절반 부위", "왼쪽 흉부 심장 바로 위 부위", "명치 끝 부위", "쇄골 바로 아래 부위"],
-        correctAnswerIndex: 0,
-        correctAnswerText: "가슴 뼈 중앙 아래쪽 절반 부위"
-      })
-    }
+  "안전 및 건강상식":[
+     {role: "user", content: "선택된 분야:안전 및 건강상식\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요."},
+  {
+    role: "assistant",
+    content: JSON.stringify({
+    topic: "안전 및 건강상식",
+    explanation: "정답은 산불 발생 초기의 신속한 대응입니다. [출처: 산림청 2026년 산불 제대로 알기] 산불은 시간이 지남에 따라 피해면적과 화선이 급격하게 증가하므로 대형산불로 확대되기 전에 신속하게 초동대응하는 것이 중요합니다.",
+    question: "산림청이 산불 발생 초기의 신속한 대응을 중요하게 보는 이유는 무엇입니까?",
+    choices: [
+      "시간이 지남에 따라 피해면적과 화선이 급격하게 증가하기 때문",
+      "산불이 발생하면 일정 시간이 지나야 진화헬기를 투입할 수 있기 때문",
+      "산불은 초기에는 주변 지역으로 확산되지 않기 때문",
+      "산불의 피해 규모는 진화 시작 시점과 관계없이 일정하기 때문"
+    ],
+    correctAnswerIndex: 0,
+    correctAnswerText: "시간이 지남에 따라 피해면적과 화선이 급격하게 증가하기 때문"
+    })
+  }
   ],
   "경제": [
     // [유형 1: 미시경제 - 시장 구조 및 가격 결정 유형]
-    { role: "user", content: "선택된 분야:\n경제\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n경제\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -251,7 +256,7 @@ const FEW_SHOT_DATABASE = {
       })
     },
     // [유형 2: 거시경제 - 지표 정확성 및 지출 접근법 구성 요소 유형]
-    { role: "user", content: "선택된 분야:\n경제\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n경제\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -265,7 +270,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "지리": [
-    { role: "user", content: "선택된 분야:\n지리\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n지리\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -279,7 +284,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "심리학": [
-    { role: "user", content: "선택된 분야:\n심리학\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n심리학\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
