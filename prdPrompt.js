@@ -299,6 +299,9 @@ function getFewShotMessages(topic) {
 }
 
 function createQuizPayload(topic, spellingData = null) {
+  const randomSeed = Math.floor(Math.random() * 2147483647);
+  const randomDirective = Math.random().toString(36).slice(2, 10);
+
   let systemPrompt = PRD_SYSTEM_PROMPT;
 
   const shouldUseSpellingData =
@@ -315,7 +318,7 @@ function createQuizPayload(topic, spellingData = null) {
 
   return {
   model: MODEL_ID,
-  random_seed: Math.floor(Math.random() * 2147483647),
+  random_seed: randomSeed,
   response_format: {
     type: "json_schema",
     json_schema: {
@@ -349,7 +352,17 @@ function createQuizPayload(topic, spellingData = null) {
     messages: [
       { role: "system", content: systemPrompt },
       ...getFewShotMessages(topic),
-      { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 항시 내용이 다른 문제로 출제해주세요.` }
+      {
+  role: "user",
+  content: `선택된 분야:
+${topic}
+
+위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.
+
+출제 식별값: ${randomSeed}-${randomDirective}
+이전 출제와 다른 세부 주제와 사실을 선택하십시오.
+동일한 개념이나 정답을 반복하지 마십시오.`
+}
     ],
     temperature: 0.25, 
     max_tokens: 2800
