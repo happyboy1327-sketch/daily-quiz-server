@@ -44,7 +44,6 @@ You MUST satisfy EVERY single rule below before outputting.
   - Check if the combination forms a grammatically valid, standard Korean word.
   - If any distractor option forms a valid standard Korean word, IT IS INVALID AS A DISTRACTOR and MUST be replaced immediately with a misspelled form.
 
-
 ### 4. EXPLANATION CONSTRAINTS
 □ Explanation MUST begin EXACTLY with: 정답은 {correctAnswerText}입니다.
 □ Explain why the correct answer is right and why each distractor is wrong using ONLY verified real world facts.
@@ -72,7 +71,7 @@ You MUST satisfy EVERY single rule below before outputting.
 {
   "topic": "분야명",
   "explanation": "정답은 {correctAnswerText}입니다. [모든 오답의 명확한 근거 설명]",
-  "question": "[전제와 조건이 명확한 질문]",
+  "question": "[전제와 조건이 명확하고 질문]",
   "choices": ["보기1", "보기2", "보기3", "보기4"],
   "correctAnswerIndex": 0,
   "correctAnswerText": "보기1"
@@ -349,9 +348,9 @@ function createQuizPayload(topic, spellingData = null) {
     messages: [
       { role: "system", content: systemPrompt },
       ...getFewShotMessages(topic),
-      { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.\n매번 이전 문제와 다른 세부 주제와 사실을 무작위로 선택하십시오. 같은 사실을 표현만 바꾸어 반복하지 마십시오.` }
+      { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.` }
     ],
-    temperature: 0.35, 
+    temperature: 0.25, 
     max_tokens: 2800
   };
 }
