@@ -349,9 +349,9 @@ function createQuizPayload(topic, spellingData = null) {
     messages: [
       { role: "system", content: systemPrompt },
       ...getFewShotMessages(topic),
-      { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 항시 다른 내용으로 출제해주세요.` }
+      { role: "user", content: `선택된 분야:\n${topic}\n\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.\n매번 이전 문제와 다른 세부 주제와 사실을 무작위로 선택하십시오. 같은 사실을 표현만 바꾸어 반복하지 마십시오.` }
     ],
-    temperature: 0.3, 
+    temperature: 0.35, 
     max_tokens: 2800
   };
 }
