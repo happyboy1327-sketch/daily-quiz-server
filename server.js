@@ -454,7 +454,7 @@ async function fetchNewQuizData() {
         try {
             const rawQuizzes = new Array(selectedTopics.length);
             let topicIndex = 0;
-            const CONCURRENCY_LIMIT = 1;
+            const CONCURRENCY_LIMIT = 2;
 
             async function fetchWorker() {
                 while (topicIndex < selectedTopics.length) {
