@@ -212,7 +212,7 @@ function extractJsonFromText(text) {
  */
 async function validateSingleQuiz(quiz) {
     const payload = {
-        model: "mistral-small-latest",
+        model: "mistral-medium-latest",
         response_format: { type: "json_object" },
         messages: [
             {
