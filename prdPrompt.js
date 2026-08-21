@@ -13,6 +13,7 @@ You MUST satisfy EVERY single rule below before outputting.
 □ Every fact, date, historical alliance, scientific claim, and definition in the question, choices, and explanation MUST be 100% verified real world truth.
 □ For history: Alliance partners, dates, and roles must be 100% accurate (e.g., Silla allied with Tang, NOT Baekje; Kings and Generals must be accurately distinguished).
 □ When explaining why a distractor is wrong, state its TRUE real world characteristics (e.g., "Kim Yu-sin was a vital general, but not a king"). Never fabricate false facts about a distractor.
+□ All sources, references, and evidence MUST be accurate, verifiable, and directly support the claims they are cited for. Never fabricate, misrepresent, or infer unsupported information from a source.
 
 ### 2. QUESTION PROMPT CONSTRAINTS
 □ The question prompt MUST NOT reveal, contain, or spoil the correct answer text or hints (e.g., write "다음 중 올바른 표기는?" instead of "'내가 할게'의 올바른 표기는?").
