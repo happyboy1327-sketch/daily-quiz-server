@@ -331,6 +331,7 @@ function getFewShotMessages(topic) {
   return FEW_SHOT_DATABASE[topic] || [];
 }
 
+
 function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
   const randomSeed = Math.floor(Math.random() * 2147483647);
   const randomDirective = Math.random().toString(36).slice(2, 10);
@@ -341,53 +342,66 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
     topic === "한글 맞춤법" &&
     Array.isArray(spellingData) &&
     spellingData.length > 0 &&
-    Math.random() < 0.7;
+    Math.random() < 0.8;
 
   if (shouldUseSpellingData) {
     const selectedSpelling = spellingData[Math.floor(Math.random() * spellingData.length)];
     systemPrompt += `\n\n## Mandatory Spelling Reference Dataset\nWhen generating questions for "한글 맞춤법", you MUST strictly use the following dataset:\n${JSON.stringify(selectedSpelling, null, 2)}`;
   }
 
+  // 기본 스키마 정의
+  const properties = {
+    topic: { type: "string" },
+    explanation: { type: "string" },
+    question: { type: "string" },
+    choices: {
+      type: "array",
+      items: { type: "string" }
+    },
+    correctAnswerIndex: { type: "integer" },
+    correctAnswerText: { type: "string" }
+  };
+
+  const required = [
+    "topic",
+    "explanation",
+    "question",
+    "choices",
+    "correctAnswerIndex",
+    "correctAnswerText"
+  ];
+
+  // 토픽이 "한글 맞춤법"일 때만 morpheme_check 스키마 동적 주입
+  if (topic === "한글 맞춤법") {
+    properties.morpheme_check = {
+      type: "string",
+      description: "단어 분해만 10자 이내 작성 (예: 맏이=맏+이/맏형=맏+형)"
+    };
+    required.push("morpheme_check");
+  }
 
   return {
-  model: MODEL_ID,
-  random_seed: randomSeed,
-  response_format: {
-    type: "json_schema",
-    json_schema: {
-      name: "quiz_schema",
-      strict: true,
-      schema: {
-        type: "object",
-        properties: {
-          topic: { type: "string" },
-          explanation: { type: "string" },
-          question: { type: "string" },
-          choices: {
-            type: "array",
-            items: { type: "string" }
-          },
-          correctAnswerIndex: { type: "integer" },
-          correctAnswerText: { type: "string" }
-        },
-        required: [
-          "topic",
-          "explanation",
-          "question",
-          "choices",
-          "correctAnswerIndex",
-          "correctAnswerText"
-        ],
-        additionalProperties: false
+    model: MODEL_ID,
+    random_seed: randomSeed,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "quiz_schema",
+        strict: true,
+        schema: {
+          type: "object",
+          properties,
+          required,
+          additionalProperties: false
+        }
       }
-    }
-  },
+    },
     messages: [
       { role: "system", content: systemPrompt },
       ...getFewShotMessages(topic),
       {
-  role: "user",
-  content: `선택된 분야:
+        role: "user",
+        content:`선택된 분야:
 ${topic}
 
 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.
