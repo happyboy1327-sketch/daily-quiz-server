@@ -331,7 +331,7 @@ function getFewShotMessages(topic) {
   return FEW_SHOT_DATABASE[topic] || [];
 }
 
-function createQuizPayload(topic, spellingData = null) {
+function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
   const randomSeed = Math.floor(Math.random() * 2147483647);
   const randomDirective = Math.random().toString(36).slice(2, 10);
 
@@ -393,7 +393,10 @@ ${topic}
 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.
 
 출제 식별값: ${randomSeed}-${randomDirective}
-이전 출제와 다른 세부 주제와 사실을 선택하십시오.
+이전 세트 질문:
+${previousQuestions.join("\n")}
+
+위 질문들과 동일하거나 유사한 문제는 절대 출제하지 말고, 이전 출제와 다른 세부 주제와 사실을 선택하십시오.
 동일한 개념이나 정답을 반복하지 마십시오.`
 }
     ],
