@@ -468,7 +468,7 @@ async function fetchNewQuizData() {
                     spellingParam = fetchedData || SPELLING_DATA; 
                     }
                     // 기존 createQuizPayload 호출
-                    const payload = createQuizPayload(topic, spellingParam);
+                    const payload = createQuizPayload(topic, spellingParam, MASTER_QUIZ_DATA.map(q => q.question));
 
                     // postWithRetry 적용
                     const response = await postWithRetry(API_URL, payload, {
