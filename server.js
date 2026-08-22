@@ -700,7 +700,7 @@ async function fetchNewQuizData() {
         if (seen.has(norm)) return false; // 중복 제거 (첫 번째만 남김)
         seen.add(norm);
         return true;
-        }).slice(0, 3); // 앞에서 3개만 잘라냄
+        }); // 앞에서 3개만 잘라냄
 
     // 중복 제거 후 남은 보기가 3개 미만일 때만 에러 처리
         if (quiz.choices.length < 3) {
