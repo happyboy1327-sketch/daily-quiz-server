@@ -52,7 +52,7 @@ app.use((req, res, next) => {
     next();
 });
 
-const API_URL = "https://api.eu.mistral.ai/v1/chat/completions";
+const API_URL = "https://api.mistral.ai/v1/chat/completions";
 const ONE_HOUR = 3600000; 
 
 let MASTER_QUIZ_DATA = []; 
@@ -76,6 +76,11 @@ async function postWithRetry(
 
         } catch (err) {
             const status = err.response?.status;
+
+            console.log(
+                `[MISTRAL ${status}]`,
+                JSON.stringify(err.response?.data, null, 2)
+            );
 
             if (status === 429 && attempt < maxRetries) {
                 const delay = baseDelayMs * Math.pow(2, attempt);
