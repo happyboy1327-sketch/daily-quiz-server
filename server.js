@@ -693,13 +693,20 @@ async function fetchNewQuizData() {
                 throw new Error("필수 필드 누락");
             }
 
-            if (
-                hasDuplicateChoices(quiz) ||
-                quiz.choices.some(c => !c)
-            ) {
-                throw new Error("보기 중복 또는 빈 보기 발견");
-            }
+           const seen = new Set();
+           quiz.choices = quiz.choices.filter(c => {
+          if (!c) return false; // 빈 값 제거
+          const norm = normalizeChoice(c, quiz.topic).toLowerCase().trim();
+        if (seen.has(norm)) return false; // 중복 제거 (첫 번째만 남김)
+        seen.add(norm);
+        return true;
+        }).slice(0, 3); // 앞에서 3개만 잘라냄
 
+    // 중복 제거 후 남은 보기가 3개 미만일 때만 에러 처리
+        if (quiz.choices.length < 3) {
+          throw new Error("유효한 보기가 3개 미만입니다.");
+        }
+  
             if (
                 quiz.correctAnswerIndex < 0 ||
                 quiz.correctAnswerIndex > 3 ||
