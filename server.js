@@ -63,37 +63,40 @@ let fetchPromise = null;
 /**
  * 💡 [핵심 추가] 429 Too Many Requests 대응 지수 백오프 API 호출 래퍼
  */
-async function postWithRetry(url, payload, options = {}, maxRetries = 2, baseDelayMs = 2500) {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+async function postWithRetry(
+    url,
+    payload,
+    options = {},
+    maxRetries = 2,
+    baseDelayMs = 2500
+) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
             return await axios.post(url, payload, options);
+
         } catch (err) {
             const status = err.response?.status;
-            const isRateLimit = status === 429;
 
-            if (isRateLimit) {
-                console.warn(
-                    `[429 DEBUG] attempt=${attempt}/${maxRetries}`,
-                    `status=${status}`,
-                    `data=${JSON.stringify(err.response?.data)}`,
-                    `retry-after=${err.response?.headers?.['retry-after'] || 'none'}`
-                );
-            }
-
-            if ((isRateLimit || err.code === 'ECONNABORTED') && attempt < maxRetries) {
-                const delay = baseDelayMs * Math.pow(2, attempt - 1);
+            if (status === 429 && attempt < maxRetries) {
+                const delay = baseDelayMs * Math.pow(2, attempt);
 
                 console.warn(
-                    `[API RETRY] ${delay}ms 후 재시도 (${attempt}/${maxRetries})`
+                    `[429] ${delay}ms 대기 후 재시도 (${attempt + 1}/${maxRetries})`
                 );
 
-                await new Promise(res => setTimeout(res, delay));
-            } else {
-                throw err;
+                await new Promise(resolve =>
+                    setTimeout(resolve, delay)
+                );
+
+                continue;
             }
+
+            throw err;
         }
     }
 }
+
+
 const SPELLING_DATA = [
     { id: "SPACING_DEPENDENT_NOUN_IL", category: "의존 명사", allowed: ["할 일"], forbidden: ["할일"], questionType: "single_correct", explanation: "'일'은 의존 명사이므로 앞말과 띄어 쓴다." },
     { id: "SPACING_DEPENDENT_NOUN_GAJI", category: "의존 명사", allowed: ["몇 가지"], forbidden: ["몇가지"], questionType: "single_correct", explanation: "'가지'는 의존 명사이므로 앞말과 띄어 쓴다." },
@@ -458,203 +461,383 @@ async function fetchNewQuizData() {
     }
 
     const selectedTopics = getSelectedTopics();
-    console.log(`[API] 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`);
 
+    console.log(
+        `[API] 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`
+    );
 
-    for (let generationAttempt = 1; generationAttempt <= 3; generationAttempt++) {
-        try {
-            const rawQuizzes = new Array(selectedTopics.length);
-            let topicIndex = 0;
-            const CONCURRENCY_LIMIT = 2;
+    const rawQuizzes = new Array(selectedTopics.length);
+    let topicIndex = 0;
 
-            async function fetchWorker() {
-                while (topicIndex < selectedTopics.length) {
-                    const currentIndex = topicIndex++;
-                    const topic = selectedTopics[currentIndex];
+    const CONCURRENCY_LIMIT = 2;
 
-                    let spellingParam = SPELLING_DATA;
-                    if (topic === "한글 맞춤법") {
+    async function fetchWorker(workerId) {
+        while (true) {
+            const currentIndex = topicIndex++;
+
+            if (currentIndex >= selectedTopics.length) {
+                break;
+            }
+
+            const topic = selectedTopics[currentIndex];
+
+            try {
+                let spellingParam = SPELLING_DATA;
+
+                if (topic === "한글 맞춤법") {
                     const fetchedData = await fetchJinaSpellingData();
-             // 수집 성공 시 크롤링 데이터 사용, 실패(null/undefined) 시 기본 SPELLING_DATA 유지
-                    spellingParam = fetchedData || SPELLING_DATA; 
-                    }
-                    // 기존 createQuizPayload 호출
-                    const payload = createQuizPayload(topic, spellingParam, MASTER_QUIZ_DATA.map(q => q.question));
+                    spellingParam = fetchedData || SPELLING_DATA;
+                }
 
-                    // postWithRetry 적용
-                    const response = await postWithRetry(API_URL, payload, {
+                const payload = createQuizPayload(topic, spellingParam);
+
+                console.log(
+                    `[WORKER ${workerId}] ${topic} 생성 시작`
+                );
+
+                const response = await postWithRetry(
+                    API_URL,
+                    payload,
+                    {
                         headers: {
                             'Authorization': `Bearer ${MISTRAL_API_KEY}`,
                             'Content-Type': 'application/json'
                         },
                         timeout: 30000
-                    });
+                    },
+                    2,
+                    2500
+                );
 
-                    const message = response.data?.choices?.[0]?.message;
-                    if (!message?.content) throw new Error(`[${topic}] API 응답이 비어있습니다.`);
+                const message = response.data?.choices?.[0]?.message;
 
-                    let rawContent = message.content;
-                    if (Array.isArray(rawContent)) {
-                        const textPart = rawContent.find(p => p.type === "text" && typeof p.text === "string");
-                        rawContent = textPart?.text;
-                    }
-
-                    if (typeof rawContent === "string") {
-                   rawContent = rawContent.replace(/\u00a0/g, ' ').trim();
-                   }
-                    // 📍 [검증 1] API가 내뱉은 생 원본 텍스트 확인
-                    console.log(`\n=== [1. API Raw Content - ${topic}] ===\n`, rawContent);
-
-                    const cleanJson = extractJsonFromText(rawContent);
-                    console.log(`\n=== [2. Cleaned JSON Text - ${topic}] ===\n`, cleanJson);
-                    const parsed = JSON.parse(cleanJson);
-                    
-                    const quiz = parsed.quizzes ? parsed.quizzes[0] : parsed;
-                    console.log(`\n=== [3. Parsed Choices - ${topic}] ===\n`, quiz?.choices);
-
-                    if (quiz) {
-                        quiz.topic = topic;
-                    }
-
-                    rawQuizzes[currentIndex] = quiz;
-                    // API 연속 충격 완화를 위한 300ms 딜레이
-                    await new Promise(res => setTimeout(res, 900));
+                if (!message?.content) {
+                    throw new Error("API 응답이 비어있습니다.");
                 }
+
+                let rawContent = message.content;
+
+                if (Array.isArray(rawContent)) {
+                    const textPart = rawContent.find(
+                        p => p.type === "text" &&
+                             typeof p.text === "string"
+                    );
+
+                    rawContent = textPart?.text;
+                }
+
+                if (typeof rawContent === "string") {
+                    rawContent = rawContent
+                        .replace(/\u00a0/g, ' ')
+                        .trim();
+                }
+
+                console.log(
+                    `\n=== [1. API Raw Content - ${topic}] ===\n`,
+                    rawContent
+                );
+
+                const cleanJson = extractJsonFromText(rawContent);
+
+                console.log(
+                    `\n=== [2. Cleaned JSON Text - ${topic}] ===\n`,
+                    cleanJson
+                );
+
+                const parsed = JSON.parse(cleanJson);
+
+                const quiz = parsed.quizzes
+                    ? parsed.quizzes[0]
+                    : parsed;
+
+                console.log(
+                    `\n=== [3. Parsed Choices - ${topic}] ===\n`,
+                    quiz?.choices
+                );
+
+                if (!quiz) {
+                    throw new Error("퀴즈 데이터가 없습니다.");
+                }
+
+                quiz.topic = topic;
+
+                rawQuizzes[currentIndex] = quiz;
+
+                console.log(
+                    `[WORKER ${workerId}] ✅ ${topic} 생성 성공`
+                );
+
+                // 워커 간 요청 간격
+                await new Promise(resolve =>
+                    setTimeout(resolve, 1000)
+                );
+
+            } catch (error) {
+                console.error(
+                    `[WORKER ${workerId}] ❌ ${topic} 생성 실패:`,
+                    error.response?.status || error.message
+                );
+
+                // 중요:
+                // 여기서 throw하지 않는다.
+                // 해당 분야만 실패시키고 다음 분야로 진행한다.
+                rawQuizzes[currentIndex] = null;
+
+                continue;
             }
-
-            const workers = Array.from(
-           { length: CONCURRENCY_LIMIT },
-            (_, i) =>
-                i === 0
-            ? fetchWorker()
-            : (async () => {
-                await new Promise(res => setTimeout(res, 1000));
-                return fetchWorker();
-            })()
-         );
-
-            await Promise.all(workers);
-
-            if (rawQuizzes.some(q => !q)) {
-                throw new Error("일부 퀴즈 생성 실패");
-            }
-
-            const processedQuizzes = [];
-            const topicSet = new Set();
-
-            for (let quiz of rawQuizzes) {
-                console.log(`\n=== [4. Before autoFix - ${quiz.topic}] ===\n`, quiz.choices);
-                quiz = autoFixQuiz(quiz);
-
-                console.log(`\n=== [5. After autoFix - ${quiz.topic}] ===\n`, quiz.choices);
-
-                const fullText = [quiz.question, ...quiz.choices, quiz.explanation, quiz.correctAnswerText].join(" ");
-                if (HANJA_AND_FOREIGN_REGEX.test(fullText)) {
-                    const badChars = [...new Set([...fullText].filter(c => HANJA_AND_FOREIGN_REGEX.test(c)))];
-                    console.log("❌ 차단된 문자 목록:", badChars);
-                    throw new Error(`금지된 한자/외국 문자 포함: ${badChars.join(", ")}`);
-                }
-
-                if (!validateSpellingAnswer(quiz)) {
-                    throw new Error("한글 맞춤법: 질문 유형(긍정/부정)과 정답 표기 불일치");
-                }
-
-                if (!quiz.topic || !quiz.question || !Array.isArray(quiz.choices) || 
-                    !quiz.correctAnswerText || typeof quiz.correctAnswerIndex !== "number" || !quiz.explanation) {
-                    throw new Error("필수 필드 누락");
-                }
-
-                if (hasDuplicateChoices(quiz) || quiz.choices.some(c => !c)) {
-                    throw new Error("보기 중복 또는 빈 보기 발견");
-                }
-
-                if (quiz.correctAnswerIndex < 0 || quiz.correctAnswerIndex > 3 || 
-                    quiz.choices[quiz.correctAnswerIndex] !== quiz.correctAnswerText) {
-                    throw new Error("정답 인덱스/텍스트 불일치");
-                }
-
-                const targetPrefix = `정답은 ${quiz.correctAnswerText}입니다.`;
-                const trimmedExp = quiz.explanation.trim();
-
-                if (!trimmedExp.startsWith(targetPrefix)) {
-                    const splitIndex = trimmedExp.indexOf('입니다.');
-                    if (splitIndex !== -1) {
-                        const cleanExp = trimmedExp.slice(splitIndex + 4).trim();
-                        quiz.explanation = `${targetPrefix} ${cleanExp}`;
-                    }
-                }
-
-                if (!selectedTopics.includes(quiz.topic) || topicSet.has(quiz.topic)) {
-                    throw new Error(`분야 오류 또는 중복 분야: ${quiz.topic}`);
-                }
-
-                topicSet.add(quiz.topic);
-                processedQuizzes.push(quiz);
-            }
-
-            processedQuizzes.forEach((quiz, idx) => {
-                const originalText = quiz.choices[quiz.correctAnswerIndex] || quiz.correctAnswerText;
-                const originalChoices = [...quiz.choices];
-
-                shuffleArray(quiz.choices, `${Date.now()}_${idx}`);
-
-                let newIndex = quiz.choices.indexOf(originalText);
-                if (newIndex === -1 && originalText) {
-                    const cleanTarget = originalText.replace(/[\s\.]/g, '');
-                    newIndex = quiz.choices.findIndex(c => c.replace(/[\s\.]/g, '') === cleanTarget);
-                }
-
-                if (newIndex !== -1) {
-                    quiz.correctAnswerIndex = newIndex;
-                    quiz.correctAnswerText = quiz.choices[newIndex];
-                } else {
-                    quiz.correctAnswerIndex = 0;
-                    quiz.correctAnswerText = quiz.choices[0];
-                }
-
-                if (quiz.explanation) {
-                    for (let i = 0; i < originalChoices.length; i++) {
-                        const oldNumText = `${i + 1}번`;
-                        quiz.explanation = quiz.explanation.replaceAll(oldNumText, `__TEMP_${i}__`);
-                    }
-
-                    for (let i = 0; i < originalChoices.length; i++) {
-                        const movedIndex = quiz.choices.indexOf(originalChoices[i]);
-                        if (movedIndex !== -1) {
-                            const newNumText = `${movedIndex + 1}번`;
-                            quiz.explanation = quiz.explanation.replaceAll(`__TEMP_${i}__`, newNumText);
-                        }
-                    }
-                }
-            });
-
-            console.log(`[API] AI 2차 문항별 병렬 크로스 팩트체크 수행 중...`);
-            const validation = await validateQuizAccuracy(processedQuizzes);
-            if (!validation.valid) {
-                throw new Error(`AI 교차 검증 실패: ${validation.reason}`);
-            }
-
-            MASTER_QUIZ_DATA = processedQuizzes.map((q, idx) => ({
-                id: idx + 1,
-                topic: q.topic,
-                question: q.question,
-                choices: q.choices,
-                correctAnswerIndex: q.correctAnswerIndex,
-                correctAnswerText: q.correctAnswerText,
-                explanation: q.explanation
-            }));
-            
-            LAST_FETCH_TIME = Date.now();
-            LAST_TOPICS = [...selectedTopics];
-            console.log(`[API] 퀴즈 생성 및 병렬 2차 검증 최종 승인 완료 (${MASTER_QUIZ_DATA.length}개)`);
-            return true;
-        } catch (error) {
-            console.error(`[DATA ERROR] 시도 ${generationAttempt}/3 실패:`, error.message);
-            if (generationAttempt === 3) return false;
-            // 실패 시 재시도 대기시간을 2초에서 3.5초로 증대
-            await new Promise(resolve => setTimeout(resolve, 3500));
         }
     }
+
+    // 워커 1, 워커 2를 1초 시간차로 시작
+    const worker1 = fetchWorker(1);
+
+    await new Promise(resolve =>
+        setTimeout(resolve, 1000)
+    );
+
+    const worker2 = fetchWorker(2);
+
+    await Promise.all([worker1, worker2]);
+
+    // 성공한 문제만 추출
+    const successfulQuizzes = rawQuizzes.filter(Boolean);
+
+    console.log(
+        `[API] 생성 완료: ${successfulQuizzes.length}/${selectedTopics.length}개 성공`
+    );
+
+    if (successfulQuizzes.length === 0) {
+        console.error("[DATA FAIL] 생성된 퀴즈가 없습니다.");
+        return false;
+    }
+
+    const processedQuizzes = [];
+    const topicSet = new Set();
+
+    for (let quiz of successfulQuizzes) {
+        try {
+            console.log(
+                `\n=== [4. Before autoFix - ${quiz.topic}] ===\n`,
+                quiz.choices
+            );
+
+            quiz = autoFixQuiz(quiz);
+
+            console.log(
+                `\n=== [5. After autoFix - ${quiz.topic}] ===\n`,
+                quiz.choices
+            );
+
+            const fullText = [
+                quiz.question,
+                ...quiz.choices,
+                quiz.explanation,
+                quiz.correctAnswerText
+            ].join(" ");
+
+            if (HANJA_AND_FOREIGN_REGEX.test(fullText)) {
+                const badChars = [
+                    ...new Set(
+                        [...fullText].filter(
+                            c => HANJA_AND_FOREIGN_REGEX.test(c)
+                        )
+                    )
+                ];
+
+                throw new Error(
+                    `금지된 한자/외국 문자 포함: ${badChars.join(", ")}`
+                );
+            }
+
+            if (!validateSpellingAnswer(quiz)) {
+                throw new Error(
+                    "한글 맞춤법: 질문 유형(긍정/부정)과 정답 표기 불일치"
+                );
+            }
+
+            if (
+                !quiz.topic ||
+                !quiz.question ||
+                !Array.isArray(quiz.choices) ||
+                !quiz.correctAnswerText ||
+                typeof quiz.correctAnswerIndex !== "number" ||
+                !quiz.explanation
+            ) {
+                throw new Error("필수 필드 누락");
+            }
+
+            if (
+                hasDuplicateChoices(quiz) ||
+                quiz.choices.some(c => !c)
+            ) {
+                throw new Error("보기 중복 또는 빈 보기 발견");
+            }
+
+            if (
+                quiz.correctAnswerIndex < 0 ||
+                quiz.correctAnswerIndex > 3 ||
+                quiz.choices[quiz.correctAnswerIndex] !==
+                    quiz.correctAnswerText
+            ) {
+                throw new Error(
+                    "정답 인덱스/텍스트 불일치"
+                );
+            }
+
+            const targetPrefix =
+                `정답은 ${quiz.correctAnswerText}입니다.`;
+
+            const trimmedExp =
+                quiz.explanation.trim();
+
+            if (!trimmedExp.startsWith(targetPrefix)) {
+                const splitIndex =
+                    trimmedExp.indexOf("입니다.");
+
+                if (splitIndex !== -1) {
+                    const cleanExp =
+                        trimmedExp
+                            .slice(splitIndex + 4)
+                            .trim();
+
+                    quiz.explanation =
+                        `${targetPrefix} ${cleanExp}`;
+                }
+            }
+
+            if (
+                !selectedTopics.includes(quiz.topic) ||
+                topicSet.has(quiz.topic)
+            ) {
+                throw new Error(
+                    `분야 오류 또는 중복 분야: ${quiz.topic}`
+                );
+            }
+
+            topicSet.add(quiz.topic);
+            processedQuizzes.push(quiz);
+
+        } catch (error) {
+            console.error(
+                `[PROCESS FAIL] ${quiz.topic}: ${error.message}`
+            );
+
+            // 이 문제만 제외
+            continue;
+        }
+    }
+
+    if (processedQuizzes.length === 0) {
+        console.error(
+            "[DATA FAIL] 검증 가능한 퀴즈가 없습니다."
+        );
+        return false;
+    }
+
+    // 보기 섞기
+    processedQuizzes.forEach((quiz, idx) => {
+        const originalText =
+            quiz.choices[quiz.correctAnswerIndex] ||
+            quiz.correctAnswerText;
+
+        const originalChoices = [...quiz.choices];
+
+        shuffleArray(
+            quiz.choices,
+            `${Date.now()}_${idx}`
+        );
+
+        let newIndex =
+            quiz.choices.indexOf(originalText);
+
+        if (newIndex === -1 && originalText) {
+            const cleanTarget =
+                originalText.replace(/[\s\.]/g, '');
+
+            newIndex = quiz.choices.findIndex(
+                c =>
+                    c.replace(/[\s\.]/g, '') ===
+                    cleanTarget
+            );
+        }
+
+        if (newIndex !== -1) {
+            quiz.correctAnswerIndex = newIndex;
+            quiz.correctAnswerText =
+                quiz.choices[newIndex];
+        } else {
+            quiz.correctAnswerIndex = 0;
+            quiz.correctAnswerText =
+                quiz.choices[0];
+        }
+
+        if (quiz.explanation) {
+            for (let i = 0; i < originalChoices.length; i++) {
+                const oldNumText = `${i + 1}번`;
+
+                quiz.explanation =
+                    quiz.explanation.replaceAll(
+                        oldNumText,
+                        `__TEMP_${i}__`
+                    );
+            }
+
+            for (let i = 0; i < originalChoices.length; i++) {
+                const movedIndex =
+                    quiz.choices.indexOf(
+                        originalChoices[i]
+                    );
+
+                if (movedIndex !== -1) {
+                    const newNumText =
+                        `${movedIndex + 1}번`;
+
+                    quiz.explanation =
+                        quiz.explanation.replaceAll(
+                            `__TEMP_${i}__`,
+                            newNumText
+                        );
+                }
+            }
+        }
+    });
+
+    // AI 2차 검증
+    console.log(
+        `[API] AI 2차 문항별 병렬 크로스 팩트체크 수행 중...`
+    );
+
+    const validation =
+        await validateQuizAccuracy(processedQuizzes);
+
+    if (!validation.valid) {
+        console.error(
+            `[VALIDATION] 일부 검증 실패: ${validation.reason}`
+        );
+
+        // 전체 generationAttempt를 다시 돌리지 않음.
+        // 검증 결과가 전체 실패라면 현재 세트는 실패 처리.
+        return false;
+    }
+
+    MASTER_QUIZ_DATA = processedQuizzes.map((q, idx) => ({
+        id: idx + 1,
+        topic: q.topic,
+        question: q.question,
+        choices: q.choices,
+        correctAnswerIndex: q.correctAnswerIndex,
+        correctAnswerText: q.correctAnswerText,
+        explanation: q.explanation
+    }));
+
+    LAST_FETCH_TIME = Date.now();
+    LAST_TOPICS = [...selectedTopics];
+
+    console.log(
+        `[API] 퀴즈 생성 및 병렬 2차 검증 최종 승인 완료 (${MASTER_QUIZ_DATA.length}개)`
+    );
+
+    return true;
 }
 
 async function ensureDataFreshness() {
