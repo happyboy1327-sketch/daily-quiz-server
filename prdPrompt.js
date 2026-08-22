@@ -334,8 +334,6 @@ function getFewShotMessages(topic) {
 
 
 function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
-  const randomSeed = Math.floor(Math.random() * 2147483647);
-  const randomDirective = Math.random().toString(36).slice(2, 10);
 
   let systemPrompt = PRD_SYSTEM_PROMPT;
 
@@ -383,7 +381,6 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
 
   return {
     model: MODEL_ID,
-    random_seed: randomSeed,
     response_format: {
       type: "json_schema",
       json_schema: {
@@ -407,7 +404,6 @@ ${topic}
 
 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.
 
-출제 식별값: ${randomSeed}-${randomDirective}
 이전 세트 질문:
 ${previousQuestions.join("\n")}
 
