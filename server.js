@@ -52,7 +52,7 @@ app.use((req, res, next) => {
     next();
 });
 
-const API_URL = "https://api.mistral.ai/v1/chat/completions";
+const API_URL = "https://api.eu.mistral.ai/v1/chat/completions";
 const ONE_HOUR = 3600000; 
 
 let MASTER_QUIZ_DATA = []; 
