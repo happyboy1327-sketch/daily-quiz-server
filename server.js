@@ -231,7 +231,7 @@ function extractJsonFromText(text) {
  */
 async function validateSingleQuiz(quiz) {
     const payload = {
-        model: "solar-pro3",
+        model: "solar-pro4",
         response_format: { type: "json_object" },
         messages: [
             {
