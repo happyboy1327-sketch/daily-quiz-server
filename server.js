@@ -270,7 +270,7 @@ REJECT (valid: false) if any rule fails.
             }
         ],
         temperature: 0,
-        max_tokens: 1250
+        max_tokens: 1400
     };
 
     try {
