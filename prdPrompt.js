@@ -1,4 +1,4 @@
-const MODEL_ID = "labs-leanstral-1-5-1";
+const MODEL_ID = "mistral-medium-latest";
 
 const PRD_SYSTEM_PROMPT = `
 You MUST generate 100% fact-checked, diverse Korean general knowledge quizzes based on South Korean context, using single definitive answers and plausible wrong options.
