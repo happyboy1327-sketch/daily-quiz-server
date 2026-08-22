@@ -70,11 +70,23 @@ async function postWithRetry(url, payload, options = {}, maxRetries = 2, baseDel
         } catch (err) {
             const status = err.response?.status;
             const isRateLimit = status === 429;
-            
+
+            if (isRateLimit) {
+                console.warn(
+                    `[429 DEBUG] attempt=${attempt}/${maxRetries}`,
+                    `status=${status}`,
+                    `data=${JSON.stringify(err.response?.data)}`,
+                    `retry-after=${err.response?.headers?.['retry-after'] || 'none'}`
+                );
+            }
+
             if ((isRateLimit || err.code === 'ECONNABORTED') && attempt < maxRetries) {
-                // 429 감지 시 지수 대기시간 적용 (2.5초, 5초, 10초)
                 const delay = baseDelayMs * Math.pow(2, attempt - 1);
-                console.warn(`[API 429 감지] 요청 제한 발생. ${delay}ms 대기 후 재시도합니다... (${attempt}/${maxRetries})`);
+
+                console.warn(
+                    `[API RETRY] ${delay}ms 후 재시도 (${attempt}/${maxRetries})`
+                );
+
                 await new Promise(res => setTimeout(res, delay));
             } else {
                 throw err;
@@ -82,7 +94,6 @@ async function postWithRetry(url, payload, options = {}, maxRetries = 2, baseDel
         }
     }
 }
-
 const SPELLING_DATA = [
     { id: "SPACING_DEPENDENT_NOUN_IL", category: "의존 명사", allowed: ["할 일"], forbidden: ["할일"], questionType: "single_correct", explanation: "'일'은 의존 명사이므로 앞말과 띄어 쓴다." },
     { id: "SPACING_DEPENDENT_NOUN_GAJI", category: "의존 명사", allowed: ["몇 가지"], forbidden: ["몇가지"], questionType: "single_correct", explanation: "'가지'는 의존 명사이므로 앞말과 띄어 쓴다." },
@@ -259,7 +270,7 @@ REJECT (valid: false) if any rule fails.
             }
         ],
         temperature: 0,
-        max_tokens: 1350
+        max_tokens: 1250
     };
 
     try {
@@ -512,9 +523,15 @@ async function fetchNewQuizData() {
             }
 
             const workers = Array.from(
-                { length: Math.min(CONCURRENCY_LIMIT, selectedTopics.length) },
-                () => fetchWorker()
-            );
+           { length: CONCURRENCY_LIMIT },
+            (_, i) =>
+                i === 0
+            ? fetchWorker()
+            : (async () => {
+                await new Promise(res => setTimeout(res, 1000));
+                return fetchWorker();
+            })()
+         );
 
             await Promise.all(workers);
 
