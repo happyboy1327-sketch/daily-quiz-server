@@ -10,12 +10,12 @@ const cheerio = require('cheerio');
 const { createQuizPayload } = require('./prdPrompt');
 
 const app = express();
-const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
+const UPSTAGE_API_KEY = process.env.UPSTAGE_API_KEY;
 
 const SERVER_START_TIME = Date.now();
 const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 
-const TOKEN_SECRET = process.env.TOKEN_SECRET || MISTRAL_API_KEY || 'default-quiz-secret-key-32bytes';
+const TOKEN_SECRET = process.env.TOKEN_SECRET || UPSTAGE_API_KEY || 'default-quiz-secret-key-32bytes';
 const ENCRYPTION_KEY = crypto.createHash('sha256').update(String(TOKEN_SECRET)).digest();
 const ALGORITHM = 'aes-256-gcm';
 
@@ -52,7 +52,7 @@ app.use((req, res, next) => {
     next();
 });
 
-const API_URL = "https://api.mistral.ai/v1/chat/completions";
+const API_URL = "https://api.upstage.ai/v1/chat/completions";
 const ONE_HOUR = 3600000; 
 
 let MASTER_QUIZ_DATA = []; 
@@ -78,7 +78,7 @@ async function postWithRetry(
             const status = err.response?.status;
 
             console.log(
-                `[MISTRAL ${status}]`,
+                `[UPSTAGE ${status}]`,
                 JSON.stringify(err.response?.data, null, 2)
             );
 
@@ -231,7 +231,7 @@ function extractJsonFromText(text) {
  */
 async function validateSingleQuiz(quiz) {
     const payload = {
-        model: "mistral-medium-latest",
+        model: "solar-pro3",
         response_format: { type: "json_object" },
         messages: [
             {
@@ -285,7 +285,7 @@ REJECT (valid: false) if any rule fails.
         // postWithRetry 적용
         const response = await postWithRetry(API_URL, payload, {
             headers: {
-                'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+                'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
                 'Content-Type': 'application/json'
             },
             timeout: 27000
@@ -460,8 +460,8 @@ function fetchJinaSpellingData() {
 // Node.js 실행 테스트
 
 async function fetchNewQuizData() {
-    if (!MISTRAL_API_KEY) {
-        console.error("[ERROR] MISTRAL_API_KEY 환경변수가 설정되지 않았습니다.");
+    if (!UPSTAGE_API_KEY) {
+        console.error("[ERROR] UPSTAGE_API_KEY 환경변수가 설정되지 않았습니다.");
         return false;
     }
 
@@ -505,7 +505,7 @@ async function fetchNewQuizData() {
                     payload,
                     {
                         headers: {
-                            'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+                            'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
                             'Content-Type': 'application/json'
                         },
                         timeout: 30000
