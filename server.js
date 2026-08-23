@@ -175,7 +175,19 @@ const SPELLING_DATA = [
     { id: "RULE_DAERO_DAERO", category: "띄어쓰기", allowed: ["들은 대로 말하다", "아는 대로 하다", "법대로 처리하다", "예정대로 진행하다", "마음대로 하다"], forbidden: ["들은대로 말하다", "아는대로 하다", "법 대로 처리하다", "예정 대로 진행하다", "마음 대로 하다"], questionType: "single_correct", explanation: "'대로'는 의존 명사로 쓰이면 앞말과 띄어 쓰고, 조사로 쓰이면 앞말에 붙여 쓴다." },
     { id: "RULE_MANKEUM_MANKEUM", category: "띄어쓰기", allowed: ["노력한 만큼", "먹을 만큼 먹다", "너만큼 잘하다", "그만큼 중요하다", "나만큼은 안다"], forbidden: ["노력한만큼", "먹을만큼 먹다", "너 만큼 잘하다", "그 만큼 중요하다", "나 만큼은 안다"], questionType: "single_correct", explanation: "'만큼'은 의존 명사로 쓰이면 앞말과 띄어 쓰고, 조사로 쓰이면 앞말에 붙여 쓴다." },
     { id: "RULE_LGE_LGE", category: "표기", allowed: ["내가 할게", "다녀올게", "연락할게", "어디로 갈까"], forbidden: ["내가 할께", "다녀올께", "연락할께", "어디로 갈가"], questionType: "single_correct", explanation: "소리는 된소리로 나더라도 약속이나 의지를 나타내는 '-ㄹ게'는 '-ㄹ께'로 적지 않는다. 반면 '-ㄹ까'는 '까'로 적는다." },
-    { id: "RULE_ISSDA_EOPDA", category: "표기", allowed: ["있어", "있고", "있으니", "없어", "없고", "없으니"], forbidden: ["이써", "이꼬", "이쓰니", "업써", "업꼬", "업쓰니"], questionType: "single_correct", explanation: "'있다'와 '없다'의 활용형은 발음대로 적지 않고 형태를 밝혀 적는다." }
+    { id: "RULE_ISSDA_EOPDA", category: "표기", allowed: ["있어", "있고", "있으니", "없어", "없고", "없으니"], forbidden: ["이써", "이꼬", "이쓰니", "업써", "업꼬", "업쓰니"], questionType: "single_correct", explanation: "'있다'와 '없다'의 활용형은 발음대로 적지 않고 형태를 밝혀 적는다." },
+  
+  // [제7항] 'ㄷ' 소리로 나는 받침 중 'ㄷ'으로 적을 근거가 없는 것은 'ㅅ'으로 적음
+    { id: "ARTICLE7_SUTJEOPDA", category: "한글 맞춤법 제7항", allowed: ["숫접다", "숫접어", "숫접은", "숫접게"], forbidden: ["숟접다", "숟접어", "숟접은", "숟접게"], questionType: "single_correct", explanation: "'ㄷ' 소리로 나는 받침 중에서 'ㄷ'으로 적을 근거가 없으므로 'ㅅ'으로 적은 '숫접다'가 올바른 표기이다." },
+    { id: "ARTICLE7_DEOTNATDA", category: "한글 맞춤법 제7항", allowed: ["덧나다", "덧나", "덧나니", "덧나는"], forbidden: ["덛나다", "덛나", "덛나니", "덛나는"], questionType: "single_correct", explanation: "'ㄷ' 소리로 나는 받침 중에서 'ㄷ'으로 적을 근거가 없으므로 'ㅅ'으로 적은 '덧나다'가 올바른 표기이다." },
+
+  // [제28항] 끝소리가 'ㄹ'인 말에 딴 말이 어울릴 때 'ㄹ' 소리가 탈락하는 경우
+    { id: "ARTICLE28_SSAJEON", category: "한글 맞춤법 제28항", allowed: ["싸전", "싸전에", "싸전을", "싸전으로"], forbidden: ["쌀전", "쌀전에", "쌀전을", "쌀전으로"], questionType: "single_correct", explanation: "'쌀'과 가게를 뜻하는 '전(廛)'이 결합할 때 'ㄹ' 소리가 탈락하므로 소리 나는 대로 '싸전'으로 적는다." },
+    { id: "ARTICLE28_BUSAP", category: "한글 맞춤법 제28항", allowed: ["부삽", "부삽으로", "부삽을", "부삽에"], forbidden: ["불삽", "불삽으로", "불삽을", "불삽에"], questionType: "single_correct", explanation: "'불'과 '삽'이 결합할 때 'ㄹ' 소리가 탈락하므로 소리 나는 대로 '부삽'으로 적는다." },
+
+  // [제29항] 끝소리가 'ㄹ'인 말에 딴 말이 어울릴 때 'ㄹ' 소리가 'ㄷ' 소리로 바뀌는 경우
+    { id: "ARTICLE29_JADDADEUMDA", category: "한글 맞춤법 제29항", allowed: ["잗다듬다", "잗다듬어", "잗다듬는", "잗다듬고"], forbidden: ["잘다듬다", "잘다듬어", "잘다듬는", "잘다듬고"], questionType: "single_correct", explanation: "'잘'과 '다듬다'가 결합할 때 'ㄹ' 소리가 'ㄷ' 소리로 바뀌어 나므로 '잗다듬다'로 적는다." },
+    { id: "ARTICLE29_SAHEUTNAL", category: "한글 맞춤법 제29항", allowed: ["사흗날", "사흗날에", "사흗날의", "사흗날부터"], forbidden: ["사흘날", "사흘날에", "사흘날의", "사흘날부터"], questionType: "single_correct", explanation: "'사흘'과 '날'이 결합할 때 'ㄹ' 소리가 'ㄷ' 소리로 바뀌어 나므로 '사흗날'로 적는다." }    
 ];
 
 const ALL_TOPICS = [
