@@ -221,10 +221,6 @@ function normalizeChoice(choice, topic) {
     return text.replace(/\s+/g, "");
 }
 
-function hasDuplicateChoices(quiz) {
-    const norm = quiz.choices.map(c => normalizeChoice(c, quiz.topic).toLowerCase().trim());
-    return new Set(norm).size !== norm.length;
-}
 
 function autoFixQuiz(quiz) {
     if (!quiz || !Array.isArray(quiz.choices)) return quiz;
@@ -508,9 +504,9 @@ async function fetchNewQuizData() {
     const rawQuizzes = new Array(selectedTopics.length);
     let topicIndex = 0;
 
-    const CONCURRENCY_LIMIT = 2;
-
     async function fetchWorker(workerId) {
+        const MAX_TOPIC_RETRIES = 3; // 토픽당 최대 재시도 횟수
+
         while (true) {
             const currentIndex = topicIndex++;
 
@@ -519,126 +515,192 @@ async function fetchNewQuizData() {
             }
 
             const topic = selectedTopics[currentIndex];
+            let isSuccess = false;
 
-            try {
-                let spellingParam = SPELLING_DATA;
+            // 토픽별 재시도 루프
+            for (let attempt = 1; attempt <= MAX_TOPIC_RETRIES; attempt++) {
+                try {
+                    let spellingParam = SPELLING_DATA;
 
-                if (topic === "한글 맞춤법") {
-                    const fetchedData = await fetchJinaSpellingData();
-                    spellingParam = fetchedData || SPELLING_DATA;
-                }
+                    if (topic === "한글 맞춤법") {
+                        const fetchedData = await fetchJinaSpellingData();
+                        spellingParam = fetchedData || SPELLING_DATA;
+                    }
 
-                const payload = createQuizPayload(topic, spellingParam);
+                    // 💡 재시도할 때마다 새 payload 생성
+                    const payload = createQuizPayload(topic, spellingParam);
 
-                console.log(
-                    `[WORKER ${workerId}] ${topic} 생성 시작`
-                );
-
-                const response = await postWithRetry(
-                    API_URL,
-                    payload,
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
-                            'Content-Type': 'application/json'
-                        },
-                        timeout: 40000
-                    },
-                    2,
-                    2500
-                );
-
-                const message = response.data?.choices?.[0]?.message;
-
-                if (!message?.content) {
-                    throw new Error("API 응답이 비어있습니다.");
-                }
-
-                let rawContent = message.content;
-
-                if (Array.isArray(rawContent)) {
-                    const textPart = rawContent.find(
-                        p => p.type === "text" &&
-                             typeof p.text === "string"
+                    console.log(
+                        `[WORKER ${workerId}] ${topic} 생성 시도 (${attempt}/${MAX_TOPIC_RETRIES})`
                     );
 
-                    rawContent = textPart?.text;
+                    const response = await postWithRetry(
+                        API_URL,
+                        payload,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
+                                'Content-Type': 'application/json'
+                            },
+                            timeout: 40000
+                        },
+                        2,
+                        2500
+                    );
+
+                    const message = response.data?.choices?.[0]?.message;
+
+                    if (!message?.content) {
+                        throw new Error("API 응답이 비어있습니다.");
+                    }
+
+                    let rawContent = message.content;
+
+                    if (Array.isArray(rawContent)) {
+                        const textPart = rawContent.find(
+                            p => p.type === "text" &&
+                                 typeof p.text === "string"
+                        );
+                        rawContent = textPart?.text;
+                    }
+
+                    if (typeof rawContent === "string") {
+                        rawContent = rawContent
+                            .replace(/\u00a0/g, ' ')
+                            .trim();
+                    }
+
+                    const cleanJson = extractJsonFromText(rawContent);
+                    const parsed = JSON.parse(cleanJson);
+
+                    let quiz = parsed.quizzes
+                        ? parsed.quizzes[0]
+                        : parsed;
+
+                    if (!quiz) {
+                        throw new Error("퀴즈 데이터가 없습니다.");
+                    }
+
+                    quiz.topic = topic;
+
+                    // ----------------------------------------------------
+                    // 💡 [핵심 이동] 문제 검증 로직을 워커 내부 재시도 루프 안으로 통합
+                    // 아래 검증 중 하나라도 실패하면 throw -> catch 이동 -> 새 payload 재생성!
+                    // ----------------------------------------------------
+                    quiz = autoFixQuiz(quiz);
+
+                    const fullText = [
+                        quiz.question,
+                        ...(quiz.choices || []),
+                        quiz.explanation,
+                        quiz.correctAnswerText
+                    ].join(" ");
+
+                    // 1. 한자/외국어 검증
+                    if (HANJA_AND_FOREIGN_REGEX.test(fullText)) {
+                        const badChars = [
+                            ...new Set(
+                                [...fullText].filter(c => HANJA_AND_FOREIGN_REGEX.test(c))
+                            )
+                        ];
+                        throw new Error(`금지된 한자/외국 문자 포함: ${badChars.join(", ")}`);
+                    }
+
+                    // 2. 맞춤법 질문-정답 불일치 검증
+                    if (!validateSpellingAnswer(quiz)) {
+                        throw new Error("한글 맞춤법: 질문 유형(긍정/부정)과 정답 표기 불일치");
+                    }
+
+                    // 3. 필수 필드 검증
+                    if (
+                        !quiz.topic ||
+                        !quiz.question ||
+                        !Array.isArray(quiz.choices) ||
+                        !quiz.correctAnswerText ||
+                        typeof quiz.correctAnswerIndex !== "number" ||
+                        !quiz.explanation
+                    ) {
+                        throw new Error("필수 필드 누락");
+                    }
+
+                    // 4. 보기 중복 제거 및 개수 검증
+                    const seen = new Set();
+                    quiz.choices = quiz.choices.filter(c => {
+                        if (!c) return false;
+                        const norm = normalizeChoice(c, quiz.topic).toLowerCase().trim();
+                        if (seen.has(norm)) return false;
+                        seen.add(norm);
+                        return true;
+                    });
+
+                    if (quiz.choices.length < 3) {
+                        throw new Error("유효한 보기가 3개 미만입니다.");
+                    }
+
+                    // 5. 정답 인덱스/텍스트 검증
+                    if (
+                        quiz.correctAnswerIndex < 0 ||
+                        quiz.correctAnswerIndex > 3 ||
+                        quiz.choices[quiz.correctAnswerIndex] !== quiz.correctAnswerText
+                    ) {
+                        throw new Error("정답 인덱스/텍스트 불일치");
+                    }
+
+                    // 6. 해설 접두사 정형화
+                    const targetPrefix = `정답은 ${quiz.correctAnswerText}입니다.`;
+                    const trimmedExp = quiz.explanation.trim();
+
+                    if (!trimmedExp.startsWith(targetPrefix)) {
+                        const splitIndex = trimmedExp.indexOf("입니다.");
+                        if (splitIndex !== -1) {
+                            const cleanExp = trimmedExp.slice(splitIndex + 4).trim();
+                            quiz.explanation = `${targetPrefix} ${cleanExp}`;
+                        }
+                    }
+
+                    // 모든 검증 통과 완료
+                    rawQuizzes[currentIndex] = quiz;
+                    isSuccess = true;
+
+                    console.log(
+                        `[WORKER ${workerId}] ✅ ${topic} 생성 및 검증 성공 (${attempt}번째 시도)`
+                    );
+
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    break; // 성공했으므로 재시도 루프 탈출
+
+                } catch (error) {
+                    console.warn(
+                        `[WORKER ${workerId}] ⚠️ ${topic} 실패/검증오류 (${attempt}/${MAX_TOPIC_RETRIES}):`,
+                        error.message
+                    );
+
+                    if (attempt < MAX_TOPIC_RETRIES) {
+                        console.log(
+                            `[WORKER ${workerId}] 🔄 ${topic} 새 payload로 재시도 중...`
+                        );
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                    }
                 }
+            }
 
-                if (typeof rawContent === "string") {
-                    rawContent = rawContent
-                        .replace(/\u00a0/g, ' ')
-                        .trim();
-                }
-
-                console.log(
-                    `\n=== [1. API Raw Content - ${topic}] ===\n`,
-                    rawContent
-                );
-
-                const cleanJson = extractJsonFromText(rawContent);
-
-                console.log(
-                    `\n=== [2. Cleaned JSON Text - ${topic}] ===\n`,
-                    cleanJson
-                );
-
-                const parsed = JSON.parse(cleanJson);
-
-                const quiz = parsed.quizzes
-                    ? parsed.quizzes[0]
-                    : parsed;
-
-                console.log(
-                    `\n=== [3. Parsed Choices - ${topic}] ===\n`,
-                    quiz?.choices
-                );
-
-                if (!quiz) {
-                    throw new Error("퀴즈 데이터가 없습니다.");
-                }
-
-                quiz.topic = topic;
-
-                rawQuizzes[currentIndex] = quiz;
-
-                console.log(
-                    `[WORKER ${workerId}] ✅ ${topic} 생성 성공`
-                );
-
-                // 워커 간 요청 간격
-                await new Promise(resolve =>
-                    setTimeout(resolve, 1000)
-                );
-
-            } catch (error) {
+            if (!isSuccess) {
                 console.error(
-                    `[WORKER ${workerId}] ❌ ${topic} 생성 실패:`,
-                    error.response?.status || error.message
+                    `[WORKER ${workerId}] ❌ ${topic} 최종 생성 실패`
                 );
-
-                // 중요:
-                // 여기서 throw하지 않는다.
-                // 해당 분야만 실패시키고 다음 분야로 진행한다.
                 rawQuizzes[currentIndex] = null;
-
-                continue;
             }
         }
     }
 
     // 워커 1, 워커 2를 1초 시간차로 시작
     const worker1 = fetchWorker(1);
-
-    await new Promise(resolve =>
-        setTimeout(resolve, 1000)
-    );
-
+    await new Promise(resolve => setTimeout(resolve, 1000));
     const worker2 = fetchWorker(2);
 
     await Promise.all([worker1, worker2]);
 
-    // 성공한 문제만 추출
+    // 성공한 문제만 추출 (이미 워커 안에서 모든 1차 상세 검증이 끝난 상태)
     const successfulQuizzes = rawQuizzes.filter(Boolean);
 
     console.log(
@@ -646,227 +708,67 @@ async function fetchNewQuizData() {
     );
 
     if (successfulQuizzes.length === 0) {
-        console.error("[DATA FAIL] 생성된 퀴즈가 없습니다.");
+        console.error("[DATA FAIL] 검증 완료된 퀴즈가 없습니다.");
         return false;
     }
 
-    const processedQuizzes = [];
-    const topicSet = new Set();
-
-    for (let quiz of successfulQuizzes) {
-        try {
-            console.log(
-                `\n=== [4. Before autoFix - ${quiz.topic}] ===\n`,
-                quiz.choices
-            );
-
-            quiz = autoFixQuiz(quiz);
-
-            console.log(
-                `\n=== [5. After autoFix - ${quiz.topic}] ===\n`,
-                quiz.choices
-            );
-
-            const fullText = [
-                quiz.question,
-                ...quiz.choices,
-                quiz.explanation,
-                quiz.correctAnswerText
-            ].join(" ");
-
-            if (HANJA_AND_FOREIGN_REGEX.test(fullText)) {
-                const badChars = [
-                    ...new Set(
-                        [...fullText].filter(
-                            c => HANJA_AND_FOREIGN_REGEX.test(c)
-                        )
-                    )
-                ];
-
-                throw new Error(
-                    `금지된 한자/외국 문자 포함: ${badChars.join(", ")}`
-                );
-            }
-
-            if (!validateSpellingAnswer(quiz)) {
-                throw new Error(
-                    "한글 맞춤법: 질문 유형(긍정/부정)과 정답 표기 불일치"
-                );
-            }
-
-            if (
-                !quiz.topic ||
-                !quiz.question ||
-                !Array.isArray(quiz.choices) ||
-                !quiz.correctAnswerText ||
-                typeof quiz.correctAnswerIndex !== "number" ||
-                !quiz.explanation
-            ) {
-                throw new Error("필수 필드 누락");
-            }
-
-           const seen = new Set();
-           quiz.choices = quiz.choices.filter(c => {
-          if (!c) return false; // 빈 값 제거
-          const norm = normalizeChoice(c, quiz.topic).toLowerCase().trim();
-        if (seen.has(norm)) return false; // 중복 제거 (첫 번째만 남김)
-        seen.add(norm);
-        return true;
-        }); // 앞에서 3개만 잘라냄
-
-    // 중복 제거 후 남은 보기가 3개 미만일 때만 에러 처리
-        if (quiz.choices.length < 3) {
-          throw new Error("유효한 보기가 3개 미만입니다.");
-        }
-  
-            if (
-                quiz.correctAnswerIndex < 0 ||
-                quiz.correctAnswerIndex > 3 ||
-                quiz.choices[quiz.correctAnswerIndex] !==
-                    quiz.correctAnswerText
-            ) {
-                throw new Error(
-                    "정답 인덱스/텍스트 불일치"
-                );
-            }
-
-            const targetPrefix =
-                `정답은 ${quiz.correctAnswerText}입니다.`;
-
-            const trimmedExp =
-                quiz.explanation.trim();
-
-            if (!trimmedExp.startsWith(targetPrefix)) {
-                const splitIndex =
-                    trimmedExp.indexOf("입니다.");
-
-                if (splitIndex !== -1) {
-                    const cleanExp =
-                        trimmedExp
-                            .slice(splitIndex + 4)
-                            .trim();
-
-                    quiz.explanation =
-                        `${targetPrefix} ${cleanExp}`;
-                }
-            }
-
-            if (
-                !selectedTopics.includes(quiz.topic) ||
-                topicSet.has(quiz.topic)
-            ) {
-                throw new Error(
-                    `분야 오류 또는 중복 분야: ${quiz.topic}`
-                );
-            }
-
-            topicSet.add(quiz.topic);
-            processedQuizzes.push(quiz);
-
-        } catch (error) {
-            console.error(
-                `[PROCESS FAIL] ${quiz.topic}: ${error.message}`
-            );
-
-            // 이 문제만 제외
-            continue;
-        }
-    }
-
-    if (processedQuizzes.length === 0) {
-        console.error(
-            "[DATA FAIL] 검증 가능한 퀴즈가 없습니다."
-        );
-        return false;
-    }
-
-    // 보기 섞기
-    processedQuizzes.forEach((quiz, idx) => {
+    // 보기 셔플 및 번호 교체 작업
+    successfulQuizzes.forEach((quiz, idx) => {
         const originalText =
-            quiz.choices[quiz.correctAnswerIndex] ||
-            quiz.correctAnswerText;
-
+            quiz.choices[quiz.correctAnswerIndex] || quiz.correctAnswerText;
         const originalChoices = [...quiz.choices];
 
-        shuffleArray(
-            quiz.choices,
-            `${Date.now()}_${idx}`
-        );
+        shuffleArray(quiz.choices, `${Date.now()}_${idx}`);
 
-        let newIndex =
-            quiz.choices.indexOf(originalText);
+        let newIndex = quiz.choices.indexOf(originalText);
 
         if (newIndex === -1 && originalText) {
-            const cleanTarget =
-                originalText.replace(/[\s\.]/g, '');
-
+            const cleanTarget = originalText.replace(/[\s\.]/g, '');
             newIndex = quiz.choices.findIndex(
-                c =>
-                    c.replace(/[\s\.]/g, '') ===
-                    cleanTarget
+                c => c.replace(/[\s\.]/g, '') === cleanTarget
             );
         }
 
         if (newIndex !== -1) {
             quiz.correctAnswerIndex = newIndex;
-            quiz.correctAnswerText =
-                quiz.choices[newIndex];
+            quiz.correctAnswerText = quiz.choices[newIndex];
         } else {
             quiz.correctAnswerIndex = 0;
-            quiz.correctAnswerText =
-                quiz.choices[0];
+            quiz.correctAnswerText = quiz.choices[0];
         }
 
         if (quiz.explanation) {
             for (let i = 0; i < originalChoices.length; i++) {
                 const oldNumText = `${i + 1}번`;
-
-                quiz.explanation =
-                    quiz.explanation.replaceAll(
-                        oldNumText,
-                        `__TEMP_${i}__`
-                    );
+                quiz.explanation = quiz.explanation.replaceAll(
+                    oldNumText,
+                    `__TEMP_${i}__`
+                );
             }
 
             for (let i = 0; i < originalChoices.length; i++) {
-                const movedIndex =
-                    quiz.choices.indexOf(
-                        originalChoices[i]
-                    );
-
+                const movedIndex = quiz.choices.indexOf(originalChoices[i]);
                 if (movedIndex !== -1) {
-                    const newNumText =
-                        `${movedIndex + 1}번`;
-
-                    quiz.explanation =
-                        quiz.explanation.replaceAll(
-                            `__TEMP_${i}__`,
-                            newNumText
-                        );
+                    const newNumText = `${movedIndex + 1}번`;
+                    quiz.explanation = quiz.explanation.replaceAll(
+                        `__TEMP_${i}__`,
+                        newNumText
+                    );
                 }
             }
         }
     });
 
     // AI 2차 검증
-    console.log(
-        `[API] AI 2차 문항별 병렬 크로스 팩트체크 수행 중...`
-    );
-
-    const validation =
-        await validateQuizAccuracy(processedQuizzes);
+    console.log(`[API] AI 2차 문항별 병렬 크로스 팩트체크 수행 중...`);
+    const validation = await validateQuizAccuracy(successfulQuizzes);
 
     if (!validation.valid) {
-        console.error(
-            `[VALIDATION] 일부 검증 실패: ${validation.reason}`
-        );
-
-        // 전체 generationAttempt를 다시 돌리지 않음.
-        // 검증 결과가 전체 실패라면 현재 세트는 실패 처리.
+        console.error(`[VALIDATION] 일부 검증 실패: ${validation.reason}`);
         return false;
     }
 
-    MASTER_QUIZ_DATA = processedQuizzes.map((q, idx) => ({
+    MASTER_QUIZ_DATA = successfulQuizzes.map((q, idx) => ({
         id: idx + 1,
         topic: q.topic,
         question: q.question,
