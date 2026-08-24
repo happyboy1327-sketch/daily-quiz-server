@@ -692,8 +692,10 @@ async function fetchNewQuizData() {
                 rawQuizzes[currentIndex] = null;
             }
         }
+        return rawQuizzes;
     }
 
+    
     // 워커 1, 워커 2를 1초 시간차로 시작
     const worker1 = fetchWorker(1);
     await new Promise(resolve => setTimeout(resolve, 1000));
