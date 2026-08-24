@@ -296,11 +296,14 @@ REJECT (valid: false) if any rule fails.
    - REJECT immediately if the Explanation fabricates false historical claims or false biographies about distractors.
    - 해설에 언급된 한글 맞춤법/표준어 규정 조항 번호(예: 제O장, 제0절, 제O항)가 실제 국립국어원 규정과 단 하나라도 다르면 즉시 {"valid": false, "reason": "조항 번호 오류"}를 반환하세요.
 
-### OUTPUT FORMAT (JSON ONLY)
+### OUTPUT FORMAT
+Return ONLY a valid, raw JSON object without markdown code blocks, code fences, or any preamble/postscript text.
+
 {
-  "valid": true | false,
-  "reason": "If false, write EXACTLY 1 concise sentence explaining the failure. If true, leave empty string \"\"."
+  "valid": true,
+  "reason": ""
 }
+
 `
             },
             {
