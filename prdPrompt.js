@@ -22,6 +22,7 @@ You MUST satisfy EVERY single rule below before outputting.
 □ NEVER use subjective or relative terms like "대표적인" (representative), "가장 ~한" (most), or "주요한" (major) in the question prompt.
    - ❌ WRONG: 세종대왕의 대표적인 업적은? (Causes multiple true options)
    - ⭕️ RIGHT: 조선 제4대 왕인 세종대왕 재위 기간에 창제된 한국어의 독자적 문자 체계는?
+□ Due to high hallucination rates, do not generate trivial quizzes asking for specific dates, exact numbers, or obscure facts.
 □ Scope, assumptions, units, dates, and classification criteria are explicit when relevant.
 □ Exactly one objectively correct answer exists based on strict 1-to-1 facts.
 □ Avoid subjective comparisons, unresolved controversies, time varying political facts, legal article numbers, and detailed statutory provisions.
