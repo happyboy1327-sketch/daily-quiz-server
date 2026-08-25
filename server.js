@@ -531,7 +531,7 @@ async function fetchNewQuizData() {
                 }
 
                 // 💡 재시도할 때마다 새 payload 생성
-                const payload = createQuizPayload(topic, spellingParam);
+                const payload = createQuizPayload(topic, spellingParam, MASTER_QUIZ_DATA.map(q => q.question));
 
                 console.log(
                     `[${label}] ${topic} 생성 시도 (${attempt}/${MAX_TOPIC_RETRIES})`
