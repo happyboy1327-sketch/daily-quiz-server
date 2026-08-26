@@ -327,27 +327,12 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
 
         const rawContent = response.data?.choices?.[0]?.message?.content;
         
-        logger.debug("[AI RAW RESPONSE]", rawContent);
-
+        console.error("[AI RAW RESPONSE]", JSON.stringify(rawContent));
+        
         const cleanJson = extractJsonFromText(rawContent);
-        const result = JSON.parse(cleanJson);
-
-        if (result.valid === true) {
-            console.info("[AI VALIDATION] ✅ 합격");
-        } else {
-            console.error(
-                "[AI VALIDATION] ❌ 불합격",
-                result.reason || "사유 없음"
-            );
-        }
-
-        } catch (err) {
-        console.error("[AI VALIDATION] ❌ 검증 처리 실패", err);
-
-        return {
-            valid: false,
-            reason: `단일 문항 검증 통신 오류: ${err.message}`
-        };
+        return JSON.parse(cleanJson);
+    } catch (err) {
+        return { valid: false, reason: `단일 문항 검증 통신 오류: ${err.message}` };
     }
 }
     
