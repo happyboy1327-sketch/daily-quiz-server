@@ -326,6 +326,9 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
         });
 
         const rawContent = response.data?.choices?.[0]?.message?.content;
+        
+        console.error("[AI RAW RESPONSE]", JSON.stringify(rawContent));
+        
         const cleanJson = extractJsonFromText(rawContent);
         return JSON.parse(cleanJson);
     } catch (err) {
