@@ -327,8 +327,14 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
 
         const rawContent = response.data?.choices?.[0]?.message?.content;
         
-        console.error("[AI RAW RESPONSE]", JSON.stringify(rawContent));
-        
+        if (result.valid) {
+        logger.info("[AI VALIDATION] ✅ 합격");
+       } else {
+        logger.error("[AI VALIDATION] ❌ 불합격", result.reason);
+       }
+
+        logger.debug("[AI RAW RESPONSE]", rawResponse);
+
         const cleanJson = extractJsonFromText(rawContent);
         return JSON.parse(cleanJson);
     } catch (err) {
