@@ -333,16 +333,16 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
         const result = JSON.parse(cleanJson);
 
         if (result.valid === true) {
-            logger.info("[AI VALIDATION] ✅ 합격");
+            console.info("[AI VALIDATION] ✅ 합격");
         } else {
-            logger.error(
+            console.error(
                 "[AI VALIDATION] ❌ 불합격",
                 result.reason || "사유 없음"
             );
         }
 
         } catch (err) {
-        logger.error("[AI VALIDATION] ❌ 검증 처리 실패", err);
+        console.error("[AI VALIDATION] ❌ 검증 처리 실패", err);
 
         return {
             valid: false,
