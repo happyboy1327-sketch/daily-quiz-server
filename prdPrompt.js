@@ -60,6 +60,7 @@ You MUST satisfy EVERY single rule below before outputting.
 ### 5. ACCURACY CHECKLIST
 □ Are all titles of movies, animations, books, and artworks 100% real and verified?
 □ Are all facts 100% real and verified?
+□ When dealing with specialized knowledge in fields like science, medicine, and law, never confuse or distort fundamental concepts such as '실온' (room temperature) versus '냉장' (refrigeration), or '기간' (duration) versus '시간' (time).
 □ Does the question refrain from falsely attributing modern technology (e.g., 3D CGI) to incorrect historical eras (e.g., 1980s)?
 □ For "first ever" (최초) or "record-holding" (최고) claims, are they strictly verified historical milestones? If uncertain, DO NOT generate "first ever" questions.
 □ NEVER generate questions related to Movies, Anime, Manga, Webtoons, TV Shows, or Pop Culture Celebrities.
@@ -416,7 +417,7 @@ ${previousQuestions.slice(-18).join("\n")}
 동일한 개념이나 정답을 같은 topic에 넣어 반복하지 마십시오.`
 }
     ],
-    temperature: 0.31, 
+    temperature: 0.295, 
     max_tokens: 2800
   };
 }
