@@ -28,6 +28,10 @@ You MUST satisfy EVERY single rule below before outputting.
 □ Avoid subjective comparisons, unresolved controversies, time varying political facts, legal article numbers, and detailed statutory provisions.
 □ For South Korean politics: Presidential term is 5 years, reelection prohibited.
 □ For Geography: Specify ranking criteria (e.g., Antarctica is the largest desert overall, Sahara is the largest hot desert).
+□ For Coding
+   - Writing code is allowed.
+   - Markdown code blocks are prohibited.
+   - Write as plain text.
 
 ### 3. CHOICES AND CHARACTER SET CONSTRAINTS
 □ ***Exactly 4 choices, exactly and absolutely 1 correct answer.*** Construct all options to ensure that exactly one indisputably correct answer exists; explicitly state spatial and temporal prerequisites in the question (e.g., distinguishing 'Korean Peninsula' from 'South Korea'); and ensure every incorrect option possesses a scientifically or academically proven 1-to-1 refutation.
