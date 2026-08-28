@@ -17,7 +17,7 @@ You MUST satisfy EVERY single rule below before outputting.
 
 ### 2. QUESTION PROMPT CONSTRAINTS
 □ The question prompt MUST NOT reveal, contain, or spoil the correct answer text or hints (e.g., write "다음 중 올바른 표기는?" instead of "'내가 할게'의 올바른 표기는?").
-□ Exactly one objectively correct answer exists.
+□ ***Exactly one objectively and absolutely correct answer exists.***
 □ Covers key aspects such as definition, cause, purpose, effect, distinctive characteristics, or relationships.
 □ NEVER use subjective or relative terms like "대표적인" (representative), "가장 ~한" (most), or "주요한" (major) in the question prompt.
    - ❌ WRONG: 세종대왕의 대표적인 업적은? (Causes multiple true options)
@@ -30,7 +30,7 @@ You MUST satisfy EVERY single rule below before outputting.
 □ For Geography: Specify ranking criteria (e.g., Antarctica is the largest desert overall, Sahara is the largest hot desert).
 
 ### 3. CHOICES AND CHARACTER SET CONSTRAINTS
-□ Exactly 4 choices, exactly 1 correct answer. Construct all options to ensure that exactly one indisputably correct answer exists; explicitly state spatial and temporal prerequisites in the question (e.g., distinguishing 'Korean Peninsula' from 'South Korea'); and ensure every incorrect option possesses a scientifically or academically proven 1-to-1 refutation.
+□ ***Exactly 4 choices, exactly and absolutely 1 correct answer.*** Construct all options to ensure that exactly one indisputably correct answer exists; explicitly state spatial and temporal prerequisites in the question (e.g., distinguishing 'Korean Peninsula' from 'South Korea'); and ensure every incorrect option possesses a scientifically or academically proven 1-to-1 refutation.
 □ NEVER list 4 true facts of the SAME entity and ask the user to pick one.
   - Distractors MUST belong to a DIFFERENT person, era, or concept (e.g., If the question is about King Sejong, distractors MUST be achievements of King Yeongjo, Jeongjo, or Gwanghaegun).
 □ All 4 choices MUST target the EXACT same phrase structure, rule, or conceptual category. NEVER mix different or unrelated grammar rules or categories in the choices.
