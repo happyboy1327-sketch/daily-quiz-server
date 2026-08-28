@@ -284,6 +284,7 @@ REJECT (valid: false) if any rule fails.
 3. [Concept, Numbers, Units & Statistics Consistency (Crucial)]
    - Verify whether the core target asked in the question and the target explained in the answer/explanation are distinct, easily confused concepts.
    - If numbers, units, deadlines, or statistics do not match objective facts even slightly, REJECT immediately.
+   - **REJECT immediately if distinct terms like '시간' and '기간' are mixed up or logically conflicting.**
 
 4. [Korean Grammar Hallucination]
    - If the explanation invents false Korean spacing/grammar rules, REJECT immediately.
