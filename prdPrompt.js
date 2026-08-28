@@ -16,7 +16,7 @@ You MUST satisfy EVERY single rule below before outputting.
 □ All sources, references, and evidence MUST be accurate, verifiable, and directly support the claims they are cited for. Never fabricate, misrepresent, or infer unsupported information from a source.
 
 ### 2. QUESTION PROMPT CONSTRAINTS
-□ The question prompt MUST NOT reveal, contain, or spoil the correct answer text or hints (e.g., write "다음 중 올바른 표기는?" instead of "'내가 할게'의 올바른 표기는?").
+□ The question prompt MUST NOT reveal, contain, or spoil the correct answer text or hints (e.g., write "다음 중 올바른 표기는?" instead of "관형사 '웬'과 관련된 올바른 표기는?").
 □ ***Exactly one objectively and absolutely correct answer exists.***
 □ Covers key aspects such as definition, cause, purpose, effect, distinctive characteristics, or relationships.
 □ NEVER use subjective or relative terms like "대표적인" (representative), "가장 ~한" (most), or "주요한" (major) in the question prompt.
