@@ -6,79 +6,52 @@ You MUST generate 100% fact-checked, diverse Korean general knowledge quizzes ba
 ## CRITICAL GENERATION CHECKLIST
 You MUST satisfy EVERY single rule below before outputting.
 
-### 1. ABSOLUTE TRUTH AND FACTUALITY (NO SPECULATION)
-□ **Do NOT guess, speculate, or fabricate any statements under any circumstances.** 
-□ **Based on stable, objective, widely accepted, and up-to-date facts.**
-□ The chronological sequence, historical alliances, roles, and locations are accurate (e.g., Silla allied with Tang, NOT Baekje; King vs. General roles must be strictly distinguished).
-□ Every fact, date, historical alliance, scientific claim, and definition in the question, choices, and explanation MUST be 100% verified real world truth.
-□ For history: Alliance partners, dates, and roles must be 100% accurate (e.g., Silla allied with Tang, NOT Baekje; Kings and Generals must be accurately distinguished).
-□ When explaining why a distractor is wrong, state its TRUE real world characteristics (e.g., "Kim Yu-sin was a vital general, but not a king"). Never fabricate false facts about a distractor.
-□ All sources, references, and evidence MUST be accurate, verifiable, and directly support the claims they are cited for. Never fabricate, misrepresent, or infer unsupported information from a source.
+### 1. ABSOLUTE TRUTH AND FACTUALITY
+□ Do NOT guess, speculate, or fabricate any statements under any circumstances.
+□ Every fact, date, historical alliance, scientific claim, medical guideline, and definition MUST be 100% verified real-world truth.
+□ History Precision: Chronological sequences, alliances, and roles must be exact (e.g., Silla allied with Tang, NOT Baekje; Kings and Generals must be accurately distinguished).
+□ Terminology & Concept Precision: When dealing with specialized knowledge (science, medicine, law, public safety), NEVER confuse or mix distinct concepts or numerical units (e.g., '실온' vs '냉장', '시간' vs '기간', '수분 섭취 간격' vs '휴식 주기').
 
 ### 2. QUESTION PROMPT CONSTRAINTS
-□ The question prompt MUST NOT reveal, contain, or spoil the correct answer text or hints (e.g., write "다음 중 올바른 표기는?" instead of "관형사 '웬'과 관련된 올바른 표기는?").
-□ ***Exactly one objectively and absolutely correct answer exists.***
-□ Covers key aspects such as definition, cause, purpose, effect, distinctive characteristics, or relationships.
+□ The question prompt MUST NOT reveal, contain, or spoil the correct answer text or hints.
 □ NEVER use subjective or relative terms like "대표적인" (representative), "가장 ~한" (most), or "주요한" (major) in the question prompt.
-   - ❌ WRONG: 세종대왕의 대표적인 업적은? (Causes multiple true options)
-   - ⭕️ RIGHT: 조선 제4대 왕인 세종대왕 재위 기간에 창제된 한국어의 독자적 문자 체계는?
-□ Due to high hallucination rates, do not generate trivial quizzes asking for specific dates, exact numbers, or obscure facts (EXCEPT for HISTORY).
-□ Scope, assumptions, units, dates, and classification criteria are explicit when relevant.
-□ Exactly one objectively correct answer exists based on strict 1-to-1 facts.
-□ Avoid subjective comparisons, unresolved controversies, time varying political facts, legal article numbers, and detailed statutory provisions.
-□ For South Korean politics: Presidential term is 5 years, reelection prohibited.
-□ For Geography: Specify ranking criteria (e.g., Antarctica is the largest desert overall, Sahara is the largest hot desert).
-□ For Coding
-   - Writing code is allowed.
-   - Markdown code blocks are prohibited.
-   - Write as plain text.
+  - ❌ WRONG: 세종대왕의 대표적인 업적은?
+  - ⭕ RIGHT: 조선 제4대 왕인 세종대왕 재위 기간에 창제된 한국어의 독자적 문자 체계는?
+□ Scope, assumptions, units, and criteria must be explicit when relevant.
+□ Do not ask for obscure dates or numbers EXCEPT for verified fields like HISTORY, SCIENCE, MEDICINE, and PUBLIC GUIDELINES (e.g., food safety hours, intake intervals).
+□ Avoid unresolved controversies, time-varying political facts, and dumping detailed legal statutory texts into the question body.
+□ For Coding: Plain text code only. Markdown code blocks within JSON strings are strictly prohibited.
 
 ### 3. CHOICES AND CHARACTER SET CONSTRAINTS
-□ ***Exactly 4 choices, exactly and absolutely 1 correct answer.*** Construct all options to ensure that exactly one indisputably correct answer exists; explicitly state spatial and temporal prerequisites in the question (e.g., distinguishing 'Korean Peninsula' from 'South Korea'); and ensure every incorrect option possesses a scientifically or academically proven 1-to-1 refutation.
-□ NEVER list 4 true facts of the SAME entity and ask the user to pick one.
-  - Distractors MUST belong to a DIFFERENT person, era, or concept (e.g., If the question is about King Sejong, distractors MUST be achievements of King Yeongjo, Jeongjo, or Gwanghaegun).
-□ All 4 choices MUST target the EXACT same phrase structure, rule, or conceptual category. NEVER mix different or unrelated grammar rules or categories in the choices.
-□ Character set restriction: Use ONLY standard Korean, numbers, and basic ASCII (English, punctuation). NEVER use the Hanja.
-□ FOR KOREAN GRAMMAR: Distractors MUST be clear orthographical errors. NEVER pair a standard word with its valid abbreviation or synonym.
+□ Exactly 4 choices, exactly 1 objectively correct answer.
+□ Distractor Rule: Distractors MUST belong to a DIFFERENT person, era, or concept (e.g., If the target is King Sejong, distractors MUST be achievements of other kings). NEVER list 4 true facts of the SAME entity and ask to pick one.
+□ All 4 choices MUST target the EXACT same phrase structure, rule, or conceptual category.
+□ Character Set: Use ONLY standard Korean, numbers, and basic ASCII. NEVER use Hanja.
 □ FOR KOREAN GRAMMAR / SPELLING QUIZZES (CRITICAL RULE):
-  - 정답 1개 외의 **나머지 오답 3개는 반드시 정답 단어를 바탕으로 한 '유사 오탈자(소리 나는 대로 적은 표기, 흔한 모음/받침 오기, 띄어쓰기 오류)'**로만 구성해야 합니다.
-  - ❌ PROHIBITION: 표준어나 문법적으로 유효한 단어, 조사가 바르게 붙은 다른 정상 표현을 오답 선택지에 넣어 섞는 행위.
-  - ⭕ Correct Examples of Distractors: '갑씨', '감이', '갑시' (소리 나는 대로 적은 오탈자만 허용)
-  - 선택지를 만들 때, 각 오답 단어가 국어사전이나 문법상 실제로 존재하는 올바른 표기인지 스스로 검증하고, 올바른 표기라면 즉시 맞춤법이 틀린 비표준어로 교체하십시오.
-□ FOR KOREAN GRAMMAR (MORPHOLOGICAL ANALYSIS MANDATE):
-  - Before finalizing choices, decompose EVERY option into [Substantive Morpheme / Stem] + [Functional Morpheme / Particle].
-  - Check if the combination forms a grammatically valid, standard Korean word.
-  - If any distractor option forms a valid standard Korean word, IT IS INVALID AS A DISTRACTOR and MUST be replaced immediately with a misspelled form.
+  - The 3 distractors MUST be misspelled forms (phonetic spellings, common vowel/consonant typos, spacing errors) based on the target word.
+  - ❌ PROHIBITION: Putting valid standard Korean words, synonyms, or grammatically correct alternative expressions into distractor options.
+  - ⭕ Correct Distractor Examples: '갑씨', '감이', '갑시' (Misspellings only)
+  - Morphological Analysis Mandate: Decompose EVERY option into [Substantive Morpheme/Stem] + [Functional Morpheme/Particle]. If any distractor forms a valid standard Korean word, REPLACE IT IMMEDIATELY with a misspelled form.
 
-### 4. EXPLANATION CONSTRAINTS
-□ Explanation MUST begin EXACTLY with: 정답은 {correctAnswerText}입니다.
-□ Explain why the correct answer is right and why each distractor is wrong using ONLY verified real world facts.
-□ NO HALLUCINATED DISTRACTOR EXPLANATIONS: You may briefly explain why a distractor is wrong ONLY IF the fact is 100% verified and indisputable.
-→ If uncertain about any distractor's exact background or function, DO NOT attempt to explain or mention that distractor.
-□ NO STATUTORY CLAUSES: Do not include legal article or clause numbers (e.g., specific article/section citations).
+### 4. EXPLANATION AND CITATION CONSTRAINTS
+□ Explanation MUST begin EXACTLY with: 정답은 {correctAnswerText}입니다. [Source/Basis: ...]
+  - Examples: [Source: National Institute of Korean Language], [Basis: Constitution Article 70], [Source: KACD Guidelines]
+□ Explain why the correct answer is right and why each distractor is wrong using ONLY 100% verified real-world facts. Never fabricate false characteristics about a distractor.
+□ If uncertain about any distractor's exact background, DO NOT attempt to explain or mention that distractor.
+□ Do NOT include long statutory text dumps or detailed legal sub-clauses in the explanation. (Main article citations like "헌법 제70조" are permitted ONLY as sources).
 
-### 5. ACCURACY CHECKLIST
-□ Are all titles of movies, animations, books, and artworks 100% real and verified?
-□ Are all facts 100% real and verified?
-□ When dealing with specialized knowledge in fields like science, medicine, and law, never confuse or distort fundamental concepts such as '실온' (room temperature) versus '냉장' (refrigeration), or '기간' (duration) versus '시간' (time).
-□ Does the question refrain from falsely attributing modern technology (e.g., 3D CGI) to incorrect historical eras (e.g., 1980s)?
-□ For "first ever" (최초) or "record-holding" (최고) claims, are they strictly verified historical milestones? If uncertain, DO NOT generate "first ever" questions.
-□ NEVER generate questions related to Movies, Anime, Manga, Webtoons, TV Shows, or Pop Culture Celebrities.
-□ Pop culture entities are strictly prohibited due to factual hallucination risks.
-□ If a user requests or selects a banned topic, instantly reject it or fallback strictly to academic, historical, scientific, linguistic, or legal knowledge domains.
+### 5. ACCURACY & BANNED TOPICS (POP CULTURE PROHIBITION)
+□ "First ever" (최초) or "record-holding" (최고) claims must be strictly verified historical milestones.
+□ STRICTLY BANNED TOPICS: Movies, Anime, Manga, Webtoons, TV Shows, Pop Culture, and Celebrities. (High risk of hallucination).
+□ If a banned topic is requested or selected, fallback strictly to academic, historical, scientific, linguistic, public safety, or legal knowledge domains.
 
-### 6. EXPLANATION MANDATORY RULE
-□ When writing the explanation field, you MUST explicitly state the authoritative source or legal basis for the facts in square brackets [...] at the beginning or middle of the text.
-□ Examples: [Source: National Institute of Korean Language], [Basis: Constitution Article 70], [Source: KACPR Guidelines]
-□ Every explanation must include a clear, verifiable citation in brackets without exception.
-
-### 7. OUTPUT FORMAT
-□ Output ONLY a single valid JSON object matching the schema below. No surrounding conversational text.
+### 6. OUTPUT FORMAT
+□ Output ONLY a single valid JSON object. No surrounding conversational text.
 
 {
   "topic": "분야명",
-  "explanation": "정답은 {correctAnswerText}입니다. [모든 오답의 명확한 근거 설명]",
-  "question": "[전제와 조건이 명확하고 질문]",
+  "explanation": "정답은 {correctAnswerText}입니다. [정답 이유 및 모든 오답의 명확한 근거 설명]",
+  "question": "[전제와 조건이 명확하고 논리가 완벽한 질문]",
   "choices": ["보기1", "보기2", "보기3", "보기4"],
   "correctAnswerIndex": 0,
   "correctAnswerText": "보기1"
