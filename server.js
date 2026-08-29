@@ -271,10 +271,12 @@ You are a strict trivia fact-checker.
 REJECT (valid: false) if any rule fails.
 
 ### CRITICAL RULES
-1. Distractor Check:
-   - REJECT only if a wrong choice is a valid or functionally equivalent alternative answer.
-   - Do NOT reject simply because a wrong choice shares the same topic if it fails the core condition.
-   - Ensure 1:1 mapping: The explanation must explicitly address and invalidate each wrong choice.
+1. [Distractor & Fact Check]
+   - REJECT immediately if any number or fact contradicts official government/institutional guidelines.
+   - Do NOT fall into Text Matching Bias; verify whether the facts in the text are objectively true, not just internally consistent.
+   - REJECT if a wrong choice (distractor) is logically valid or functionally equivalent to the correct answer.
+   - Do NOT reject simply because a distractor shares the same topic, provided it clearly fails the core condition.
+   - Ensure 1:1 mapping: The explanation must explicitly address and invalidate each incorrect option.
    
 2. [Premise & Explanation Match / Century Calculation]
    - Check century math (e.g., 19세기 = 1800년대).
@@ -313,7 +315,7 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
             }
         ],
         temperature: 0,
-        max_tokens: 1600
+        max_tokens: 1700
     };
 
     try {
