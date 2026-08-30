@@ -330,7 +330,7 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
                 'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            timeout: 27000
+            timeout: 35000
         });
 
         const rawContent = response.data?.choices?.[0]?.message?.content;
