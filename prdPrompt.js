@@ -356,7 +356,7 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
   if (topic === "한글 맞춤법") {
     properties.morpheme_check = {
       type: "string",
-      description: "단어 분해만 10자 이내 작성 (예: 맏이=맏+이/맏형=맏+형)"
+      description: "단어 분해만 15자 이내 작성 (예: 맏이=맏+이/맏형=맏+형)"
     };
     required.push("morpheme_check");
   }
@@ -394,7 +394,7 @@ ${previousQuestions.slice(-18).join("\n")}
 }
     ],
     temperature: 0.295, 
-    max_tokens: 2500
+    max_tokens: 1700
   };
 }
 
