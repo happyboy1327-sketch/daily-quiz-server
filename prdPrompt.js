@@ -391,6 +391,7 @@ ${previousQuestions.slice(-18).join("\n")}
 }
     ],
     temperature: 0.295, 
+    reasoning_effort: 'medium', 
     max_tokens: 2800
   };
 }
