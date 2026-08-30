@@ -64,6 +64,7 @@ let fetchPromise = null;
 /**
  * 💡 [핵심 추가] 429 Too Many Requests 대응 지수 백오프 API 호출 래퍼
  */
+//async func
 async function postWithRetry(
     url,
     payload,
@@ -71,29 +72,33 @@ async function postWithRetry(
     maxRetries = 2,
     baseDelayMs = 2500
 ) {
+    // options에 timeout이 없으면 기본 120초(120000ms) 강제 적용
+    const requestOptions = {
+        timeout: 100000,
+        ...options
+    };
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-            return await axios.post(url, payload, options);
-
+            return await axios.post(url, payload, requestOptions);
         } catch (err) {
             const status = err.response?.status;
+            const isTimeout = err.code === 'ECONNABORTED' || err.message?.includes('timeout');
 
             console.log(
-                `[UPSTAGE ${status}]`,
-                JSON.stringify(err.response?.data, null, 2)
+                `[UPSTAGE ${status || err.code}]`,
+                err.response?.data ? JSON.stringify(err.response?.data, null, 2) : err.message
             );
 
-            if (status === 429 && attempt < maxRetries) {
+            // 429(Rate Limit) 또는 타임아웃(Timeout) 발생 시 재시도
+            if ((status === 429 || isTimeout) && attempt < maxRetries) {
                 const delay = baseDelayMs * Math.pow(2, attempt);
 
                 console.warn(
-                    `[429] ${delay}ms 대기 후 재시도 (${attempt + 1}/${maxRetries})`
+                    `[${status || 'TIMEOUT'}] ${delay}ms 대기 후 재시도 (${attempt + 1}/${maxRetries})`
                 );
 
-                await new Promise(resolve =>
-                    setTimeout(resolve, delay)
-                );
-
+                await new Promise(resolve => setTimeout(resolve, delay));
                 continue;
             }
 
@@ -330,7 +335,7 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
                 'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            timeout: 35000
+            timeout: 100000
         });
 
         const rawContent = response.data?.choices?.[0]?.message?.content;
