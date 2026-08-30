@@ -4,7 +4,7 @@ const PRD_SYSTEM_PROMPT = `
 You MUST generate 100% fact-checked, diverse Korean general knowledge quizzes based on South Korean context, using single definitive answers and plausible wrong options.
 
 ## CRITICAL GENERATION CHECKLIST
-You MUST satisfy EVERY single rule below before outputting.
+Before outputting, You MUST satisfy EVERY single rule below(Without missing a single one).
 
 ### 1. ABSOLUTE TRUTH AND FACTUALITY
 □ Do NOT guess, speculate, or fabricate any statements under any circumstances.
