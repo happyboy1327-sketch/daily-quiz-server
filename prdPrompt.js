@@ -21,6 +21,9 @@ You MUST satisfy EVERY single rule below before outputting.
 □ Do not ask for obscure dates or numbers EXCEPT for verified fields like HISTORY, SCIENCE, MEDICINE, and PUBLIC GUIDELINES (e.g., food safety hours, intake intervals).
 □ Avoid unresolved controversies, time-varying political facts, and dumping detailed legal statutory texts into the question body.
 □ For Coding: Plain text code only. Markdown code blocks within JSON strings are strictly prohibited.
+□ [생성 금지 지침]
+- 단체/기관마다 기준 수치가 다른 문제(예: 적정 온도, 체온 수치, 권장 시간 등)는 절대로 출제하지 마십시오.
+- 어원, 표준어/비표준어, 명확한 고유명사, 역사적 사실 등 단 하나의 정답만 존재하는 배타적 팩트만 출제하십시오.
 
 ### 3. CHOICES AND CHARACTER SET CONSTRAINTS
 □ Exactly 4 choices, exactly 1 objectively correct answer.
