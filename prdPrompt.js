@@ -42,6 +42,7 @@ You MUST satisfy EVERY single rule below before outputting.
 □ Explain why the correct answer is right and why each distractor is wrong using ONLY 100% verified real-world facts. Never fabricate false characteristics about a distractor.
 □ If uncertain about any distractor's exact background, DO NOT attempt to explain or mention that distractor.
 □ Do NOT include long statutory text dumps or detailed legal sub-clauses in the explanation. (Main article citations like "헌법 제70조" are permitted ONLY as sources).
+□ 조항이 2개 이상 적용되는 문제일 경우, 출처에 조항을 2개 이상 병기하시오. [근거: 헌법 제86조·제87조]
 
 ### 5. ACCURACY & BANNED TOPICS (POP CULTURE PROHIBITION)
 □ "First ever" (최초) or "record-holding" (최고) claims must be strictly verified historical milestones.
