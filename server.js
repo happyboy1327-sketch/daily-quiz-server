@@ -552,7 +552,7 @@ async function fetchNewQuizData() {
                             'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
                             'Content-Type': 'application/json'
                         },
-                        timeout: 40000
+                        timeout: 50000
                     },
                     2,
                     2500
