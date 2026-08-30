@@ -13,7 +13,8 @@ const app = express();
 const UPSTAGE_API_KEY = process.env.UPSTAGE_API_KEY;
 
 const SERVER_START_TIME = Date.now();
-const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+const TWO_WEEKS = 14 * 24 * 60 * 60 * 1000;
+
 
 const TOKEN_SECRET = process.env.TOKEN_SECRET || UPSTAGE_API_KEY || 'default-quiz-secret-key-32bytes';
 const ENCRYPTION_KEY = crypto.createHash('sha256').update(String(TOKEN_SECRET)).digest();
@@ -40,8 +41,8 @@ function decrypt(token) {
 app.disable('x-powered-by');
 
 app.use((req, res, next) => {
-    if (Date.now() - SERVER_START_TIME > TWENTY_FOUR_HOURS) {
-        console.log("[Vercel] 인스턴스 24시간 경과: 메모리 초기화를 위해 컨테이너 재생성을 수행합니다.");
+    if (Date.now() - SERVER_START_TIME > TWO_WEEKS) {
+        console.log("[Vercel] 인스턴스 2주 경과: 메모리 초기화를 위해 컨테이너 재생성을 수행합니다.");
         process.exit(0);
     }
     
