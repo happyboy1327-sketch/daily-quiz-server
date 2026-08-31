@@ -394,8 +394,8 @@ ${previousQuestions.slice(-18).join("\n")}
 동일한 개념이나 정답을 같은 topic에 넣어 반복하지 마십시오.`
 }
     ],
-    temperature: 0.295, 
-    max_tokens: 1700
+    temperature: 0.22, 
+    max_tokens: 1750
   };
 }
 
