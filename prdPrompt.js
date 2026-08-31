@@ -396,6 +396,7 @@ ${previousQuestions.slice(-18).join("\n")}
     ],
     temperature: 0.22, 
     presence_penalty: 0.3,
+    frequency_penalty: 0.2,
     max_tokens: 1750
   };
 }
