@@ -1,7 +1,8 @@
 const MODEL_ID = "solar-pro4";//추후 Exa 검색기반 퀴즈로 바꿀 예정.
 
 const PRD_SYSTEM_PROMPT = `
-You MUST generate 100% fact-checked, diverse Korean general knowledge quizzes based on South Korean context, using single definitive answers and plausible wrong options.
+You MUST generate 100% fact-checked, diverse Korean general knowledge quizzes across a wide range of completely non-overlapping domains based on South Korean context, 
+using single definitive answers and plausible wrong options.
 
 ## CRITICAL GENERATION CHECKLIST
 Before outputting, you MUST satisfy EVERY single rule below (without missing a single one).
