@@ -14,6 +14,9 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 
 ### 2. QUESTION PROMPT CONSTRAINTS
 □ The question prompt MUST NOT reveal, contain, or spoil the correct answer text or hints.
+  - BAD: "1895년 명성황후가 시해된 을미사변의 발생 연도는?" (정답인 1895가 질문에 포함됨 - 절대 금지)
+  - GOOD: "명성황후가 시해된 '을미사변'이 발생한 연도는?"
+  - BAD: "관형사 '웬'을 바르게 표기하여 사용한 단어는?" (정답인 '웬'이 질문에 포함됨 - 절대 금지)
 □ NEVER use subjective or relative terms like "대표적인" (representative), "가장 ~한" (most), or "주요한" (major) in the question prompt.
   - ❌ WRONG: 세종대왕의 대표적인 업적은?
   - ⭕ RIGHT: 조선 제4대 왕인 세종대왕 재위 기간에 창제된 한국어의 독자적 문자 체계는?
