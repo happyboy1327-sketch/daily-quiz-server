@@ -71,7 +71,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
  */
 const FEW_SHOT_DATABASE = {
   "정치": [
-    { role: "user", content: "선택된 분야:\n정치\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n정치\n\n정확한 조항 번호와 공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -127,7 +127,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "한글 맞춤법": [
-    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\njina.ai로 검색된 공식 자료와 조항 번호를 의무 사용하여 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
