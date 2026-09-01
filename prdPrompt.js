@@ -359,6 +359,8 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
     "correctAnswerText"
   ];
 
+  const matchedFewShot = FEW_SHOT_DATABASE[topic] || [];
+
   // 토픽이 "한글 맞춤법"일 때만 morpheme_check 스키마 동적 주입
   if (topic === "한글 맞춤법") {
     properties.morpheme_check = {
@@ -383,9 +385,9 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
         }
       }
     },
-    messages: [
-      { role: "system", content: systemPrompt },
-      ...getFewShotMessages(topic),
+ messages : [
+  { role: "system", content: PRD_SYSTEM_PROMPT },
+  ...matchedFewShot, // '지리'면 지리 퓨샷만 들어감
       {
         role: "user",
         content:`선택된 분야:
