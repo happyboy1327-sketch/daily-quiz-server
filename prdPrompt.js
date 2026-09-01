@@ -335,9 +335,11 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
     systemPrompt += `\n\n## Mandatory Spelling Reference Dataset\nWhen generating questions for "한글 맞춤법", you MUST strictly use the following dataset:\n${JSON.stringify(selectedSpelling, null, 2)}`;
   }
 
-  // 기본 스키마 정의
   const properties = {
-    topic: { type: "string" },
+    concept_summary: {
+      type: "string",
+      description: "출제할 팩트 및 핵심 개념을 1~2문장으로 먼저 요약"
+    },
     explanation: { type: "string" },
     question: { type: "string" },
     choices: {
@@ -349,7 +351,7 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
   };
 
   const required = [
-    "topic",
+    "concept_summary",
     "explanation",
     "question",
     "choices",
@@ -398,9 +400,9 @@ ${previousQuestions.slice(-18).join("\n")}
 동일한 개념이나 정답을 같은 topic에 넣어 반복하지 마십시오.`
 }
     ],
-    temperature: 0.15, 
-    presence_penalty: 0.9,
-    frequency_penalty: 0.9,
+    temperature: 0.2, 
+    presence_penalty: 0.1,
+    frequency_penalty: 0.2,
     max_tokens: 1750
   };
 }
