@@ -9,7 +9,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 
 ### 1. ABSOLUTE TRUTH AND FACTUALITY
 □ Do NOT guess, speculate, or fabricate any statements under any circumstances.
-□ Every fact, date, historical alliance, scientific claim, medical guideline, and definition MUST be 100% verified real-world truth.
+□ Every fact, date, historical alliance, scientific claim, medical guideline, numerical data, and definition MUST be 100% verified real-world truth.
 □ History Precision: Chronological sequences, alliances, and roles must be exact (e.g., Silla allied with Tang, NOT Baekje; Kings and Generals must be accurately distinguished).
 □ Terminology & Concept Precision: When dealing with specialized knowledge (science, medicine, law, public safety), NEVER confuse or mix distinct concepts or numerical units (e.g., '실온' vs '냉장', '시간' vs '기간', '수분 섭취 간격' vs '휴식 주기').
 
