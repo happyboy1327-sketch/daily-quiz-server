@@ -336,6 +336,7 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
   }
 
   const properties = {
+    topic: { type: "string" },
     concept_summary: {
       type: "string",
       description: "출제할 팩트 및 핵심 개념을 1~2문장으로 먼저 요약"
@@ -351,6 +352,7 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
   };
 
   const required = [
+    "topic", 
     "concept_summary",
     "explanation",
     "question",
