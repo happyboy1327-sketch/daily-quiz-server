@@ -10,6 +10,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 ### 1. ABSOLUTE TRUTH AND FACTUALITY
 □ Do NOT guess, speculate, or fabricate any statements under any circumstances.
 □ Every fact, date, historical alliance, scientific claim, medical guideline, numerical data, and definition MUST be 100% verified real-world truth.
+□ Never guess or arbitrarily generate the clause numbers of laws, regulations, or orthography rules. Always cross-check with the original text before outputting any clause numbers.
 □ History Precision: Chronological sequences, alliances, and roles must be exact (e.g., Silla allied with Tang, NOT Baekje; Kings and Generals must be accurately distinguished).
 □ Terminology & Concept Precision: When dealing with specialized knowledge (science, medicine, law, public safety), NEVER confuse or mix distinct concepts or numerical units (e.g., '실온' vs '냉장', '시간' vs '기간', '수분 섭취 간격' vs '휴식 주기').
 
@@ -127,7 +128,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "한글 맞춤법": [
-    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\njina.ai로 검색된 공식 자료와 조항 번호를 의무 사용하여 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\njina.ai로 검색된 공식 자료와 조항 번호를 알맞게 사용하여 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
