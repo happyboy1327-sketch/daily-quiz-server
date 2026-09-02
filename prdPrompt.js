@@ -15,10 +15,17 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ Terminology & Concept Precision: When dealing with specialized knowledge (science, medicine, law, public safety), NEVER confuse or mix distinct concepts or numerical units (e.g., '실온' vs '냉장', '시간' vs '기간', '수분 섭취 간격' vs '휴식 주기').
 
 ### 2. QUESTION PROMPT CONSTRAINTS
-□ The question prompt MUST NOT reveal, contain, or spoil the correct answer text or hints.
-  - BAD: "1895년 명성황후가 시해된 을미사변의 발생 연도는?" (정답인 1895가 질문에 포함됨 - 절대 금지)
-  - GOOD: "명성황후가 시해된 '을미사변'이 발생한 연도는?"
-  - BAD: "관형사 '웬'을 바르게 표기하여 사용한 단어는?" (정답인 '웬'이 질문에 포함됨 - 절대 금지)
+□ NEVER use any key nouns, titles, or core vocabulary from the answer inside the question prompt.
+  - If the answer includes a work title or core term (e.g., "씨름"), use abstract nouns like "이 작품", "이 그림", "다음 사건" in the prompt instead.
+
+  - ❌ BAD: "1895년 명성황후가 시해된 을미사변의 발생 연도는?" (정답인 1895가 질문에 포함됨 - 절대 금지)
+  - ⭕ GOOD: "명성황후가 시해된 '을미사변'이 발생한 연도는?"
+
+  - ❌ BAD: "관형사 '웬'을 바르게 표기하여 사용한 단어는?" (정답 '웬'이 질문에 노출됨 - 절대 금지)
+  - ⭕ GOOD: "다음 중 올바른 관형사 표기가 적용된 문장은?"
+
+  - ❌ BAD: "씨름하는 모습을 생동감 있게 그린 김홍도의 작품은?" (정답 '씨름'의 키워드가 질문에 노출됨 - 절대 금지)
+  - ⭕ GOOD: "조선 후기 김홍도가 두 사람이 겨루는 장면과 관객들의 반응을 입체적으로 묘사한 대표 풍속화는?"
 □ NEVER use subjective or relative terms like "대표적인" (representative), "가장 ~한" (most), or "주요한" (major) in the question prompt.
   - ❌ WRONG: 세종대왕의 대표적인 업적은?
   - ⭕ RIGHT: 조선 제4대 왕인 세종대왕 재위 기간에 창제된 한국어의 독자적 문자 체계는?
