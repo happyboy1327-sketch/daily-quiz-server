@@ -109,6 +109,16 @@ async function postWithRetry(
 
 
 const SPELLING_DATA = [
+    // ---축약형 허용---
+    { id: "PRONOUN_POSTPOSITION_ABBR", category: "대명사 축약 (격조사/주격 결합)", allowed: ["이게 맞다", "이건 책이다", "네가 해라"], forbidden: ["이거이 맞다", "이거시 맞다", "니가 해라"], questionType: "single_correct", explanation: "'이것이→이게', '이것은→이건', '너+가→네가'가 표준 표기이며, '이거이', '니가(서면어)' 등은 비표준어다." },
+    { id: "DEPENDENT_NOUN_GUT_ABBR", category: "의존 명사 준말 띄어쓰기", allowed: ["아는 게 힘이다", "할 건 많다", "볼 걸 그랬다", "먹을 거다"], forbidden: ["아는게 힘이다", "할건 많다", "볼걸 그랬다", "먹을거다"], questionType: "single_correct", explanation: "'것이→게', '것은→건', '것을→걸', '것이다→거다'는 정식 준말이며, 의존 명사이므로 앞말과 띄어 써야 한다." },
+    { id: "VERB_OE_EO_ABBR", category: "용언 모음 축약 (ㅚ+어 → ㅙ)", allowed: ["내일 봬요", "그러면 안 돼요", "시간이 됐어", "봬서 반갑습니다"], forbidden: ["내일 뵈요", "그러면 안 되요", "시간이 됬어", "뵈서 반갑습니다"], questionType: "single_correct", explanation: "'뵈어→봬', '되어→돼'로 축약된다. 어미 '-요'나 '-서' 앞에서는 '뵈요/되요/뵈서'가 아닌 '봬요/돼요/봬서'가 맞다." },
+    { id: "VERB_HA_LESS_VOICED", category: "용언 축약 (안울림소리 뒤 '하' 탈락)", allowed: ["생각건대", "섭섭지 않다", "깨끗지 못하다", "익숙지 않다"], forbidden: ["생각치 못하다", "섭섭치 않다", "깨끗치 못하다", "익숙치 않다"], questionType: "single_correct", explanation: "안울림소리 받침(ㄱ, ㅂ, ㅅ 등) 뒤에서는 '하'가 통째로 줄어 '지/건대'가 된다. ('섭섭치'X -> '섭섭지'O)" },
+    { id: "VERB_HA_VOICED", category: "용언 축약 (울림소리 뒤 '하' 축약)", allowed: ["흔치 않다", "만만찮다", "만만치 않다", "그렇잖다"], forbidden: ["흔지 않다", "만만챦다", "만만지 않다", "그렇챦다"], questionType: "single_correct", explanation: "울림소리 받침(ㄴ, ㄹ, ㅁ, ㅇ 및 모음) 뒤에서는 '하'의 'ㅏ'만 줄고 'ㅎ'이 남아 '치/찮'이 된다. '챦'은 잘못된 옛 표기다." },
+    { id: "VERB_RESTRICTED_STEM_ABBR", category: "용언 어간 준말 활용 제약", allowed: ["땅을 딛고 서다", "땅을 디뎌 서다", "물건을 갖고 가다", "물건을 가져 가다"], forbidden: ["땅을 딛어 서다", "땅을 딛으니", "물건을 갖아 가다", "물건을 갖어"], questionType: "single_correct", explanation: "'딛다', '갖다' 같은 어간 준말은 자음 어미('-고', '-지') 앞에서만 쓰인다. 모음 어미 결합 시 '딛어/갖아'는 비표준어이며, 본말을 활용한 '디디어(디뎌)', '가지어(가져)'가 올바른 표기다." },
+    { id: "VERB_R_STEM_ABBR", category: "용언 '르' 불규칙 어간 준말 활용", allowed: ["머물러 쉬다", "서둘러 일하다", "머무르다", "서두르다"], forbidden: ["머물어 쉬다", "서둘어 일하다", "머물아", "서둘아"], questionType: "single_correct", explanation: "'머무르다/서두르다'의 준말 '머물다/서둘다'는 모음 어미 결합 시 '머물어/서둘어'가 아닌 본말 활용형 '머물러/서둘러'로 써야 한다." },
+    { id: "NEGATION_JANKTA_CHANTA", category: "부정 어미 축약 표기 (-잖다/-찮다)", allowed: ["그렇잖다", "적잖다", "만만찮다", "변변찮다"], forbidden: ["그렇챦다", "적챦다", "만만챦다", "변변챦다"], questionType: "single_correct", explanation: "'하지 않다'가 줄어든 표기는 '-찮다', '지 않다'가 줄어든 표기는 '-잖다'이다. '챦'은 맞춤법에 맞지 않는 옛 표기다." },
+    { id: "ADVERB_CONJUNCTION_ABBR", category: "부사/접속어 축약어 표기", allowed: ["요컨대 핵심은", "단언컨대 사실이다", "생각건대 맞다"], forbidden: ["요컨데 핵심은", "단언컨데 사실이다", "생각컨데 맞다"], questionType: "single_correct", explanation: "'요약하건대→요컨대', '단언하건대→단언컨대'로 축약되며, 어미 부분은 '-데'가 아닌 '-대'가 올바른 표기다." },
     // --- 의존 명사 ---
     { id: "SPACING_DEPENDENT_NOUN_IL", category: "의존 명사", allowed: ["할 일", "갈 곳", "볼 것", "먹을 것"], forbidden: ["할일", "갈곳", "볼것", "먹을것"], questionType: "single_correct", explanation: "'일', '곳', '것' 등의 의존 명사는 앞말과 띄어 쓴다." },
     { id: "SPACING_DEPENDENT_NOUN_GAJI", category: "의존 명사", allowed: ["몇 가지", "두 가지", "여러 가지", "한 가지"], forbidden: ["몇가지", "두가지", "여러가지", "한가지"], questionType: "single_correct", explanation: "'가지'는 의존 명사이므로 앞말과 띄어 쓴다." },
