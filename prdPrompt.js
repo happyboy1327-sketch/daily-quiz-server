@@ -25,7 +25,8 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
   - ⭕ GOOD: "다음 중 올바른 관형사 표기가 적용된 문장은?"
 
   - ❌ BAD: "씨름하는 모습을 생동감 있게 그린 김홍도의 작품은?" (정답 '씨름'의 키워드가 질문에 노출됨 - 절대 금지)
-  - ⭕ GOOD: "조선 후기 김홍도가 두 사람이 겨루는 장면과 관객들의 반응을 입체적으로 묘사한 대표 풍속화는?"
+  - ⭕ GOOD: "조선 후기 김홍도가 단원풍속도첩에 남긴 그림 중, 두 사람이 겨루는 장면과 관객들의 반응을 입체적으로 묘사한 풍속화는?"
+
 □ NEVER use subjective or relative terms like "대표적인" (representative), "가장 ~한" (most), or "주요한" (major) in the question prompt.
   - ❌ WRONG: 세종대왕의 대표적인 업적은?
   - ⭕ RIGHT: 조선 제4대 왕인 세종대왕 재위 기간에 창제된 한국어의 독자적 문자 체계는?
