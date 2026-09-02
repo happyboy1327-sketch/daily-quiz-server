@@ -316,10 +316,6 @@ const FEW_SHOT_DATABASE = {
   ]   
 };
 
-function getFewShotMessages(topic) {
-  return FEW_SHOT_DATABASE[topic] || [];
-}
-
 
 function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
 
