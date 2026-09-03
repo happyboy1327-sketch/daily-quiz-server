@@ -377,6 +377,17 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
     required.push("morpheme_check");
   }
 
+  const formattedPreviousList = previousQuestions
+    .slice(-14)
+    .map(q => {
+      if (typeof q === "string") return `- ${q}`;
+      // 정답 텍스트(correctAnswerText)가 있다면 함께 전달하여 정답 재탕 방지
+      const ans = q.correctAnswerText ? ` (정답/개념: ${q.correctAnswerText})` : "";
+      return `- ${q.question}${ans}`;
+    })
+    .filter(Boolean)
+    .join("\n");
+  
   return {
     model: MODEL_ID,
     response_format: {
@@ -402,10 +413,10 @@ ${topic}
 
 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.
 
-이전 세트 질문:
-${previousQuestions.slice(-12).map(q => (typeof q === "string" ? q : q.question)).join("\n")}
+이미 출제된 목록:
+${formattedPreviousList || "- 없음"}
 
-위 질문들과 동일하거나 유사한 문제는 절대 출제하지 말고, 이전 출제와 다른 세부 주제와 사실을 선택하십시오.
+이미 출제된 목록과 동일하거나 유사한 문제는 절대 출제하지 말고, 다양한 세부 주제와 사실을 선택하십시오.
 동일한 개념이나 정답을 같은 topic에 넣어 반복하지 마십시오.`
 }
     ],
