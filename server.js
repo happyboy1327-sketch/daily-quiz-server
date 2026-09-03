@@ -523,6 +523,31 @@ function fetchJinaSpellingData() {
     });
 }
 
+function isDuplicateQuiz(newQuiz, masterData) {
+  if (!newQuiz?.correctAnswerText || !Array.isArray(masterData)) return false;
+  const newAns = newQuiz.correctAnswerText.trim();
+
+  return masterData.some(prev => {
+    const prevAns = (typeof prev === "string" ? prev : prev?.correctAnswerText || "").trim();
+    if (!prevAns) return false;
+
+    // 1. 포함 관계 검사 (예: "지구 자전축" <-> "지구 자전축의 기울기")
+    if (prevAns.includes(newAns) || newAns.includes(prevAns)) {
+      return true;
+    }
+
+    // 2. 주요 단어(2자 이상) 2개 이상 겹침 검사
+    const newKeywords = newAns.split(/\s+/).filter(w => w.length >= 2);
+    const prevKeywords = prevAns.split(/\s+/).filter(w => w.length >= 2);
+
+    const overlapCount = newKeywords.filter(word =>
+      prevKeywords.some(pWord => pWord.includes(word) || word.includes(pWord))
+    ).length;
+
+    return overlapCount >= 2;
+  });
+}
+
 // Node.js 실행 테스트
 
 async function fetchNewQuizData() {
@@ -673,6 +698,10 @@ async function fetchNewQuizData() {
                     quiz.choices[quiz.correctAnswerIndex] !== quiz.correctAnswerText
                 ) {
                     throw new Error("정답 인덱스/텍스트 불일치");
+                }
+                // 5.1 중복 정답 개념 검증
+                if (isDuplicateQuiz(quiz, MASTER_QUIZ_DATA)) {
+                throw new Error(`중복된 정답/개념 감지: ${quiz.correctAnswerText}`);
                 }
 
                 // 6. 해설 접두사 정형화
