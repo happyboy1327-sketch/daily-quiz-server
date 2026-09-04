@@ -33,6 +33,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ Scope, assumptions, units, and criteria must be explicit when relevant.
 □ Do not ask for obscure dates or numbers EXCEPT for verified fields like HISTORY, SCIENCE, MEDICINE, and PUBLIC GUIDELINES (e.g., food safety hours, intake intervals).
 □ Avoid unresolved controversies, time-varying political facts, and dumping detailed legal statutory texts into the question body.
+□ When generating Geography questions using superlative terms (e.g., "largest", "longest", "1st"), do not combine metrics belonging to different entities (such as basin area vs. stream length) into a single contradictory premise.
 □ For Coding: Plain text code only. Markdown code blocks within JSON strings are strictly prohibited.
 □ [생성 금지 지침]
 - 단체/기관마다 기준 수치가 다른 문제(예: 적정 온도, 체온 수치, 권장 시간 등)는 절대로 출제하지 마십시오.
@@ -54,6 +55,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
   - Examples: [Source: National Institute of Korean Language], [Basis: Constitution Article 70], [Source: KACD Guidelines]
 □ Explain why the correct answer is right and why each distractor is wrong using ONLY 100% verified real-world facts. Never fabricate false characteristics about a distractor.
 □ If uncertain about any distractor's exact background, DO NOT attempt to explain or mention that distractor.
+□ Avoid ambiguous relative descriptors (e.g., "short", "long") in explanations; use exact names, figures, and definitive facts instead.
 □ Do NOT include long statutory text dumps or detailed legal sub-clauses in the explanation. (Main article citations like "헌법 제70조" are permitted ONLY as sources).
 □ 조항이 2개 이상 적용되는 문제일 경우, 출처에 조항을 2개 이상 병기하시오. [근거: 헌법 제86조·제87조]
 
