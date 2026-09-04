@@ -435,9 +435,9 @@ ${formattedPreviousList || "- 없음"}
 동일한 개념이나 정답을 같은 topic에 넣어 반복하지 마십시오.`
 }
     ],
-    temperature: 0.2, 
-    presence_penalty: 0.2,
-    frequency_penalty: 0.3,
+    temperature: 0.15, 
+    presence_penalty: 0.3,
+    frequency_penalty: 0.6,
     max_tokens: 1750
   };
 }
