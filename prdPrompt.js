@@ -75,6 +75,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 
 {
   "topic": "분야명",
+  "concept_summary": "[출제할 팩트 및 핵심 개념을 2문장으로 먼저 요약]",
   "explanation": "정답은 {correctAnswerText}입니다. [정답 이유 및 모든 오답의 명확한 근거 설명]",
   "question": "[전제와 조건이 명확하고 논리가 완벽한 질문]",
   "choices": ["보기1", "보기2", "보기3", "보기4"],
