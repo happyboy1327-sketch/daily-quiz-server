@@ -748,53 +748,63 @@ async function fetchNewQuizData() {
     // 기존 forEach 안에 있던 로직과 동일하며, 최초 셔플뿐 아니라
     // 2차 검증 실패 후 재생성된 문제 하나에도 그대로 다시 적용한다.
     // ------------------------------------------------------------
-    function shuffleQuizChoices(quiz, idx) {
-        const originalText =
-            quiz.choices[quiz.correctAnswerIndex] || quiz.correctAnswerText;
-        const originalChoices = [...quiz.choices];
+function shuffleQuizChoices(quiz, idx) {
+    // 1. correctAnswerText를 최우선 기준으로 설정 (인덱스 오류 대비)
+    let originalText = quiz.correctAnswerText;
 
-        shuffleArray(quiz.choices, `${Date.now()}_${idx}_${Math.random()}`);
+    // correctAnswerText가 비어있을 때만 인덱스 텍스트를 차선책으로 사용
+    if (!originalText && quiz.choices[quiz.correctAnswerIndex]) {
+        originalText = quiz.choices[quiz.correctAnswerIndex];
+    }
 
-        let newIndex = quiz.choices.indexOf(originalText);
+    const originalChoices = [...quiz.choices];
 
-        if (newIndex === -1 && originalText) {
-            const cleanTarget = originalText.replace(/[\s\.]/g, '');
-            newIndex = quiz.choices.findIndex(
-                c => c.replace(/[\s\.]/g, '') === cleanTarget
+    // 셔플 진행
+    shuffleArray(quiz.choices, `${Date.now()}_${idx}_${Math.random()}`);
+
+    // 2. 셔플된 배열에서 정답 텍스트 위치 탐색
+    let newIndex = quiz.choices.indexOf(originalText);
+
+    if (newIndex === -1 && originalText) {
+        const cleanTarget = originalText.replace(/[\s\.]/g, '');
+        newIndex = quiz.choices.findIndex(
+            c => c.replace(/[\s\.]/g, '') === cleanTarget
+        );
+    }
+
+    // 3. 인덱스 및 정답 텍스트 재정의
+    if (newIndex !== -1) {
+        quiz.correctAnswerIndex = newIndex;
+        quiz.correctAnswerText = quiz.choices[newIndex];
+    } else {
+        // 보기에 정답 텍스트가 아예 없는 경우 에러를 던져 재시도(Retry) 유도
+        throw new Error(`[Shuffle Error] 정답 텍스트("${originalText}")가 보기 목록에 존재하지 않습니다.`);
+    }
+
+    // 4. 해설 내 보기 번호(1번, 2번...) 치환 로직
+    if (quiz.explanation) {
+        for (let i = 0; i < originalChoices.length; i++) {
+            const oldNumText = `${i + 1}번`;
+            quiz.explanation = quiz.explanation.replaceAll(
+                oldNumText,
+                `__TEMP_${i}__`
             );
         }
 
-        if (newIndex !== -1) {
-            quiz.correctAnswerIndex = newIndex;
-            quiz.correctAnswerText = quiz.choices[newIndex];
-        } else {
-            quiz.correctAnswerIndex = 0;
-            quiz.correctAnswerText = quiz.choices[0];
-        }
-
-        if (quiz.explanation) {
-            for (let i = 0; i < originalChoices.length; i++) {
-                const oldNumText = `${i + 1}번`;
+        for (let i = 0; i < originalChoices.length; i++) {
+            const movedIndex = quiz.choices.indexOf(originalChoices[i]);
+            if (movedIndex !== -1) {
+                const newNumText = `${movedIndex + 1}번`;
                 quiz.explanation = quiz.explanation.replaceAll(
-                    oldNumText,
-                    `__TEMP_${i}__`
+                    `__TEMP_${i}__`,
+                    newNumText
                 );
             }
-
-            for (let i = 0; i < originalChoices.length; i++) {
-                const movedIndex = quiz.choices.indexOf(originalChoices[i]);
-                if (movedIndex !== -1) {
-                    const newNumText = `${movedIndex + 1}번`;
-                    quiz.explanation = quiz.explanation.replaceAll(
-                        `__TEMP_${i}__`,
-                        newNumText
-                    );
-                }
-            }
         }
-
-        return quiz;
     }
+
+    return quiz;
+}
 
     const rawQuizzes = new Array(selectedTopics.length);
     let topicIndex = 0;
