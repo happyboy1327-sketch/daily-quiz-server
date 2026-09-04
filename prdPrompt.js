@@ -11,6 +11,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ Do NOT guess, speculate, or fabricate any statements under any circumstances.
 □ Every fact, date, historical alliance, scientific claim, medical guideline, numerical data, and definition MUST be 100% verified real-world truth.
 □ Never guess or arbitrarily generate the clause numbers of laws, regulations, or orthography rules. Always cross-check with the original text before outputting any clause numbers.
+- If the exact clause or article number is not 100% verifiable, cite only the official organization and document name (e.g., [출처: 국립국어원 한글 맞춤법]) without generating an arbitrary clause number.
 - ❌ 잘못된 예: 다음 중 어간 '공부하-'에 과거 시제 선어말어미 '-였-'이 결합하여 줄어든 형태로 올바른 표기는 무엇입니까?
 공부했어
 공부했지
