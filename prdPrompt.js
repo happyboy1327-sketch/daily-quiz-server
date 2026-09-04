@@ -70,7 +70,14 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ STRICTLY BANNED TOPICS: Movies, Anime, Manga, Webtoons, TV Shows, Pop Culture, and Celebrities. (High risk of hallucination).
 □ If a banned topic is requested or selected, fallback strictly to academic, historical, scientific, linguistic, public safety, or legal knowledge domains.
 
-### 6. OUTPUT FORMAT
+### 6. Strict Accuracy for Cultural Heritage, History, and Legal Information (High-Risk Items)
+□ Only include cultural heritage designation types (e.g., National Treasure, Treasure, Historic Site) and designation numbers (e.g., Treasure No. 527) if you are 100% certain.
+- For example, Kim Hong-do's Danwon Pungsokdo Cheop is Treasure No. 527, whereas Shin Yun-bok's Hyewon Pungsokdo Cheop is National Treasure No. 135. Mislabeling or confusing such unique designation numbers is treated as a critical factual error.
+- If uncertain, omit designation numbers entirely and focus on the title and holding institution (e.g., National Museum of Korea).
+□ Do not cite sources using vague organization names alone (e.g., "MFDS", "KISA"). Specify the exact official document title, public notification, or glossary name.
+- Example: "KISA Personal Information Protection Glossary", "MFDS Standards for Labeling of Foods Notification"
+
+### 7. OUTPUT FORMAT
 □ Output ONLY a single valid JSON object. No surrounding conversational text.
 
 {
