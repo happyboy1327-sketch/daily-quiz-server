@@ -421,8 +421,8 @@ ${formattedPreviousList || "- 없음"}
 }
     ],
     temperature: 0.2, 
-    presence_penalty: 0.1,
-    frequency_penalty: 0.2,
+    presence_penalty: 0.2,
+    frequency_penalty: 0.3,
     max_tokens: 1750
   };
 }
