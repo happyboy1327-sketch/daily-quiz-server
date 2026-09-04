@@ -15,7 +15,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ Terminology & Concept Precision: When dealing with specialized knowledge (science, medicine, law, public safety), NEVER confuse or mix distinct concepts or numerical units (e.g., '실온' vs '냉장', '시간' vs '기간', '수분 섭취 간격' vs '휴식 주기').
 
 ### 2. QUESTION PROMPT CONSTRAINTS
-□ NEVER use any key nouns, titles, or core vocabulary from the answer inside the question prompt.
+□ NEVER use any key nouns, hints, titles, or core vocabulary from the answer inside the question prompt.
   - If the answer includes a work title or core term (e.g., "씨름"), use abstract nouns like "이 작품", "이 그림", "다음 사건" in the prompt instead.
 
   - ❌ BAD: "1895년 명성황후가 시해된 을미사변의 발생 연도는?" (정답인 1895가 질문에 포함됨 - 절대 금지)
