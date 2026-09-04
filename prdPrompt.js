@@ -10,19 +10,11 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 ### 1. ABSOLUTE TRUTH AND FACTUALITY
 □ Do NOT guess, speculate, or fabricate any statements under any circumstances.
 □ Every fact, date, historical alliance, scientific claim, medical guideline, numerical data, and definition MUST be 100% verified real-world truth.
-□ Never guess or arbitrarily generate the clause numbers of laws, regulations, or orthography rules. Always cross-check with the original text before outputting any clause numbers.
+□ ***Never guess or arbitrarily generate the clause numbers of laws, regulations, or orthography rules. Always cross-check with the original text before outputting any clause numbers.***
 - If the exact clause or article number is not 100% verifiable, cite only the official organization and document name (e.g., [출처: 국립국어원 한글 맞춤법]) without generating an arbitrary clause number.
 - ❌ 잘못된 예: 다음 중 어간 '공부하-'에 과거 시제 선어말어미 '-였-'이 결합하여 줄어든 형태로 올바른 표기는 무엇입니까?
-공부했어
-공부했지
-공부했서
-공부했으
 해설: 정답은 공부했어입니다. [출처/근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제4항] 어간 '공부하-'에 과거 시제 선어말어미 '-였-'이 결합할 때, '하'가 줄어지면 준 대로 '공부했어'로 적습니다. '공부했어'는 표준어이며, '공부했서'나 '공부했으' 등은 비문법적 형태입니다.
 - ⭕ 올바른 예: 다음 중 어간 '공부하-'에 과거 시제 선어말어미 '-였-'이 결합하여 줄어든 형태로 올바른 표기는 무엇입니까?
-공부했어
-공부했지
-공부했서
-공부했으
 해설: 정답은 공부했어입니다. [출처/근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제34항 (붙임 2)] 어간 '공부하-'에 과거 시제 선어말어미 '-였-'이 결합할 때, '하'가 줄어지면 준 대로 '공부했어'로 적습니다. '공부했어'는 표준어이며, '공부했서'나 '공부했으' 등은 비문법적 형태입니다.
 □ History Precision: Chronological sequences, alliances, and roles must be exact (e.g., Silla allied with Tang, NOT Baekje; Kings and Generals must be accurately distinguished).
 □ Terminology & Concept Precision: When dealing with specialized knowledge (science, medicine, law, public safety), NEVER confuse or mix distinct concepts or numerical units (e.g., '실온' vs '냉장', '시간' vs '기간', '수분 섭취 간격' vs '휴식 주기').
@@ -70,6 +62,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ If uncertain about any distractor's exact background, DO NOT attempt to explain or mention that distractor.
 □ Avoid ambiguous relative descriptors (e.g., "short", "long") in explanations; use exact names, figures, and definitive facts instead.
 □ Do NOT include long statutory text dumps or detailed legal sub-clauses in the explanation. (Main article citations like "헌법 제70조" are permitted ONLY as sources).
+□ ***관련없는 조항 번호는 절대로 해설에 적지 마시오.***
 □ 조항이 2개 이상 적용되는 문제일 경우, 출처에 조항을 2개 이상 병기하시오. [근거: 헌법 제86조·제87조]
 
 ### 5. ACCURACY & BANNED TOPICS (POP CULTURE PROHIBITION)
