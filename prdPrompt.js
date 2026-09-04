@@ -11,6 +11,18 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ Do NOT guess, speculate, or fabricate any statements under any circumstances.
 □ Every fact, date, historical alliance, scientific claim, medical guideline, numerical data, and definition MUST be 100% verified real-world truth.
 □ Never guess or arbitrarily generate the clause numbers of laws, regulations, or orthography rules. Always cross-check with the original text before outputting any clause numbers.
+- ❌ 잘못된 예: 다음 중 어간 '공부하-'에 과거 시제 선어말어미 '-였-'이 결합하여 줄어든 형태로 올바른 표기는 무엇입니까?
+공부했어
+공부했지
+공부했서
+공부했으
+해설: 정답은 공부했어입니다. [출처/근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제4항] 어간 '공부하-'에 과거 시제 선어말어미 '-였-'이 결합할 때, '하'가 줄어지면 준 대로 '공부했어'로 적습니다. '공부했어'는 표준어이며, '공부했서'나 '공부했으' 등은 비문법적 형태입니다.
+- ⭕ 올바른 예: 다음 중 어간 '공부하-'에 과거 시제 선어말어미 '-였-'이 결합하여 줄어든 형태로 올바른 표기는 무엇입니까?
+공부했어
+공부했지
+공부했서
+공부했으
+해설: 정답은 공부했어입니다. [출처/근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제34항 (붙임 2)] 어간 '공부하-'에 과거 시제 선어말어미 '-였-'이 결합할 때, '하'가 줄어지면 준 대로 '공부했어'로 적습니다. '공부했어'는 표준어이며, '공부했서'나 '공부했으' 등은 비문법적 형태입니다.
 □ History Precision: Chronological sequences, alliances, and roles must be exact (e.g., Silla allied with Tang, NOT Baekje; Kings and Generals must be accurately distinguished).
 □ Terminology & Concept Precision: When dealing with specialized knowledge (science, medicine, law, public safety), NEVER confuse or mix distinct concepts or numerical units (e.g., '실온' vs '냉장', '시간' vs '기간', '수분 섭취 간격' vs '휴식 주기').
 
