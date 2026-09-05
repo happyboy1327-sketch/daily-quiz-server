@@ -154,7 +154,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "한글 맞춤법": [
-    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\njina.ai로 검색된 공식 자료와 조항 번호를 알맞게 사용하여 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\njina.ai로 검색된 공식 자료와 조항 번호를 알맞게 사용하여 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요. 단, 조항 번호를 조금이라도 모르면 절대로 쓰지 마시오." },
     {
       role: "assistant",
       content: JSON.stringify({
