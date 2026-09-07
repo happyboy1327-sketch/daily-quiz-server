@@ -713,15 +713,11 @@ async function fetchNewQuizData() {
         `[API] 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`
     );
 
-    // ------------------------------------------------------------
-    // 💡 [핵심 추출] 토픽 1개 생성 + 1차(구조/포맷) 검증 로직을
-    // 재사용 가능한 함수로 분리. 최초 생성뿐 아니라, AI 2차 검증에서
-    // 특정 문항만 실패했을 때 그 문항만 재생성하는 데에도 그대로 사용한다.
-    // 로직 자체는 기존 fetchWorker 내부 try 블록과 완전히 동일하며,
-    // 위치만 재사용 가능하도록 옮겼을 뿐 검증 규칙은 하나도 바뀌지 않았다.
-    // ------------------------------------------------------------
+    // ============================================================
+    // 1. 토픽 1개 생성 + 1차 검증
+    // ============================================================
     async function generateOneQuiz(topic, label) {
-        const MAX_TOPIC_RETRIES = 3; // 토픽당 최대 재시도 횟수
+        const MAX_TOPIC_RETRIES = 3;
 
         for (let attempt = 1; attempt <= MAX_TOPIC_RETRIES; attempt++) {
             try {
@@ -732,8 +728,12 @@ async function fetchNewQuizData() {
                     spellingParam = fetchedData || SPELLING_DATA;
                 }
 
-                // 💡 재시도할 때마다 새 payload 생성
-                const payload = createQuizPayload(topic, spellingParam, MASTER_QUIZ_DATA.map(q => q.question));
+                // 재시도마다 새로운 payload 생성
+                const payload = createQuizPayload(
+                    topic,
+                    spellingParam,
+                    MASTER_QUIZ_DATA.map(q => q.question)
+                );
 
                 console.log(
                     `[${label}] ${topic} 생성 시도 (${attempt}/${MAX_TOPIC_RETRIES})`
@@ -763,9 +763,11 @@ async function fetchNewQuizData() {
 
                 if (Array.isArray(rawContent)) {
                     const textPart = rawContent.find(
-                        p => p.type === "text" &&
-                             typeof p.text === "string"
+                        p =>
+                            p.type === "text" &&
+                            typeof p.text === "string"
                     );
+
                     rawContent = textPart?.text;
                 }
 
@@ -789,37 +791,14 @@ async function fetchNewQuizData() {
                 quiz.topic = topic;
 
                 // ----------------------------------------------------
-                // 💡 [핵심 이동] 문제 검증 로직을 재시도 루프 안으로 통합
-                // 아래 검증 중 하나라도 실패하면 throw -> catch 이동 -> 새 payload 재생성!
+                // 기본 후처리
                 // ----------------------------------------------------
                 quiz = autoFixQuiz(quiz);
-
-
                 quiz = fixHangulPhonicsLogic(quiz);
 
-                const fullText = [
-                    quiz.question,
-                    ...(quiz.choices || []),
-                    quiz.explanation,
-                    quiz.correctAnswerText
-                ].join(" ");
-
-                // 1. 한자/외국어 검증
-                if (HANJA_AND_FOREIGN_REGEX.test(fullText)) {
-                    const badChars = [
-                        ...new Set(
-                            [...fullText].filter(c => HANJA_AND_FOREIGN_REGEX.test(c))
-                        )
-                    ];
-                    throw new Error(`금지된 한자/외국 문자 포함: ${badChars.join(", ")}`);
-                }
-
-                // 2. 맞춤법 질문-정답 불일치 검증
-                if (!validateSpellingAnswer(quiz)) {
-                    throw new Error("한글 맞춤법: 질문 유형(긍정/부정)과 정답 표기 불일치");
-                }
-
-                // 3. 필수 필드 검증
+                // ----------------------------------------------------
+                // 1. 필수 필드 검증
+                // ----------------------------------------------------
                 if (
                     !quiz.topic ||
                     !quiz.question ||
@@ -831,56 +810,158 @@ async function fetchNewQuizData() {
                     throw new Error("필수 필드 누락");
                 }
 
-                // 4. 보기 중복 제거 및 개수 검증
+                // correctAnswerIndex는 반드시 정수
+                if (!Number.isInteger(quiz.correctAnswerIndex)) {
+                    throw new Error("정답 인덱스가 정수가 아닙니다.");
+                }
+
+                // ----------------------------------------------------
+                // 2. 보기 중복 제거
+                //
+                // 중복 제거로 인해 정답 인덱스가 이동할 수 있으므로
+                // 제거 후 correctAnswerText를 기준으로 인덱스를 다시 계산한다.
+                // ----------------------------------------------------
+                const originalCorrectAnswerText = quiz.correctAnswerText;
+
                 const seen = new Set();
+
                 quiz.choices = quiz.choices.filter(c => {
                     if (!c) return false;
-                    const norm = normalizeChoice(c, quiz.topic).toLowerCase().trim();
-                    if (seen.has(norm)) return false;
+
+                    const norm = normalizeChoice(c, quiz.topic)
+                        .toLowerCase()
+                        .trim();
+
+                    if (seen.has(norm)) {
+                        return false;
+                    }
+
                     seen.add(norm);
                     return true;
                 });
 
+                // 프로젝트 기준: 선택지는 정확히 4개
                 if (quiz.choices.length < 3) {
-                    throw new Error("유효한 보기가 3개 미만입니다.");
+                    throw new Error(
+                        `유효한 보기 개수가 3개 미만입니다. 현재 ${quiz.choices.length}개`
+                    );
                 }
 
-                // 5. 정답 인덱스/텍스트 검증
+                // ----------------------------------------------------
+                // 3. 정답 텍스트 기준으로 인덱스 재동기화
+                // ----------------------------------------------------
+                let correctedAnswerIndex =
+                    quiz.choices.indexOf(originalCorrectAnswerText);
+
+                // 공백/마침표 차이를 허용한 보정 탐색
+                if (correctedAnswerIndex === -1 && originalCorrectAnswerText) {
+                    const cleanTarget = originalCorrectAnswerText
+                        .replace(/[\s\.]/g, '');
+
+                    correctedAnswerIndex = quiz.choices.findIndex(
+                        c =>
+                            typeof c === "string" &&
+                            c.replace(/[\s\.]/g, '') === cleanTarget
+                    );
+                }
+
+                if (correctedAnswerIndex === -1) {
+                    throw new Error(
+                        `정답 텍스트("${originalCorrectAnswerText}")가 보기 목록에 없습니다.`
+                    );
+                }
+
+                quiz.correctAnswerIndex = correctedAnswerIndex;
+                quiz.correctAnswerText = quiz.choices[correctedAnswerIndex];
+
+                // ----------------------------------------------------
+                // 4. 정답 인덱스 최종 검증
+                // ----------------------------------------------------
                 if (
+                    !Number.isInteger(quiz.correctAnswerIndex) ||
                     quiz.correctAnswerIndex < 0 ||
-                    quiz.correctAnswerIndex > 3 ||
+                    quiz.correctAnswerIndex >= quiz.choices.length ||
                     quiz.choices[quiz.correctAnswerIndex] !== quiz.correctAnswerText
                 ) {
                     throw new Error("정답 인덱스/텍스트 불일치");
                 }
-                // 5.1 중복 정답 개념 검증
-                if (isDuplicateQuiz(quiz, MASTER_QUIZ_DATA)) {
-                throw new Error(`중복된 정답/개념 감지: ${quiz.correctAnswerText}`);
+
+                // ----------------------------------------------------
+                // 5. 전체 텍스트 한자/외국어 검증
+                // ----------------------------------------------------
+                const fullText = [
+                    quiz.question,
+                    ...quiz.choices,
+                    quiz.explanation,
+                    quiz.correctAnswerText
+                ].join(" ");
+
+                if (HANJA_AND_FOREIGN_REGEX.test(fullText)) {
+                    const badChars = [
+                        ...new Set(
+                            [...fullText].filter(c =>
+                                HANJA_AND_FOREIGN_REGEX.test(c)
+                            )
+                        )
+                    ];
+
+                    throw new Error(
+                        `금지된 한자/외국 문자 포함: ${badChars.join(", ")}`
+                    );
                 }
 
-                // 6. 해설 접두사 정형화
-                const targetPrefix = `정답은 ${quiz.correctAnswerText}입니다.`;
+                // ----------------------------------------------------
+                // 6. 맞춤법 질문-정답 일치 검증
+                // ----------------------------------------------------
+                if (!validateSpellingAnswer(quiz)) {
+                    throw new Error(
+                        "한글 맞춤법: 질문 유형(긍정/부정)과 정답 표기 불일치"
+                    );
+                }
+
+                // ----------------------------------------------------
+                // 7. 중복 정답/개념 검증
+                // ----------------------------------------------------
+                if (isDuplicateQuiz(quiz, MASTER_QUIZ_DATA)) {
+                    throw new Error(
+                        `중복된 정답/개념 감지: ${quiz.correctAnswerText}`
+                    );
+                }
+
+                // ----------------------------------------------------
+                // 8. 해설 접두사 정형화
+                // ----------------------------------------------------
+                const targetPrefix =
+                    `정답은 ${quiz.correctAnswerText}입니다.`;
+
                 const trimmedExp = quiz.explanation.trim();
 
                 if (!trimmedExp.startsWith(targetPrefix)) {
                     const splitIndex = trimmedExp.indexOf("입니다.");
+
                     if (splitIndex !== -1) {
-                        const cleanExp = trimmedExp.slice(splitIndex + 4).trim();
-                        quiz.explanation = `${targetPrefix} ${cleanExp}`;
+                        const cleanExp =
+                            trimmedExp.slice(splitIndex + 4).trim();
+
+                        quiz.explanation =
+                            `${targetPrefix} ${cleanExp}`;
                     }
                 }
 
-                // 모든 검증 통과 완료
                 console.log(
                     `[${label}] ✅ ${topic} 생성 및 검증 성공 (${attempt}번째 시도)`
                 );
 
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                return quiz; // 성공
+                await new Promise(resolve =>
+                    setTimeout(resolve, 1000)
+                );
+
+                return quiz;
 
             } catch (error) {
                 console.warn(
-                    `[${label}] ⚠️ ${topic} 실패/검증오류 (${attempt}/${MAX_TOPIC_RETRIES}):`,
+                    `[${label}] ⚠️ ${topic} 실패/검증오류 ` +
+                    `(${attempt}/${MAX_TOPIC_RETRIES}):`,
                     error.message
                 );
 
@@ -888,78 +969,93 @@ async function fetchNewQuizData() {
                     console.log(
                         `[${label}] 🔄 ${topic} 새 payload로 재시도 중...`
                     );
-                    await new Promise(resolve => setTimeout(resolve, 1500));
+
+                    await new Promise(resolve =>
+                        setTimeout(resolve, 1500)
+                    );
                 }
             }
         }
 
-        console.error(`[${label}] ❌ ${topic} 최종 생성 실패`);
+        console.error(
+            `[${label}] ❌ ${topic} 최종 생성 실패`
+        );
+
         return null;
     }
 
-    // ------------------------------------------------------------
-    // 💡 보기 셔플 + 정답 인덱스/해설 번호 재매핑도 함수로 분리.
-    // 기존 forEach 안에 있던 로직과 동일하며, 최초 셔플뿐 아니라
-    // 2차 검증 실패 후 재생성된 문제 하나에도 그대로 다시 적용한다.
-    // ------------------------------------------------------------
-function shuffleQuizChoices(quiz, idx) {
-    // 1. correctAnswerText를 최우선 기준으로 설정 (인덱스 오류 대비)
-    let originalText = quiz.correctAnswerText;
+    // ============================================================
+    // 2. 보기 셔플
+    // ============================================================
+    function shuffleQuizChoices(quiz, idx) {
+        let originalText = quiz.correctAnswerText;
 
-    // correctAnswerText가 비어있을 때만 인덱스 텍스트를 차선책으로 사용
-    if (!originalText && quiz.choices[quiz.correctAnswerIndex]) {
-        originalText = quiz.choices[quiz.correctAnswerIndex];
-    }
+        if (!originalText && quiz.choices[quiz.correctAnswerIndex]) {
+            originalText = quiz.choices[quiz.correctAnswerIndex];
+        }
 
-    const originalChoices = [...quiz.choices];
+        const originalChoices = [...quiz.choices];
 
-    // 셔플 진행
-    shuffleArray(quiz.choices, `${Date.now()}_${idx}_${Math.random()}`);
-
-    // 2. 셔플된 배열에서 정답 텍스트 위치 탐색
-    let newIndex = quiz.choices.indexOf(originalText);
-
-    if (newIndex === -1 && originalText) {
-        const cleanTarget = originalText.replace(/[\s\.]/g, '');
-        newIndex = quiz.choices.findIndex(
-            c => c.replace(/[\s\.]/g, '') === cleanTarget
+        shuffleArray(
+            quiz.choices,
+            `${Date.now()}_${idx}_${Math.random()}`
         );
-    }
 
-    // 3. 인덱스 및 정답 텍스트 재정의
-    if (newIndex !== -1) {
-        quiz.correctAnswerIndex = newIndex;
-        quiz.correctAnswerText = quiz.choices[newIndex];
-    } else {
-        // 보기에 정답 텍스트가 아예 없는 경우 에러를 던져 재시도(Retry) 유도
-        throw new Error(`[Shuffle Error] 정답 텍스트("${originalText}")가 보기 목록에 존재하지 않습니다.`);
-    }
+        let newIndex = quiz.choices.indexOf(originalText);
 
-    // 4. 해설 내 보기 번호(1번, 2번...) 치환 로직
-    if (quiz.explanation) {
-        for (let i = 0; i < originalChoices.length; i++) {
-            const oldNumText = `${i + 1}번`;
-            quiz.explanation = quiz.explanation.replaceAll(
-                oldNumText,
-                `__TEMP_${i}__`
+        if (newIndex === -1 && originalText) {
+            const cleanTarget = originalText.replace(/[\s\.]/g, '');
+
+            newIndex = quiz.choices.findIndex(
+                c =>
+                    typeof c === "string" &&
+                    c.replace(/[\s\.]/g, '') === cleanTarget
             );
         }
 
-        for (let i = 0; i < originalChoices.length; i++) {
-            const movedIndex = quiz.choices.indexOf(originalChoices[i]);
-            if (movedIndex !== -1) {
-                const newNumText = `${movedIndex + 1}번`;
+        if (newIndex === -1) {
+            throw new Error(
+                `[Shuffle Error] 정답 텍스트("${originalText}")가 보기 목록에 존재하지 않습니다.`
+            );
+        }
+
+        quiz.correctAnswerIndex = newIndex;
+        quiz.correctAnswerText = quiz.choices[newIndex];
+
+        // --------------------------------------------------------
+        // 해설의 보기 번호 재매핑
+        // --------------------------------------------------------
+        if (quiz.explanation) {
+            for (let i = 0; i < originalChoices.length; i++) {
+                const oldNumText = `${i + 1}번`;
+
                 quiz.explanation = quiz.explanation.replaceAll(
-                    `__TEMP_${i}__`,
-                    newNumText
+                    oldNumText,
+                    `__TEMP_${i}__`
                 );
             }
+
+            for (let i = 0; i < originalChoices.length; i++) {
+                const movedIndex =
+                    quiz.choices.indexOf(originalChoices[i]);
+
+                if (movedIndex !== -1) {
+                    const newNumText = `${movedIndex + 1}번`;
+
+                    quiz.explanation = quiz.explanation.replaceAll(
+                        `__TEMP_${i}__`,
+                        newNumText
+                    );
+                }
+            }
         }
+
+        return quiz;
     }
 
-    return quiz;
-}
-
+    // ============================================================
+    // 3. 생성 워커
+    // ============================================================
     const rawQuizzes = new Array(selectedTopics.length);
     let topicIndex = 0;
 
@@ -972,120 +1068,450 @@ function shuffleQuizChoices(quiz, idx) {
             }
 
             const topic = selectedTopics[currentIndex];
-            rawQuizzes[currentIndex] = await generateOneQuiz(topic, `WORKER ${workerId}`);
+
+            rawQuizzes[currentIndex] =
+                await generateOneQuiz(
+                    topic,
+                    `WORKER ${workerId}`
+                );
         }
+
         return rawQuizzes;
     }
 
-
-    // 워커 1, 워커 2를 1초 시간차로 시작
+    // 워커 1 먼저 시작
     const worker1 = fetchWorker(1);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // 1초 뒤 워커 2 시작
+    await new Promise(resolve =>
+        setTimeout(resolve, 1000)
+    );
+
     const worker2 = fetchWorker(2);
 
-    await Promise.all([worker1, worker2]);
+    await Promise.all([
+        worker1,
+        worker2
+    ]);
 
-    // 성공한 문제만 추출 (이미 워커 안에서 모든 1차 상세 검증이 끝난 상태)
-    let successfulQuizzes = rawQuizzes.filter(Boolean);
+    // ============================================================
+    // 4. 1차 생성 결과
+    // ============================================================
+    let successfulQuizzes =
+        rawQuizzes.filter(Boolean);
 
     console.log(
-        `[API] 생성 완료: ${successfulQuizzes.length}/${selectedTopics.length}개 성공`
+        `[API] 생성 완료: ` +
+        `${successfulQuizzes.length}/${selectedTopics.length}개 성공`
     );
 
     if (successfulQuizzes.length === 0) {
-        console.error("[DATA FAIL] 검증 완료된 퀴즈가 없습니다.");
+        console.error(
+            "[DATA FAIL] 검증 완료된 퀴즈가 없습니다."
+        );
+
         return false;
     }
 
-    // 보기 셔플 및 번호 교체 작업
-    successfulQuizzes.forEach((quiz, idx) => shuffleQuizChoices(quiz, idx));
+    // ============================================================
+    // 5. 최초 보기 셔플
+    // ============================================================
+    successfulQuizzes.forEach((quiz, idx) => {
+        shuffleQuizChoices(quiz, idx);
+    });
 
-    // ------------------------------------------------------------
-    // 💡 AI 2차 검증: validateQuizAccuracy는 이제 실패한 문항의
-    // 인덱스 목록(invalidIndices)까지 반환한다 (validateSingleQuiz가
-    // 이미 문항별로 결과를 갖고 있었으므로, 그중 실패한 것만 모아 반환하도록
-    // validateQuizAccuracy를 수정함 — 아래 별도 함수 참고).
-    // 검증에 실패한 "그 문항 하나만" 같은 토픽으로 재생성하고,
-    // 다시 2차 검증을 돌리는 것을 최대 MAX_VALIDATION_ROUNDS번 반복한다.
-    // ------------------------------------------------------------
-    console.log(`[API] AI 2차 문항별 병렬 크로스 팩트체크 수행 중...`);
+    // ============================================================
+    // 6. AI 2차 검증 후처리용 기본 검증 함수
+    // ============================================================
+    function validateAfterAutoFix(quiz) {
+        if (!quiz) {
+            return false;
+        }
+
+        // 필수 필드
+        if (
+            !quiz.topic ||
+            !quiz.question ||
+            !Array.isArray(quiz.choices) ||
+            quiz.choices.length !== 4 ||
+            !quiz.correctAnswerText ||
+            !Number.isInteger(quiz.correctAnswerIndex) ||
+            !quiz.explanation
+        ) {
+            return false;
+        }
+
+        // 정답 인덱스
+        if (
+            quiz.correctAnswerIndex < 0 ||
+            quiz.correctAnswerIndex >= quiz.choices.length
+        ) {
+            return false;
+        }
+
+        // 정답 텍스트/인덱스 일치
+        if (
+            quiz.choices[quiz.correctAnswerIndex] !==
+            quiz.correctAnswerText
+        ) {
+            return false;
+        }
+
+        // 한자/외국어
+        const fullText = [
+            quiz.question,
+            ...quiz.choices,
+            quiz.explanation,
+            quiz.correctAnswerText
+        ].join(" ");
+
+        if (HANJA_AND_FOREIGN_REGEX.test(fullText)) {
+            return false;
+        }
+
+        // 맞춤법 정답 검증
+        if (!validateSpellingAnswer(quiz)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    // ============================================================
+    // 7. AI 2차 검증
+    // ============================================================
+    console.log(
+        `[API] AI 2차 문항별 병렬 크로스 팩트체크 수행 중...`
+    );
 
     const MAX_VALIDATION_ROUNDS = 3;
     let validationPassed = false;
 
-    for (let round = 1; round <= MAX_VALIDATION_ROUNDS; round++) {
-        const validation = await validateQuizAccuracy(successfulQuizzes);
+    for (
+        let round = 1;
+        round <= MAX_VALIDATION_ROUNDS;
+        round++
+    ) {
+        const validation =
+            await validateQuizAccuracy(successfulQuizzes);
 
+        // --------------------------------------------------------
+        // 검증 성공
+        // --------------------------------------------------------
         if (validation.valid) {
             validationPassed = true;
             break;
         }
 
+        const errorType =
+            validation.errorType || "NONE";
+
+        const targetSnippet =
+            validation.targetSnippet
+                ? ` | 대상: "${validation.targetSnippet}"`
+                : "";
+
+        const suggestedFix =
+            validation.suggestedFix
+                ? ` -> 수정안: "${validation.suggestedFix}"`
+                : "";
+
         console.warn(
-            `[VALIDATION] round ${round}/${MAX_VALIDATION_ROUNDS} 검증 실패: ${validation.reason}`
+            `[VALIDATION] round ${round}/${MAX_VALIDATION_ROUNDS} ` +
+            `검증 실패 [${errorType}]: ` +
+            `${validation.reason || ""}` +
+            `${targetSnippet}` +
+            `${suggestedFix}`
         );
 
-        if (round === MAX_VALIDATION_ROUNDS) {
-            console.error(`[VALIDATION] 최대 재시도(${MAX_VALIDATION_ROUNDS}회) 초과, 최종 검증 실패`);
-            return false;
-        }
+        const invalidIndices =
+            Array.isArray(validation.invalidIndices)
+                ? validation.invalidIndices
+                    .filter(idx =>
+                        Number.isInteger(idx) &&
+                        idx >= 0 &&
+                        idx < successfulQuizzes.length
+                    )
+                : [];
 
-        const invalidIndices = validation.invalidIndices || [];
+        // ========================================================
+        // 8. AI suggestedFix 자동수정
+        //
+        // 핵심:
+        // autoFixed를 forEach 내부에 선언하지 않는다.
+        // ========================================================
+        let autoFixed = false;
 
-        if (invalidIndices.length === 0) {
-            // validateQuizAccuracy가 실패 인덱스를 특정하지 못한 경우
-            // (이론상 발생하지 않아야 하지만 방어적으로 처리)
-            console.error("[VALIDATION] 실패 문항을 특정할 수 없어 전체 실패 처리합니다.");
-            return false;
-        }
+        if (
+            validation.suggestedFix &&
+            validation.targetSnippet
+        ) {
+            const target =
+                validation.targetSnippet;
 
-        // 실패한 문항만 골라 그 토픽으로 재생성 (병렬)
-        await Promise.all(invalidIndices.map(async (idx) => {
-            const topic = successfulQuizzes[idx].topic;
-            console.log(`[VALIDATION] 🔄 [${idx + 1}번 문항 (${topic})] 2차 검증 실패, 해당 문항만 재생성합니다.`);
+            const fix =
+                validation.suggestedFix;
 
-            const regenerated = await generateOneQuiz(topic, `REGEN r${round}-i${idx + 1}`);
+            for (const idx of invalidIndices) {
+                const quiz =
+                    successfulQuizzes[idx];
 
-            if (regenerated) {
-                successfulQuizzes[idx] = shuffleQuizChoices(regenerated, idx);
-            } else {
-                successfulQuizzes[idx] = null;
+                if (!quiz) {
+                    continue;
+                }
+
+                let itemFixed = false;
+
+                // explanation
+                if (
+                    quiz.explanation &&
+                    quiz.explanation.includes(target)
+                ) {
+                    quiz.explanation =
+                        quiz.explanation.replaceAll(
+                            target,
+                            fix
+                        );
+
+                    itemFixed = true;
+                }
+
+                // question
+                if (
+                    quiz.question &&
+                    quiz.question.includes(target)
+                ) {
+                    quiz.question =
+                        quiz.question.replaceAll(
+                            target,
+                            fix
+                        );
+
+                    itemFixed = true;
+                }
+
+                // correctAnswerText
+                if (
+                    quiz.correctAnswerText &&
+                    quiz.correctAnswerText.includes(target)
+                ) {
+                    quiz.correctAnswerText =
+                        quiz.correctAnswerText.replaceAll(
+                            target,
+                            fix
+                        );
+
+                    itemFixed = true;
+                }
+
+                if (itemFixed) {
+                    autoFixed = true;
+
+                    console.log(
+                        `[AUTO-FIX] 🔧 ` +
+                        `[${idx + 1}번 문항] ` +
+                        `"${target}" -> "${fix}" ` +
+                        `자동 수정 완료`
+                    );
+                }
             }
-        }));
-        
-        successfulQuizzes = successfulQuizzes.filter(Boolean);
+
+            // ----------------------------------------------------
+            // 자동수정이 실제로 발생했다면
+            // 수정 후 기본 검증을 다시 수행한다.
+            // ----------------------------------------------------
+            if (autoFixed) {
+                let autoFixValidationFailed = false;
+
+                for (const idx of invalidIndices) {
+                    const quiz =
+                        successfulQuizzes[idx];
+
+                    if (!validateAfterAutoFix(quiz)) {
+                        autoFixValidationFailed = true;
+
+                        console.warn(
+                            `[AUTO-FIX] ⚠️ ` +
+                            `[${idx + 1}번 문항] ` +
+                            `자동수정 후 기본 검증 실패`
+                        );
+                    }
+                }
+
+                if (!autoFixValidationFailed) {
+                    // 자동수정된 상태로 다음 AI 검증 라운드 진행
+                    continue;
+                }
+
+                // 자동수정 후 구조/정답이 깨졌다면
+                // 아래 재생성 로직으로 넘어간다.
+            }
+        }
+
+        // ========================================================
+        // 9. 마지막 검증 라운드에서 실패
+        // ========================================================
+        if (round === MAX_VALIDATION_ROUNDS) {
+            console.error(
+                `[VALIDATION] 최대 재시도(${MAX_VALIDATION_ROUNDS}회) 초과, ` +
+                `최종 검증 실패`
+            );
+
+            return false;
+        }
+
+        // ========================================================
+        // 10. 실패 문항을 특정하지 못한 경우
+        // ========================================================
+        if (invalidIndices.length === 0) {
+            console.error(
+                "[VALIDATION] 실패 문항을 특정할 수 없어 전체 실패 처리합니다."
+            );
+
+            return false;
+        }
+
+        // ========================================================
+        // 11. 2차 검증 실패 문항 재생성
+        //
+        // 기존 Promise.all(invalidIndices.map(...))는
+        // 실패 문항이 5개면 동시에 5개 API 요청을 발생시켰다.
+        //
+        // 여기서는 최대 2개만 동시에 실행한다.
+        // ========================================================
+        let regenIndex = 0;
+
+        async function regenerationWorker(workerId) {
+            while (true) {
+                const position = regenIndex++;
+
+                if (position >= invalidIndices.length) {
+                    break;
+                }
+
+                const idx =
+                    invalidIndices[position];
+
+                const oldQuiz =
+                    successfulQuizzes[idx];
+
+                if (!oldQuiz) {
+                    continue;
+                }
+
+                const topic =
+                    oldQuiz.topic;
+
+                console.log(
+                    `[VALIDATION] 🔄 ` +
+                    `[${idx + 1}번 문항 (${topic})] ` +
+                    `2차 검증 실패, 해당 문항만 재생성합니다. ` +
+                    `(REGEN WORKER ${workerId})`
+                );
+
+                const regenerated =
+                    await generateOneQuiz(
+                        topic,
+                        `REGEN r${round}-i${idx + 1}-w${workerId}`
+                    );
+
+                if (regenerated) {
+                    successfulQuizzes[idx] =
+                        shuffleQuizChoices(
+                            regenerated,
+                            idx
+                        );
+
+                    console.log(
+                        `[VALIDATION] ✅ ` +
+                        `[${idx + 1}번 문항] 재생성 성공`
+                    );
+                } else {
+                    successfulQuizzes[idx] = null;
+
+                    console.warn(
+                        `[VALIDATION] ❌ ` +
+                        `[${idx + 1}번 문항] 재생성 실패`
+                    );
+                }
+            }
+        }
+
+        const regenWorker1 =
+            regenerationWorker(1);
+
+        await new Promise(resolve =>
+            setTimeout(resolve, 1000)
+        );
+
+        const regenWorker2 =
+            regenerationWorker(2);
+
+        await Promise.all([
+            regenWorker1,
+            regenWorker2
+        ]);
+
+        // null 제거
+        successfulQuizzes =
+            successfulQuizzes.filter(Boolean);
+
+        console.log(
+            `[VALIDATION] 재생성 라운드 완료: ` +
+            `${successfulQuizzes.length}개 문항 유지`
+        );
 
         if (successfulQuizzes.length === 0) {
-            console.error("[VALIDATION] 재생성 후 남은 문제가 없습니다.");
+            console.error(
+                "[VALIDATION] 재생성 후 남은 문제가 없습니다."
+            );
+
             return false;
         }
     }
 
+    // ============================================================
+    // 12. AI 검증 최종 결과 확인
+    // ============================================================
     if (!validationPassed) {
         return false;
     }
 
-    console.log(`[API] AI 검증 완료. 하네스(조항 번호 외부 동기화) 수행 중...`);
-    successfulQuizzes = await Promise.all(
-        successfulQuizzes.map(quiz => harnessSyncArticleNumber(quiz))
+    // ============================================================
+    // 13. 조항 번호 외부 동기화
+    // ============================================================
+    console.log(
+        `[API] AI 검증 완료. ` +
+        `하네스(조항 번호 외부 동기화) 수행 중...`
     );
 
-    
-    MASTER_QUIZ_DATA = successfulQuizzes.map((q, idx) => ({
-        id: idx + 1,
-        topic: q.topic,
-        question: q.question,
-        choices: q.choices,
-        correctAnswerIndex: q.correctAnswerIndex,
-        correctAnswerText: q.correctAnswerText,
-        explanation: q.explanation
-    }));
+    successfulQuizzes =
+        await Promise.all(
+            successfulQuizzes.map(quiz =>
+                harnessSyncArticleNumber(quiz)
+            )
+        );
+
+    // ============================================================
+    // 14. 최종 MASTER_QUIZ_DATA 반영
+    // ============================================================
+    MASTER_QUIZ_DATA =
+        successfulQuizzes.map((q, idx) => ({
+            id: idx + 1,
+            topic: q.topic,
+            question: q.question,
+            choices: q.choices,
+            correctAnswerIndex: q.correctAnswerIndex,
+            correctAnswerText: q.correctAnswerText,
+            explanation: q.explanation
+        }));
 
     LAST_FETCH_TIME = Date.now();
     LAST_TOPICS = [...selectedTopics];
 
     console.log(
-        `[API] 퀴즈 생성 및 병렬 2차 검증 최종 승인 완료 (${MASTER_QUIZ_DATA.length}개)`
+        `[API] 퀴즈 생성 및 병렬 2차 검증 최종 승인 완료 ` +
+        `(${MASTER_QUIZ_DATA.length}개)`
     );
 
     return true;
