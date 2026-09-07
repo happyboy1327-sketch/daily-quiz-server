@@ -322,7 +322,7 @@ async function harnessSyncArticleNumber(quiz) {
     if (!quiz || typeof quiz.explanation !== 'string') return quiz;
 
     try {
-        const articleRegex = /제\s*(\d+)\s*([조항])/g;
+        const articleRegex = /(?:([가-힣]{2,10})\s*)?제\s*(\d+)\s*(?:조|항)/g;
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) return quiz;
 
@@ -330,28 +330,30 @@ async function harnessSyncArticleNumber(quiz) {
         const seen = new Set();
 
         for (const match of matches) {
-            const num = match[1];
-            const unit = match[2];
+            const lawName = match[1] || ''; // 예: "한글 맞춤법", "헌법" (없으면 빈값)
+            const num = match[2];           // 예: "23"
+            const unit = match[3];          // 예: "항"
             const key = `${num}_${unit}`;
 
             if (!seen.has(key)) {
                 seen.add(key);
-                targets.push({ num, unit });
+                targets.push({ lawName,
+            num,
+            unit,
+            targetArticle: `제${num}${unit}`});
             }
         }
 
         for (const target of targets) {
-            const targetArticle = `제${target.num}${target.unit}`;
+    // 법령명이 없으면 quiz.domain(예: "한글 맞춤법", "법률")을 검색 앵커로 사용
+         const contextAnchor = target.lawName || quiz.domain || '';
+         const cleanAnswer = (quiz.correctAnswerText || '').replace(/[^가-힣0-9]/g, '');
+    
+    // 최종 검색 키워드: "한글 맞춤법 생선구이" 형태
+         const searchKeyword = `${contextAnchor} ${cleanAnswer}`.trim();
 
-            const topicKeyword = (quiz.question || quiz.explanation || '')
-                .replace(/[^가-힣\s]/g, '')
-                .split(/\s+/)
-                .filter(w => w.length >= 2 && !['따라', '에', '는', '은', '가', '이', '의', '따른', '의해', '따르면'].includes(w))[0] || '';
-
-            if (!topicKeyword) continue;
-
-            const queryStr = `"${topicKeyword}" "${targetArticle}"`.trim();
-            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(queryStr)}`;
+         const queryStr = `"${searchKeyword}" "제" "${target.unit}"`;
+         const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(queryStr)}`;
 
             const response = await axios.get(searchUrl, {
                 headers: {
