@@ -322,7 +322,7 @@ async function harnessSyncArticleNumber(quiz) {
     if (!quiz || typeof quiz.explanation !== 'string') return quiz;
 
     try {
-        const articleRegex = /(?:([가-힣]{2,10})\s*)?제\s*(\d+)\s*(?:조|항)/g;
+        const articleRegex = /(?:([가-힣]{2,10})\s*)?제\s*(\d+)\s*(조|항)/g;
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) return quiz;
 
@@ -330,50 +330,53 @@ async function harnessSyncArticleNumber(quiz) {
         const seen = new Set();
 
         for (const match of matches) {
-            const lawName = match[1] || ''; // 예: "한글 맞춤법", "헌법" (없으면 빈값)
-            const num = match[2];           // 예: "23"
-            const unit = match[3];          // 예: "항"
+            const lawName = match[1] || ''; 
+            const num = match[2];           
+            const unit = match[3];          
             const key = `${num}_${unit}`;
 
             if (!seen.has(key)) {
                 seen.add(key);
-                targets.push({ lawName,
-            num,
-            unit,
-            targetArticle: `제${num}${unit}`});
+                targets.push({
+                    lawName,
+                    num,
+                    unit,
+                    targetArticle: `제${num}${unit}`
+                });
             }
         }
 
         for (const target of targets) {
-    // 법령명이 없으면 quiz.domain(예: "한글 맞춤법", "법률")을 검색 앵커로 사용
-         const contextAnchor = target.lawName || quiz.domain || '';
-         const cleanAnswer = (quiz.correctAnswerText || '').replace(/[^가-힣0-9]/g, '');
-    
-    // 최종 검색 키워드: "한글 맞춤법 생선구이" 형태
-         const searchKeyword = `${contextAnchor} ${cleanAnswer}`.trim();
+            const contextAnchor = target.lawName || quiz.domain || '';
+            const cleanAnswer = (quiz.correctAnswerText || '').replace(/[^가-힣0-9]/g, '');
 
-         const queryStr = `"${searchKeyword}" "제" "${target.unit}"`;
-         const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(queryStr)}`;
+            if (!cleanAnswer) continue;
+
+            const searchKeyword = `${contextAnchor} ${cleanAnswer}`.trim();
+            const queryStr = `"${searchKeyword}" "제" "${target.unit}"`;
+            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(queryStr)}`;
 
             const response = await axios.get(searchUrl, {
                 headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                    'Accept-Language': 'ko-KR,ko;q=0.9'
                 },
-                timeout: 3000
+                timeout: 4000
             });
 
             const $ = cheerio.load(response.data);
-            const snippetText = $('#main').text() || $('body').text();
+            $('script, style').remove();
+            const rawText = $('body').text().replace(/\s+/g, ' ');
 
-            const safeKeyword = topicKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const anchorPattern = new RegExp(`${safeKeyword}[^.!?]{0,35}?제\\s*(\\d+)\\s*${target.unit}`, 'g');
-            const resultMatch = anchorPattern.exec(snippetText);
+            const safeKeyword = searchKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const extractRegex = new RegExp(`${safeKeyword}.{0,50}?제\\s*(\\d+)\\s*${target.unit}`, 'i');
+            const found = rawText.match(extractRegex);
 
-            if (resultMatch) {
-                const realNum = resultMatch[1];
+            if (found && found[1]) {
+                const realNum = found[1];
                 const realArticle = `제${realNum}${target.unit}`;
 
-                if (realArticle !== targetArticle) {
+                if (realArticle !== target.targetArticle) {
                     const replaceRegex = new RegExp(`제\\s*${target.num}\\s*${target.unit}`, 'g');
 
                     if (typeof quiz.explanation === 'string') {
@@ -389,11 +392,12 @@ async function harnessSyncArticleNumber(quiz) {
             }
         }
     } catch (err) {
-        console.error("[구글 통합 검색 조항/규정 검증 실패]", err.message);
+        quiz.serverErrorFlag = true;
     }
 
     return quiz;
 }
+                    
 
 function extractJsonFromText(text) {
     if (typeof text !== "string") throw new Error("응답이 문자열이 아닙니다.");
