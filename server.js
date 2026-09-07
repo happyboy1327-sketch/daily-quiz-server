@@ -399,33 +399,7 @@ async function harnessSyncArticleNumber(quiz) {
 }
                     
 
-function extractJsonFromText(rawText) {
-    if (!rawText || typeof rawText !== 'string') return null;
 
-    try {
-        // 1. NBSP(U+00A0) 특수 공백을 일반 공백으로 치환 및 제어문자 정제
-        let sanitized = rawText.replace(/\u00A0/g, ' ').trim();
-
-        // 2. 만약 앞뒤에 불필요한 큰따옴표가 감싸져 있다면 제거
-        if (sanitized.startsWith('"') && sanitized.endsWith('"')) {
-            try {
-                sanitized = JSON.parse(sanitized); // 1차 껍질 벗기기
-            } catch (e) {
-                sanitized = sanitized.slice(1, -1);
-            }
-        }
-
-        // 3. 가장 외곽의 { ... } 객체 블록 찾기
-        const jsonMatch = sanitized.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) return null;
-
-        // 4. JSON 파싱
-        return JSON.parse(jsonMatch[0]);
-    } catch (err) {
-        console.error("JSON 파싱 최종 실패:", err.message);
-        return null;
-    }
-}
 /**
  * 단일 문항 팩트체크 (postWithRetry 적용)
  */
@@ -500,11 +474,31 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
         });
 
         const rawContent = response.data?.choices?.[0]?.message?.content;
-        
-        console.log("[AI RAW RESPONSE]", JSON.stringify(rawContent));
-        
-        const cleanJson = extractJsonFromText(rawContent);
-        return JSON.parse(cleanJson);
+
+console.log("[AI RAW RESPONSE]", JSON.stringify(rawContent));
+
+let content = rawContent;
+
+if (Array.isArray(content)) {
+    const textPart = content.find(
+        p => p.type === "text" && typeof p.text === "string"
+    );
+    content = textPart?.text;
+}
+
+if (typeof content === "object" && content !== null) {
+    content = JSON.stringify(content);
+}
+
+if (typeof content !== "string") {
+    throw new Error("API 응답 content 형식 오류");
+}
+
+content = content
+    .replace(/\u00a0/g, ' ')
+    .trim();
+
+const parsed = JSON.parse(content);
     } catch (err) {
         return { valid: false, reason: `단일 문항 검증 통신 오류: ${err.message}` };
     }
