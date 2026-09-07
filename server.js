@@ -688,7 +688,7 @@ async function fetchNewQuizData() {
                 // ----------------------------------------------------
                 quiz = autoFixQuiz(quiz);
 
-                quiz = harnessSyncArticleNumber(quiz);
+                quiz = await harnessSyncArticleNumber(quiz);
 
                 const fullText = [
                     quiz.question,
