@@ -268,33 +268,44 @@ function autoFixQuiz(quiz) {
  * DB 조회 없이 AI 응답 객체 내부에서 정규식으로 실제 존재하는 조항 번호를 검색하여,
  * 퀴즈 전체(question, choices, explanation)의 조항 번호를 해당 검색값으로 통일
  */
-function harnessSyncArticleNumber(quiz) {
-    if (!quiz) return quiz;
+async function harnessSyncArticleNumber(quiz) {
+    if (!quiz || typeof quiz.explanation !== 'string') return quiz;
 
-    // 1. 퀴즈 객체 전체 문자열 생성
-    const fullContent = [
-        quiz.question || '',
-        ...(quiz.choices || []),
-        quiz.explanation || ''
-    ].join(' ');
+    try {
+        const match = quiz.explanation.match(/제\s*\d+\s*[항조]/);
+        if (!match) return quiz;
 
-    // 2. 전체 텍스트에서 매칭되는 첫 번째 조항 번호(예: '제7항', '제28항') 검색
-    const match = fullContent.match(/제\s*\d+\s*[항조]/);
-    if (!match) return quiz;
+        const targetArticle = match[0].replace(/\s+/g, '');
+        const query = encodeURIComponent(targetArticle);
+        const searchUrl = `https://www.google.com/search?q=${query}`;
 
-    // 공백을 제거한 표준 조항 번호 문자열 (예: '제 7 항' -> '제7항')
-    const realArticle = match[0].replace(/\s+/g, '');
-    const articleRegex = /제\s*\d+\s*[항조]/g;
+        const response = await axios.get(searchUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            },
+            timeout: 5000
+        });
 
-    // 3. 문제, 보기, 해설 속의 모든 조항 번호를 검색된 실제 번호로 강제 치환
-    if (typeof quiz.question === 'string') {
-        quiz.question = quiz.question.replace(articleRegex, realArticle);
-    }
-    if (typeof quiz.explanation === 'string') {
-        quiz.explanation = quiz.explanation.replace(articleRegex, realArticle);
-    }
-    if (typeof quiz.correctAnswerText === 'string') {
-        quiz.correctAnswerText = quiz.correctAnswerText.replace(articleRegex, realArticle);
+        const $ = cheerio.load(response.data);
+        const pageText = $.text();
+
+        const resultMatch = pageText.match(/제\s*\d+\s*[항조]/);
+        if (resultMatch) {
+            const realArticle = resultMatch[0].replace(/\s+/g, '');
+            const articleRegex = /제\s*\d+\s*[항조]/g;
+
+            if (typeof quiz.question === 'string') {
+                quiz.question = quiz.question.replace(articleRegex, realArticle);
+            }
+            if (typeof quiz.explanation === 'string') {
+                quiz.explanation = quiz.explanation.replace(articleRegex, realArticle);
+            }
+            if (typeof quiz.correctAnswerText === 'string') {
+                quiz.correctAnswerText = quiz.correctAnswerText.replace(articleRegex, realArticle);
+            }
+        }
+    } catch (err) {
+        console.error("[조항 번호 구글 검색 및 치환 실패]", err.message);
     }
 
     return quiz;
