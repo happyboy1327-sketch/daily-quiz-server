@@ -264,6 +264,44 @@ function autoFixQuiz(quiz) {
     return quiz;
 }
 
+/**
+ * DB 조회 없이 AI 응답 객체 내부에서 정규식으로 실제 존재하는 조항 번호를 검색하여,
+ * 퀴즈 전체(question, choices, explanation)의 조항 번호를 해당 검색값으로 통일
+ */
+function harnessSyncArticleNumber(quiz) {
+    if (!quiz) return quiz;
+
+    // 1. 퀴즈 객체 전체 문자열 생성
+    const fullContent = [
+        quiz.question || '',
+        ...(quiz.choices || []),
+        quiz.explanation || ''
+    ].join(' ');
+
+    // 2. 전체 텍스트에서 매칭되는 첫 번째 조항 번호(예: '제7항', '제28항') 검색
+    const match = fullContent.match(/제\s*\d+\s*[항조]/);
+    if (!match) return quiz;
+
+    // 공백을 제거한 표준 조항 번호 문자열 (예: '제 7 항' -> '제7항')
+    const realArticle = match[0].replace(/\s+/g, '');
+    const articleRegex = /제\s*\d+\s*[항조]/g;
+
+    // 3. 문제, 보기, 해설 속의 모든 조항 번호를 검색된 실제 번호로 강제 치환
+    if (typeof quiz.question === 'string') {
+        quiz.question = quiz.question.replace(articleRegex, realArticle);
+    }
+    if (Array.isArray(quiz.choices)) {
+        quiz.choices = quiz.choices.map(choice =>
+            typeof choice === 'string' ? choice.replace(articleRegex, realArticle) : choice
+        );
+    }
+    if (typeof quiz.explanation === 'string') {
+        quiz.explanation = quiz.explanation.replace(articleRegex, realArticle);
+    }
+
+    return quiz;
+}
+
 function extractJsonFromText(text) {
     if (typeof text !== "string") throw new Error("응답이 문자열이 아닙니다.");
     const start = text.indexOf("{");
@@ -291,8 +329,6 @@ async function validateSingleQuiz(quiz) {
 
 1. 원천 출처(Primary Source) 검증
    - 블로그·요약집·학원 교재는 배제하고 ISO/IEC 표준, 공식 보고서, 법령 조문 등 최상위 공식 자료를 기준으로 검증합니다.
-   - 특히 한글 맞춤법, 정치 등의 분야에서는 해설 속 조문 내용이 소속된 조항 번호(예: 제1항, 제1조)가 실제와 일치되는지 확인합니다.
-   - 해설에 언급된 출처의 명칭, 조항번호, 내용이 실제 주장과 일치하는지 확인합니다.
 
 2. 개념·시간·장소·조건 검증
    - 표준/명세와 실제 구현체(OS·컴파일러 등)를 혼동하지 않았는지 확인합니다.
@@ -642,6 +678,8 @@ async function fetchNewQuizData() {
                 // 아래 검증 중 하나라도 실패하면 throw -> catch 이동 -> 새 payload 재생성!
                 // ----------------------------------------------------
                 quiz = autoFixQuiz(quiz);
+
+                quiz = harnessSyncArticleNumber(quiz);
 
                 const fullText = [
                     quiz.question,
