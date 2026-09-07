@@ -294,6 +294,7 @@ async function harnessSyncArticleNumber(quiz) {
             const realArticle = resultMatch[0].replace(/\s+/g, '');
             const articleRegex = /제\s*\d+\s*[항조]/g;
 
+         if (realArticle !== targetArticle) {
             if (typeof quiz.question === 'string') {
                 quiz.question = quiz.question.replace(articleRegex, realArticle);
             }
@@ -304,6 +305,7 @@ async function harnessSyncArticleNumber(quiz) {
                 quiz.correctAnswerText = quiz.correctAnswerText.replace(articleRegex, realArticle);
             }
         }
+     }
     } catch (err) {
         console.error("[조항 번호 구글 검색 및 치환 실패]", err.message);
     }
