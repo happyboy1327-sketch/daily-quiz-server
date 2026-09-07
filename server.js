@@ -772,7 +772,6 @@ async function fetchNewQuizData() {
                 // ----------------------------------------------------
                 quiz = autoFixQuiz(quiz);
 
-                quiz = await harnessSyncArticleNumber(quiz);
 
                 quiz = fixHangulPhonicsLogic(quiz);
 
@@ -1031,7 +1030,7 @@ function shuffleQuizChoices(quiz, idx) {
                 successfulQuizzes[idx] = null;
             }
         }));
-
+        
         successfulQuizzes = successfulQuizzes.filter(Boolean);
 
         if (successfulQuizzes.length === 0) {
@@ -1044,6 +1043,12 @@ function shuffleQuizChoices(quiz, idx) {
         return false;
     }
 
+    console.log(`[API] AI 검증 완료. 하네스(조항 번호 외부 동기화) 수행 중...`);
+    successfulQuizzes = await Promise.all(
+        successfulQuizzes.map(quiz => harnessSyncArticleNumber(quiz))
+    );
+
+    
     MASTER_QUIZ_DATA = successfulQuizzes.map((q, idx) => ({
         id: idx + 1,
         topic: q.topic,
