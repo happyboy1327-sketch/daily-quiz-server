@@ -399,7 +399,7 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
   if (topic === "한글 맞춤법") {
     properties.morpheme_check = {
       type: "string",
-      description: "단어 분해만 15자 이내 작성 (예: 맏이=맏+이/맏형=맏+형)"
+      description: "어근 분석 및 받침 철자 논리를 엄격히 검증해서 단어 분해만 15자 이내 작성 (예: 맏이=맏+이/맏형=맏+형)"
     };
     required.push("morpheme_check");
   }
