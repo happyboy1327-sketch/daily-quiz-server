@@ -290,13 +290,11 @@ function harnessSyncArticleNumber(quiz) {
     if (typeof quiz.question === 'string') {
         quiz.question = quiz.question.replace(articleRegex, realArticle);
     }
-    if (Array.isArray(quiz.choices)) {
-        quiz.choices = quiz.choices.map(choice =>
-            typeof choice === 'string' ? choice.replace(articleRegex, realArticle) : choice
-        );
-    }
     if (typeof quiz.explanation === 'string') {
         quiz.explanation = quiz.explanation.replace(articleRegex, realArticle);
+    }
+    if (typeof quiz.correctAnswerText === 'string') {
+        quiz.correctAnswerText = quiz.correctAnswerText.replace(articleRegex, realArticle);
     }
 
     return quiz;
