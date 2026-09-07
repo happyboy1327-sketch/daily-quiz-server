@@ -159,12 +159,12 @@ const FEW_SHOT_DATABASE = {
       role: "assistant",
       content: JSON.stringify({
         topic: "한글 맞춤법",
-        concept_summary: "한글 맞춤법 제53항에 따라 약속이나 의지를 나타내는 종결어미는 된소리로 발음되더라도 '-ㄹ게'로 적어야 합니다. 따라서 '할께'가 아닌 '할게'가 올바른 표준어 표기입니다.",
-        explanation: "정답은 내가 할게입니다. [출처/ 근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제53항] 약속이나 의지를 나타내는 어미는 된소리로 발음되더라도 '-ㄹ게'로 예사소리로 적습니다. '할께'는 된소리 소리대로 적은 표기 오류, '할개'는 모음 오기, '할 게'는 종결어미를 띄어 쓴 문법적 오류입니다.",
-        question: "상대방에게 약속이나 의지를 나타내는 종결어미의 올바른 표기로 적절한 것은 무엇입니까?",
-        choices: ["내가 할게", "내가 할께", "내가 할개", "내가 할 게"],
+        concept_summary: "한글 맞춤법 제 ○항에 따라 □□가 올바른 표준어 표기입니다.",
+        explanation: "정답은 □□입니다. [출처/ 근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제○항] [조항 내용 없이 간단 설명].",
+        question: "올바른 표기로 적절한 것은 무엇입니까?",
+        choices: ["□□", "♡♡", "◇◇", "♧♧"],
         correctAnswerIndex: 0,
-        correctAnswerText: "내가 할게"
+        correctAnswerText: "□□"
       })
     }
   ],
