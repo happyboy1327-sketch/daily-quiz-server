@@ -214,6 +214,55 @@ const ALL_TOPICS = [
 
 const HANJA_AND_FOREIGN_REGEX = /[\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u024F\u0300-\u036F\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF\u3040-\u309F\u30A0-\u30FF\u0400-\u04FF]/;
 
+// 한글 종성(받침) 28개 배열 (0번은 받침 없음)
+const JONG_SUNG = [
+    '', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 
+    'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 
+    'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
+];
+
+/**
+ * 단어의 마지막 글자에서 실제 받침(종성)을 추출하는 함수
+ */
+function getRealCoda(word) {
+    if (!word || typeof word !== 'string') return null;
+    
+    // 어근의 마지막 음절 가져오기 (예: '깨끗' -> '끗')
+    const lastChar = word.trim().slice(-1);
+    const code = lastChar.charCodeAt(0);
+
+    // 한글 가(0xAC00) ~ 힣(0xD7A3) 범위 검증
+    if (code < 0xAC00 || code > 0xD7A3) return null;
+
+    // 유니코드 연산으로 종성 인덱스 산출
+    const jongIndex = (code - 0xAC00) % 28;
+    return JONG_SUNG[jongIndex] || '';
+}
+
+/**
+ * 해설 내 한글 받침/끝소리 논리 오류 자가 교정 함수
+ */
+function fixHangulPhonicsLogic(quiz) {
+    if (!quiz || typeof quiz.explanation !== 'string') return quiz;
+
+    // 1. 해설 내 따옴표로 감싸진 어근 패턴 탐지 (예: '깨끗', '따뜻')
+    const rootMatch = quiz.explanation.match(/'([가-힣]+)'/);
+    if (!rootMatch) return quiz;
+
+    const rootWord = rootMatch[1]; // 추출된 어근 (예: "깨끗")
+    const realCoda = getRealCoda(rootWord); // 실제 받침 계산 (예: "ㅅ")
+
+    if (!realCoda) return quiz;
+
+    // 2. "끝소리가 'X'" 또는 "받침이 'X'" 형태의 환각 텍스트 탐지 및 치환
+    // 예: "'깨끗'의 끝소리가 'ㄱ'이므로" -> "'깨끗'의 끝소리가 'ㅅ'이므로"
+    quiz.explanation = quiz.explanation
+        .replace(/(끝소리가\s*')[가-힣](')/g, `$1${realCoda}$2`)
+        .replace(/(받침이\s*')[가-힣](')/g, `$1${realCoda}$2`);
+
+    return quiz;
+}
+
 function shuffleArray(array, seed) {
     const rng = seedrandom(seed); 
     for (let i = array.length - 1; i > 0; i--) {
@@ -726,6 +775,8 @@ async function fetchNewQuizData() {
                 quiz = autoFixQuiz(quiz);
 
                 quiz = await harnessSyncArticleNumber(quiz);
+
+                quiz = fixHangulPhonicsLogic(quiz);
 
                 const fullText = [
                     quiz.question,
