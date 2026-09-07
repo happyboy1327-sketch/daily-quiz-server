@@ -313,6 +313,7 @@ function autoFixQuiz(quiz) {
     return quiz;
 }
 
+
 /**
  * DB 조회 없이 AI 응답 객체 내부에서 정규식으로 실제 존재하는 조항 번호를 검색하여,
  * 퀴즈 전체(question, choices, explanation)의 조항 번호를 해당 검색값으로 통일
@@ -321,18 +322,16 @@ async function harnessSyncArticleNumber(quiz) {
     if (!quiz || typeof quiz.explanation !== 'string') return quiz;
 
     try {
-        // 1. 제N조, 제N항 통합 수집
         const articleRegex = /제\s*(\d+)\s*([조항])/g;
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) return quiz;
 
-        // 중복 타겟 제거
         const targets = [];
         const seen = new Set();
 
         for (const match of matches) {
             const num = match[1];
-            const unit = match[2]; // '조' 또는 '항'
+            const unit = match[2];
             const key = `${num}_${unit}`;
 
             if (!seen.has(key)) {
@@ -344,13 +343,13 @@ async function harnessSyncArticleNumber(quiz) {
         for (const target of targets) {
             const targetArticle = `제${target.num}${target.unit}`;
 
-            // 핵심 키워드 추출 (불용어 제거)
             const topicKeyword = (quiz.question || quiz.explanation || '')
                 .replace(/[^가-힣\s]/g, '')
                 .split(/\s+/)
                 .filter(w => w.length >= 2 && !['따라', '에', '는', '은', '가', '이', '의', '따른', '의해', '따르면'].includes(w))[0] || '';
 
-            // 2. 분기 없는 구글 통합 검색
+            if (!topicKeyword) continue;
+
             const queryStr = `"${topicKeyword}" "${targetArticle}"`.trim();
             const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(queryStr)}`;
 
@@ -358,21 +357,20 @@ async function harnessSyncArticleNumber(quiz) {
                 headers: {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
                 },
-                timeout: 5000
+                timeout: 3000
             });
 
             const $ = cheerio.load(response.data);
             const snippetText = $('#main').text() || $('body').text();
 
-            // 3. 키워드 인근 문맥(35자 이내) 앵커 매칭
-            const anchorPattern = new RegExp(`${topicKeyword}[^.!?]{0,35}?제\\s*(\\d+)\\s*${target.unit}`, 'g');
+            const safeKeyword = topicKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const anchorPattern = new RegExp(`${safeKeyword}[^.!?]{0,35}?제\\s*(\\d+)\\s*${target.unit}`, 'g');
             const resultMatch = anchorPattern.exec(snippetText);
 
             if (resultMatch) {
                 const realNum = resultMatch[1];
                 const realArticle = `제${realNum}${target.unit}`;
 
-                // 4. 검색 결과의 번호가 기존 번호와 다를 때만 안전 치환
                 if (realArticle !== targetArticle) {
                     const replaceRegex = new RegExp(`제\\s*${target.num}\\s*${target.unit}`, 'g');
 
