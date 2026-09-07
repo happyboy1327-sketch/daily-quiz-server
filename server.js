@@ -399,14 +399,33 @@ async function harnessSyncArticleNumber(quiz) {
 }
                     
 
-function extractJsonFromText(text) {
-    if (typeof text !== "string") throw new Error("응답이 문자열이 아닙니다.");
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
-    if (start === -1 || end === -1 || end < start) throw new Error("JSON 객체를 찾지 못했습니다.");
-    return text.slice(start, end + 1).trim();
-}
+function extractJsonFromText(rawText) {
+    if (!rawText || typeof rawText !== 'string') return null;
 
+    try {
+        // 1. NBSP(U+00A0) 특수 공백을 일반 공백으로 치환 및 제어문자 정제
+        let sanitized = rawText.replace(/\u00A0/g, ' ').trim();
+
+        // 2. 만약 앞뒤에 불필요한 큰따옴표가 감싸져 있다면 제거
+        if (sanitized.startsWith('"') && sanitized.endsWith('"')) {
+            try {
+                sanitized = JSON.parse(sanitized); // 1차 껍질 벗기기
+            } catch (e) {
+                sanitized = sanitized.slice(1, -1);
+            }
+        }
+
+        // 3. 가장 외곽의 { ... } 객체 블록 찾기
+        const jsonMatch = sanitized.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) return null;
+
+        // 4. JSON 파싱
+        return JSON.parse(jsonMatch[0]);
+    } catch (err) {
+        console.error("JSON 파싱 최종 실패:", err.message);
+        return null;
+    }
+}
 /**
  * 단일 문항 팩트체크 (postWithRetry 적용)
  */
@@ -447,18 +466,15 @@ async function validateSingleQuiz(quiz) {
 5. 문제 중복 확인
    - 문장 표현이 달라도 정답 단어가 동일하거나 묻고자 하는 핵심 팩트와 보기 구성이 같은 경우 중복(false)으로 처리한다.
 
-[출력 규칙]
-- 문제·보기·정답·해설·출처 중 하나라도 오류, 모호함, 조건 누락, 복수정답 가능성이 발견되면:
-  {"valid": false, "reason": "발견된 구체적 오류와 이유"}
-- 오류가 없고 정답이 유일하며 정확하다고 판단될 때만:
-  {"valid": true, "reason": "정확하다고 판단한 핵심 근거"}
-
 ### OUTPUT FORMAT
 Return ONLY a valid, raw JSON object without markdown code blocks, code fences, or any preamble/postscript text.
 
 {
-  "valid": true,
-  "reason": ""
+  "valid": boolean, // 문제, 정답, 해설, 인용 조항이 완벽히 일치하면 true, 하나라도 틀리면 false
+  "reason": string, // 검증 결과 및 오류 원인에 대한 상세 설명
+  "errorType": string, // NONE | ARTICLE_MISMATCH | GRAMMAR_LOGIC_ERROR | MULTIPLE_ANSWERS | TYPO
+  "targetSnippet": string | null, // 해설 내에서 문법적/사실적 오류가 발생한 정확한 문장/단어 (오류 없을 시 null)
+  "suggestedFix": string | null // 정정되어야 할 올바른 표현 또는 조항 번호 (오류 없을 시 null)
 }
 
 
