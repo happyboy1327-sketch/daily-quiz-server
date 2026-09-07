@@ -272,42 +272,75 @@ async function harnessSyncArticleNumber(quiz) {
     if (!quiz || typeof quiz.explanation !== 'string') return quiz;
 
     try {
-        const match = quiz.explanation.match(/제\s*\d+\s*[항조]/);
-        if (!match) return quiz;
+        // 1. 제N조, 제N항 통합 수집
+        const articleRegex = /제\s*(\d+)\s*([조항])/g;
+        const matches = [...quiz.explanation.matchAll(articleRegex)];
+        if (matches.length === 0) return quiz;
 
-        const targetArticle = match[0].replace(/\s+/g, '');
-        const query = encodeURIComponent(targetArticle);
-        const searchUrl = `https://www.google.com/search?q=${query}`;
+        // 중복 타겟 제거
+        const targets = [];
+        const seen = new Set();
 
-        const response = await axios.get(searchUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            },
-            timeout: 5000
-        });
+        for (const match of matches) {
+            const num = match[1];
+            const unit = match[2]; // '조' 또는 '항'
+            const key = `${num}_${unit}`;
 
-        const $ = cheerio.load(response.data);
-        const pageText = $.text();
-
-        const resultMatch = pageText.match(/제\s*\d+\s*[항조]/);
-        if (resultMatch) {
-            const realArticle = resultMatch[0].replace(/\s+/g, '');
-            const articleRegex = /제\s*\d+\s*[항조]/g;
-
-         if (realArticle !== targetArticle) {
-            if (typeof quiz.question === 'string') {
-                quiz.question = quiz.question.replace(articleRegex, realArticle);
-            }
-            if (typeof quiz.explanation === 'string') {
-                quiz.explanation = quiz.explanation.replace(articleRegex, realArticle);
-            }
-            if (typeof quiz.correctAnswerText === 'string') {
-                quiz.correctAnswerText = quiz.correctAnswerText.replace(articleRegex, realArticle);
+            if (!seen.has(key)) {
+                seen.add(key);
+                targets.push({ num, unit });
             }
         }
-     }
+
+        for (const target of targets) {
+            const targetArticle = `제${target.num}${target.unit}`;
+
+            // 핵심 키워드 추출 (불용어 제거)
+            const topicKeyword = (quiz.question || quiz.explanation || '')
+                .replace(/[^가-힣\s]/g, '')
+                .split(/\s+/)
+                .filter(w => w.length >= 2 && !['따라', '에', '는', '은', '가', '이', '의', '따른', '의해', '따르면'].includes(w))[0] || '';
+
+            // 2. 분기 없는 구글 통합 검색
+            const queryStr = `"${topicKeyword}" "${targetArticle}"`.trim();
+            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(queryStr)}`;
+
+            const response = await axios.get(searchUrl, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+                },
+                timeout: 5000
+            });
+
+            const $ = cheerio.load(response.data);
+            const snippetText = $('#main').text() || $('body').text();
+
+            // 3. 키워드 인근 문맥(35자 이내) 앵커 매칭
+            const anchorPattern = new RegExp(`${topicKeyword}[^.!?]{0,35}?제\\s*(\\d+)\\s*${target.unit}`, 'g');
+            const resultMatch = anchorPattern.exec(snippetText);
+
+            if (resultMatch) {
+                const realNum = resultMatch[1];
+                const realArticle = `제${realNum}${target.unit}`;
+
+                // 4. 검색 결과의 번호가 기존 번호와 다를 때만 안전 치환
+                if (realArticle !== targetArticle) {
+                    const replaceRegex = new RegExp(`제\\s*${target.num}\\s*${target.unit}`, 'g');
+
+                    if (typeof quiz.explanation === 'string') {
+                        quiz.explanation = quiz.explanation.replace(replaceRegex, realArticle);
+                    }
+                    if (typeof quiz.question === 'string') {
+                        quiz.question = quiz.question.replace(replaceRegex, realArticle);
+                    }
+                    if (typeof quiz.correctAnswerText === 'string') {
+                        quiz.correctAnswerText = quiz.correctAnswerText.replace(replaceRegex, realArticle);
+                    }
+                }
+            }
+        }
     } catch (err) {
-        console.error("[조항 번호 구글 검색 및 치환 실패]", err.message);
+        console.error("[구글 통합 검색 조항/규정 검증 실패]", err.message);
     }
 
     return quiz;
