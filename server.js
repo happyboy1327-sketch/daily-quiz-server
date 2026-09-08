@@ -527,7 +527,7 @@ async function harnessSyncArticleNumber(quiz) {
             const topKeywords = [...queryCandidates].sort((a, b) => b.length - a.length).slice(0, 3);
             if (topKeywords.length === 0) continue;
 
-            await sleep(500);
+            await sleep(1200);
 
             // ===== 1단계: 법률명 + 제몇조 제몇항 전체를 한 쿼리로 검색 후, 해설 키워드와 매트릭스 대조 =====
             const verifyQuery = `${lawContext} ${target.targetName}`.trim();
@@ -535,7 +535,7 @@ async function harnessSyncArticleNumber(quiz) {
             try {
                 const res1 = await axios.get('https://serpapi.com/search.json', {
                 params: { q: verifyQuery, hl: 'ko', gl: 'kr', api_key: SERPAPI_KEY },
-               timeout: 8000
+               timeout: 11500
               });
              console.log('🐛 [디버그] SerpApi 응답:', JSON.stringify(res1.data).slice(0, 300));
                 text1 = (res1.data.organic_results || [])
@@ -554,7 +554,7 @@ async function harnessSyncArticleNumber(quiz) {
             }
 
             console.warn(`⚠️ [1단계 불일치] 일치율 ${(score1 * 100).toFixed(1)}% (기준 ${(MATCH_THRESHOLD * 100)}% 미만) → 2단계 올바른 조항 추적 시작...`);
-            await sleep(500);
+            await sleep(1200);
 
             // ===== 2단계: 해설 속 키워드로 재검색, 검색결과 내 후보(법률명+조항)들을 매트릭스 대조하여 최적 후보 선정 =====
             const searchQuery = topKeywords.join(' ');
@@ -562,7 +562,7 @@ async function harnessSyncArticleNumber(quiz) {
             try {
                 const res2 = await axios.get('https://serpapi.com/search.json', {
                   params: { q: searchQuery, hl: 'ko', gl: 'kr', api_key: SERPAPI_KEY },
-                  timeout: 8000
+                  timeout: 11500
                   });
                 console.log('🐛 [디버그] SerpApi 응답:', JSON.stringify(res2.data).slice(0, 300));
                 text2 = (res2.data.organic_results || [])
