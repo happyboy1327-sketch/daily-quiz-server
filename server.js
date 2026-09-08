@@ -538,7 +538,7 @@ async function harnessSyncArticleNumber(quiz) {
                timeout: 8000
               });
              console.log('🐛 [디버그] SerpApi 응답:', JSON.stringify(res1.data).slice(0, 300));
-                const text1 = (res1.data.organic_results || [])
+                text1 = (res1.data.organic_results || [])
                      .map(r => `${r.title || ''} ${r.snippet || ''}`)
                      .join(' ');
             } catch (e) {
@@ -564,7 +564,8 @@ async function harnessSyncArticleNumber(quiz) {
                   params: { q: searchQuery, hl: 'ko', gl: 'kr', api_key: SERPAPI_KEY },
                   timeout: 8000
                   });
-                const text2 = (res2.data.organic_results || [])
+                console.log('🐛 [디버그] SerpApi 응답:', JSON.stringify(res2.data).slice(0, 300));
+                text2 = (res2.data.organic_results || [])
                      .map(r => `${r.title || ''} ${r.snippet || ''}`)
                      .join(' ');
             } catch (e) {
