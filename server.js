@@ -4,7 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const seedrandom = require('seedrandom');
 const crypto = require('crypto');
-import * as https from 'https';
+const https = require('https');
 import { HttpsProxyAgent } from 'https-proxy-agent';
 
 const agent = new HttpsProxyAgent('http://168.63.76.32:3128');
