@@ -436,7 +436,7 @@ async function harnessSyncArticleNumber(quiz) {
 
         // 순차 실행 및 딜레이 적용
         for (const target of targets) {
-            const targetName = target.unit === '조' ? `제${num}조` : `제${num}항`;
+            const targetName = target.unit === '조' ? `제${target.num}조` : `제${target.num}항`;
             const key = `${lawName}_${targetName}`;
             const fullLawMatch = quiz.explanation.match(/([가-힣]{2,10}\s*(?:헌법|법률|법))/);
             const lawContext = target.lawName || (fullLawMatch ? fullLawMatch[1] : quiz.domain) || '';
