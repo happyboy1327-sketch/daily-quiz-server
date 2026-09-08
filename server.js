@@ -518,12 +518,12 @@ if (candidates.length > 0) {
     } else {
         console.log(`❌ [2단계 실패] 신뢰할 만한 대체 조항(2회 이상 출현)을 찾지 못해 기존 조항을 유지합니다.`);
     }  
+}
         console.log(`🎉 [완료] 총 ${replacedCount}개 조항 치환 반영 완료`);
     } catch (err) {
         console.error("🔥 [최상위 에러] API 요청 실패, serverErrorFlag 설정", err.message);
         quiz.serverErrorFlag = true;
     }
-        }
     return quiz;
 }
 
