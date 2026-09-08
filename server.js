@@ -401,7 +401,7 @@ async function harnessSyncArticleNumber(quiz) {
         const seen = new Set();
         const stopWords = new Set([
             '따라', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여', '각각', '등은', 
-            '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로',
+            '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로', '정답', 
             '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당', '정답은', '선택지인',
             '출처', '근거', '국가법령정보센터'
         ]);
@@ -443,10 +443,11 @@ async function harnessSyncArticleNumber(quiz) {
                 const rawSnippet = fullText.slice(startPos, endPos).replace(match[0], '');
                 
                 const keywords = rawSnippet
-                    .replace(/[^가-힣0-9\s]/g, ' ')
-                    .split(/\s+/)
-                    .map(w => cleanJosa(w))
-                    .filter(w => w.length >= 2 && !stopWords.has(w));
+                     .replace(/[^가-힣0-9\s]/g, ' ')
+                     .split(/\s+/)
+                     .filter(w => !stopWords.has(w))        // 조사 잘라내기 전 1차 차단 ('정답은' 차단)
+                     .map(w => cleanJosa(w))
+                     .filter(w => w.length >= 2 && !stopWords.has(w));
 
                 if (keywords.length > 0) {
                     targets.push({
