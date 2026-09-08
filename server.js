@@ -461,7 +461,7 @@ async function harnessSyncArticleNumber(quiz) {
             await sleep(500);
 
             const searchQuery = `${lawContext} ${topKeywords.slice(0, 3).join(' ')} 제${target.unit}`;
-            const res2 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, { headers, timeout: 4000 });
+            const res2 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, { headers, timeout: 6000 });
             const text2 = parseSnippets(res2.data);
 
             const candidateRegex = new RegExp(`제\\s*(\\d+)\\s*${target.unit}`, 'g');
