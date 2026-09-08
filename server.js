@@ -526,7 +526,14 @@ async function validateQuizAccuracy(quizzes) {
         };
     }
 
-    return { valid: true, invalidIndices: [], reason: "" };
+    return {
+    valid: false,
+    invalidIndices,
+    reason: ...,
+    errorType: results[invalidIndices[0]].errorType,
+    targetSnippet: results[invalidIndices[0]].targetSnippet,
+    suggestedFix: results[invalidIndices[0]].suggestedFix
+  };
 }
 
 function validateSpellingAnswer(quiz) {
