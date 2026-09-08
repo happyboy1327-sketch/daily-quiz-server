@@ -106,7 +106,7 @@ async function postWithRetry(
             }
 
             throw err;
-        }
+
     }
 }
 
