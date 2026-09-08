@@ -53,8 +53,8 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
   - If any distractor forms a valid standard Korean word, REPLACE IT IMMEDIATELY with a misspelled form.
 
 ### 4. EXPLANATION AND CITATION CONSTRAINTS
-□ Explanation MUST begin EXACTLY with: 정답은 {correctAnswerText}입니다. [Source/Basis: ...]
-  - Examples: [Source: National Institute of Korean Language], [Basis: Constitution Article 70], [Source: KACD Guidelines]
+□ Explanation MUST begin EXACTLY with: 정답은 {correctAnswerText}입니다. [출처/ 근거: ...]
+  - Examples: [출처/ 근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제N항], [출처/ 근거: 국가법령정보센터(law.go.kr)/ 대한민국 헌법 제68조]
 □ Explain why the correct answer is right and why each distractor is wrong using ONLY 100% verified real-world facts. Never fabricate false characteristics about a distractor.
 □ If uncertain about any distractor's exact background, DO NOT attempt to explain or mention that distractor.
 □ Avoid ambiguous relative descriptors (e.g., "short", "long") in explanations; use exact names, figures, and definitive facts instead.
