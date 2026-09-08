@@ -6,7 +6,7 @@ const seedrandom = require('seedrandom');
 const crypto = require('crypto');
 const https = require('https');
 const cheerio = require('cheerio');
-const { HttpsProxyAgent } = require('https-proxy-agent');
+const { HttpsProxyAgent } = await import('https-proxy-agent')
 
 const { createQuizPayload } = require('./prdPrompt');
 
