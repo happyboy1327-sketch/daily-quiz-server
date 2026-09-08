@@ -430,7 +430,7 @@ async function harnessSyncArticleNumber(quiz) {
 
     try {
         const lawSuffix = '(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시)';
-        const lawPrefix = '(?:대한민국\\s+)?'; // "대한민국" 정도만 앞에 허용, 그 외엔 안 붙임
+        const lawPrefix = '(?:(?:대한민국|한국어|한글)\\s+)?'; // "대한민국" 정도만 앞에 허용, 그 외엔 안 붙임
         const initialLawRegex = new RegExp(`(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})`);
         const initialLawMatch = quiz.explanation.match(initialLawRegex);
         let anchorLaw = initialLawMatch ? initialLawMatch[1].replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '').trim() : (quiz.domain || '헌법');
