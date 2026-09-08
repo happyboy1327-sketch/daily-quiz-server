@@ -9,7 +9,6 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 
 const agent = new HttpsProxyAgent('http://168.63.76.32:3128');
 const cheerio = require('cheerio');
-const { HttpsProxyAgent } = await import('https-proxy-agent');
 
 const { createQuizPayload } = require('./prdPrompt');
 
