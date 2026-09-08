@@ -377,7 +377,7 @@ async function harnessSyncArticleNumber(quiz) {
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     // 1단계/2단계 판정 기준 일치율 (45%)
-    const MATCH_THRESHOLD = 0.45;
+    const MATCH_THRESHOLD = 0.199;
 
     const cleanJosa = (word) => {
         if (!word) return '';
@@ -390,9 +390,9 @@ async function harnessSyncArticleNumber(quiz) {
 
     const stopWords = new Set([
         '따라', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여', '각각', '등은',
-        '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로', '정답',
-        '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당', '정답은', '선택지인',
-        '출처', '근거', '국가법령정보센터'
+        '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로', '정답', '정답은', 
+        '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당', '정답은', '선택지인', '규정한다',
+        '출처', '근거', '국가법령정보센터', '입니다', '이다'
     ]);
 
     // 키워드(A) x 스니펫토큰(B) 매칭 매트릭스로 일치율(0~1) 계산
