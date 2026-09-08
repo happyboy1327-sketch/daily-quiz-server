@@ -440,7 +440,8 @@ async function harnessSyncArticleNumber(quiz) {
 
         const tasks = targets.map(async (target) => {
             const targetName = `제${target.num}${target.unit}`;
-            const lawContext = target.lawName || quiz.domain || '';
+            const fullLawMatch = quiz.explanation.match(/([가-힣]{2,10}\s*(?:헌법|법률|법))/);
+            const lawContext = target.lawName || (fullLawMatch ? fullLawMatch[1] : quiz.domain) || '';
             const topKeywords = target.keywords.slice(0, 5);
             if (topKeywords.length === 0) return null;
 
