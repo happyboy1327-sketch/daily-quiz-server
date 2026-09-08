@@ -42,14 +42,15 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 
 ### 3. CHOICES AND CHARACTER SET CONSTRAINTS
 □ Exactly 4 choices, exactly 1 objectively correct answer.
-□ Distractor Rule: Distractors MUST belong to a DIFFERENT person, era, or concept (e.g., If the target is King Sejong, distractors MUST be achievements of other kings). NEVER list 4 true facts of the SAME entity and ask to pick one.
+□ Distractor Rule: Distractors MUST belong to a DIFFERENT person, era, or concept (e.g., If the target is King Sejong, distractors MUST be achievements of other kings). NEVER list 4 true facts of the SAME entity and ask to pick one
+(Except for 한글 맞춤법).
 □ All 4 choices MUST target the EXACT same phrase structure, rule, or conceptual category.
 □ Character Set: Use ONLY standard Korean, numbers, and basic ASCII. NEVER use Hanja.
 □ FOR KOREAN GRAMMAR / SPELLING QUIZZES (CRITICAL RULE):
   - The 3 distractors MUST be misspelled forms (phonetic spellings, common vowel/consonant typos, spacing errors) based on the target word.
   - ❌ PROHIBITION: Putting valid standard Korean words, synonyms, or grammatically correct alternative expressions into distractor options.
   - ⭕ Correct Distractor Examples: '갑씨', '감이', '갑시' (Misspellings only)
-  - Morphological Analysis Mandate: Decompose EVERY option into [Substantive Morpheme/Stem] + [Functional Morpheme/Particle]. If any distractor forms a valid standard Korean word, REPLACE IT IMMEDIATELY with a misspelled form.
+  - If any distractor forms a valid standard Korean word, REPLACE IT IMMEDIATELY with a misspelled form.
 
 ### 4. EXPLANATION AND CITATION CONSTRAINTS
 □ Explanation MUST begin EXACTLY with: 정답은 {correctAnswerText}입니다. [Source/Basis: ...]
@@ -155,12 +156,12 @@ const FEW_SHOT_DATABASE = {
       role: "assistant",
       content: JSON.stringify({
         topic: "한글 맞춤법",
-        concept_summary: "한글 맞춤법 제 ○항에 따라 □□가 올바른 표준어 표기입니다.",
-        explanation: "정답은 □□입니다. [출처/ 근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제○항] [조항 내용 없이 간단 설명].",
+        concept_summary: "한글 맞춤법 제 N항에 따라 '정답단어'가 올바른 표준어 표기입니다.",
+        explanation: "정답은 정답단어입니다. [출처/ 근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제N항] [조항 내용 없이 간단 설명].",
         question: "올바른 표기로 적절한 것은 무엇입니까?",
-        choices: ["□□", "♡♡", "◇◇", "♧♧"],
+        choices: ["정답 단어", "오답 단어 1", "오답 단어 2", "오답 단어 3"],
         correctAnswerIndex: 0,
-        correctAnswerText: "□□"
+        correctAnswerText: "정답 단어"
       })
     }
   ],
