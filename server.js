@@ -491,6 +491,7 @@ if (candidates.length > 0) {
         if (candidateNum !== target.num) {
             frequencyMap[candidateNum] = (frequencyMap[candidateNum] || 0) + 1;
         }
+    }
 
     // 최소 2회 이상 등장한 대체 후보 중 최다 빈도 항목 선정 (노이즈 제거)
     const sortedCandidates = Object.keys(frequencyMap)
@@ -520,15 +521,12 @@ if (candidates.length > 0) {
         console.log(`🎉 [완료] 총 ${replacedCount}개 조항 치환 반영 완료`);
     }
 }
-        }
     }
     catch (e) {
         console.error("🔥 [최상위 에러] API 요청 실패, serverErrorFlag 설정", e.message);
         quiz.serverErrorFlag = true;
     }
-        }
     return quiz;
-}
 }
 
 function extractJsonFromText(rawText) {
