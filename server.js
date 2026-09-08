@@ -523,7 +523,7 @@ if (candidates.length > 0) {
         console.error("🔥 [최상위 에러] API 요청 실패, serverErrorFlag 설정", err.message);
         quiz.serverErrorFlag = true;
     }
-
+        }
     return quiz;
 }
 
