@@ -520,7 +520,7 @@ if (candidates.length > 0) {
     }  
 }
         console.log(`🎉 [완료] 총 ${replacedCount}개 조항 치환 반영 완료`);
-    } catch (err) {
+    } catch (e) {
         console.error("🔥 [최상위 에러] API 요청 실패, serverErrorFlag 설정", err.message);
         quiz.serverErrorFlag = true;
     }
