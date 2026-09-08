@@ -376,66 +376,124 @@ async function harnessSyncArticleNumber(quiz) {
         const targets = [];
         const seen = new Set();
 
+        const stopWords = new Set([
+            '따라', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여',
+            '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로',
+            '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당'
+        ]);
+
         for (const match of matches) {
-            const lawName = match[1] || ''; 
-            const num = match[2];           
-            const unit = match[3];          
+            const lawName = match[1] || '';
+            const num = match[2];
+            const unit = match[3];
             const key = `${num}_${unit}`;
 
             if (!seen.has(key)) {
                 seen.add(key);
-                targets.push({
-                    lawName,
-                    num,
-                    unit,
-                    targetArticle: `제${num}${unit}`
-                });
+
+                const matchIndex = match.index;
+                const fullText = quiz.explanation;
+                const startPos = Math.max(0, matchIndex - 60);
+                const endPos = Math.min(fullText.length, matchIndex + match[0].length + 100);
+
+                const rawSnippet = fullText.slice(startPos, endPos).replace(match[0], '');
+                
+                const keywords = rawSnippet
+                    .replace(/[^가-힣0-9\s]/g, ' ')
+                    .split(/\s+/)
+                    .filter(w => w.length >= 2 && !stopWords.has(w));
+
+                if (keywords.length > 0) {
+                    targets.push({
+                        lawName,
+                        num,
+                        unit,
+                        keywords
+                    });
+                }
             }
         }
 
-        for (const target of targets) {
-            const contextAnchor = target.lawName || quiz.domain || '';
-            const cleanAnswer = (quiz.correctAnswerText || '').replace(/[^가-힣0-9]/g, '');
+        if (targets.length === 0) return quiz;
 
-            if (!cleanAnswer) continue;
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'Accept-Language': 'ko-KR,ko;q=0.9'
+        };
 
-            const searchKeyword = `${contextAnchor} ${cleanAnswer}`.trim();
-            const queryStr = `"${searchKeyword}" "제" "${target.unit}"`;
-            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(queryStr)}`;
-
-            const response = await axios.get(searchUrl, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                    'Accept-Language': 'ko-KR,ko;q=0.9'
-                },
-                timeout: 4000
+        const parseSnippets = (html) => {
+            const $ = cheerio.load(html);
+            $('script, style, header, footer, nav, noscript').remove();
+            
+            let snippetText = '';
+            $('.g, div[data-snc], #search').each((_, el) => {
+                snippetText += $(el).text() + ' ';
             });
 
-            const $ = cheerio.load(response.data);
-            $('script, style').remove();
-            const rawText = $('body').text().replace(/\s+/g, ' ');
+            return (snippetText || $('body').text()).replace(/\s+/g, ' ').trim();
+        };
 
-            const safeKeyword = searchKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const extractRegex = new RegExp(`${safeKeyword}.{0,50}?제\\s*(\\d+)\\s*${target.unit}`, 'i');
-            const found = rawText.match(extractRegex);
+        const tasks = targets.map(async (target) => {
+            const lawContext = target.lawName || quiz.domain || '';
+            const topKeywords = target.keywords.slice(0, 5);
+            if (topKeywords.length === 0) return null;
 
-            if (found && found[1]) {
-                const realNum = found[1];
-                const realArticle = `제${realNum}${target.unit}`;
+            try {
+                const verifyQuery = `${lawContext} "제${target.num}${target.unit}" ${topKeywords.join(' ')}`;
+                const res1 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(verifyQuery)}`, { headers, timeout: 4000 });
+                const text1 = parseSnippets(res1.data);
 
-                if (realArticle !== target.targetArticle) {
-                    const replaceRegex = new RegExp(`제\\s*${target.num}\\s*${target.unit}`, 'g');
+                const matchCount = topKeywords.filter(kw => text1.includes(kw)).length;
+                const matchRatio = matchCount / topKeywords.length;
 
-                    if (typeof quiz.explanation === 'string') {
-                        quiz.explanation = quiz.explanation.replace(replaceRegex, realArticle);
+                if (matchRatio >= 0.5) return null;
+
+                const searchQuery = `${lawContext} ${topKeywords.slice(0, 3).join(' ')} 제${target.unit}`;
+                const res2 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, { headers, timeout: 4000 });
+                const text2 = parseSnippets(res2.data);
+
+                const candidateRegex = new RegExp(`제\\s*(\\d+)\\s*${target.unit}`, 'g');
+                const candidates = [...text2.matchAll(candidateRegex)];
+
+                if (candidates.length > 0) {
+                    const frequencyMap = {};
+                    for (const cand of candidates) {
+                        const candidateNum = cand[1];
+                        if (candidateNum !== target.num) {
+                            frequencyMap[candidateNum] = (frequencyMap[candidateNum] || 0) + 1;
+                        }
                     }
-                    if (typeof quiz.question === 'string') {
-                        quiz.question = quiz.question.replace(replaceRegex, realArticle);
-                    }
-                    if (typeof quiz.correctAnswerText === 'string') {
-                        quiz.correctAnswerText = quiz.correctAnswerText.replace(replaceRegex, realArticle);
+
+                    const bestMatch = Object.keys(frequencyMap).sort((a, b) => frequencyMap[b] - frequencyMap[a])[0];
+
+                    if (bestMatch) {
+                        return {
+                            oldArticleRegex: new RegExp(`제\\s*${target.num}\\s*${target.unit}`, 'g'),
+                            newArticle: `제${bestMatch}${target.unit}`
+                        };
                     }
                 }
+            } catch {
+                return null;
+            }
+            return null;
+        });
+
+        const results = await Promise.all(tasks);
+
+        for (const res of results) {
+            if (!res) continue;
+
+            const { oldArticleRegex, newArticle } = res;
+
+            if (typeof quiz.explanation === 'string') {
+                quiz.explanation = quiz.explanation.replace(oldArticleRegex, newArticle);
+            }
+            if (typeof quiz.question === 'string') {
+                quiz.question = quiz.question.replace(oldArticleRegex, newArticle);
+            }
+            if (typeof quiz.correctAnswerText === 'string') {
+                quiz.correctAnswerText = quiz.correctAnswerText.replace(oldArticleRegex, newArticle);
             }
         }
     } catch (err) {
