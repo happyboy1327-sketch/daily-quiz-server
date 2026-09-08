@@ -370,7 +370,10 @@ async function harnessSyncArticleNumber(quiz) {
     if (!quiz || typeof quiz.explanation !== 'string') {
         console.log("⚠️ [중단] quiz 객체가 없거나 explanation이 문자열이 아닙니다.");
         return quiz;
-     }
+    }
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
     try {
         const articleRegex = /(?:([가-힣]{2,10})\s*)?제\s*(\d+)\s*(조|항)/g;
         const matches = [...quiz.explanation.matchAll(articleRegex)];
@@ -378,9 +381,9 @@ async function harnessSyncArticleNumber(quiz) {
             console.log("ℹ️ [조항 없음] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
             return quiz;
         }
+
         const targets = [];
         const seen = new Set();
-
         const stopWords = new Set([
             '따라', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여',
             '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로',
@@ -395,29 +398,22 @@ async function harnessSyncArticleNumber(quiz) {
 
             if (!seen.has(key)) {
                 seen.add(key);
-
                 const matchIndex = match.index;
                 const fullText = quiz.explanation;
                 const startPos = Math.max(0, matchIndex - 60);
                 const endPos = Math.min(fullText.length, matchIndex + match[0].length + 100);
-
                 const rawSnippet = fullText.slice(startPos, endPos).replace(match[0], '');
-                
                 const keywords = rawSnippet
                     .replace(/[^가-힣0-9\s]/g, ' ')
                     .split(/\s+/)
                     .filter(w => w.length >= 2 && !stopWords.has(w));
 
                 if (keywords.length > 0) {
-                    targets.push({
-                        lawName,
-                        num,
-                        unit,
-                        keywords
-                    });
+                    targets.push({ lawName, num, unit, keywords });
                 }
             }
         }
+
         console.log(`📌 [추출 완료] 검증 대상 조항 목록 (${targets.length}개):`, targets.map(t => `제${t.num}${t.unit}`));
         if (targets.length === 0) return quiz;
 
@@ -429,98 +425,88 @@ async function harnessSyncArticleNumber(quiz) {
         const parseSnippets = (html) => {
             const $ = cheerio.load(html);
             $('script, style, header, footer, nav, noscript').remove();
-            
             let snippetText = '';
             $('.g, div[data-snc], #search').each((_, el) => {
                 snippetText += $(el).text() + ' ';
             });
-
             return (snippetText || $('body').text()).replace(/\s+/g, ' ').trim();
         };
 
-        const tasks = targets.map(async (target) => {
+        let replacedCount = 0;
+
+        // 순차 실행 및 딜레이 적용
+        for (const target of targets) {
             const targetName = `제${target.num}${target.unit}`;
             const fullLawMatch = quiz.explanation.match(/([가-힣]{2,10}\s*(?:헌법|법률|법))/);
             const lawContext = target.lawName || (fullLawMatch ? fullLawMatch[1] : quiz.domain) || '';
             const topKeywords = target.keywords.slice(0, 5);
-            if (topKeywords.length === 0) return null;
+            if (topKeywords.length === 0) continue;
 
-            try {
-                const verifyQuery = `${lawContext} "제${target.num}${target.unit}" ${topKeywords.join(' ')}`;
-                const res1 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(verifyQuery)}`, { headers, timeout: 4000 });
-                const text1 = parseSnippets(res1.data);
+            await sleep(500); // Rate Limit 방지 딜레이
 
-                const matchCount = topKeywords.filter(kw => text1.includes(kw)).length;
-                const matchRatio = matchCount / topKeywords.length;
+            const verifyQuery = `${lawContext} "제${target.num}${target.unit}" ${topKeywords.join(' ')}`;
+            const res1 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(verifyQuery)}`, { headers, timeout: 4000 });
+            const text1 = parseSnippets(res1.data);
 
-                if (matchRatio >= 0.5) {
-                    console.log(`✅ [1단계 통과] ${targetName}는 올바른 조항입니다.`);
-                    return null;
-                }
-                
-                console.warn(`⚠️ [1단계 불일치] ${targetName} 오류 가능성 높음. 올바른 조항 추적 시작...`);
-                const searchQuery = `${lawContext} ${topKeywords.slice(0, 3).join(' ')} 제${target.unit}`;
-                const res2 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, { headers, timeout: 4000 });
-                const text2 = parseSnippets(res2.data);
+            const matchCount = topKeywords.filter(kw => text1.includes(kw)).length;
+            const matchRatio = matchCount / topKeywords.length;
 
-                const candidateRegex = new RegExp(`제\\s*(\\d+)\\s*${target.unit}`, 'g');
-                const candidates = [...text2.matchAll(candidateRegex)];
+            if (matchRatio >= 0.5) {
+                console.log(`✅ [1단계 통과] ${targetName}는 올바른 조항입니다.`);
+                continue;
+            }
 
-                if (candidates.length > 0) {
-                    const frequencyMap = {};
-                    for (const cand of candidates) {
-                        const candidateNum = cand[1];
-                        if (candidateNum !== target.num) {
-                            frequencyMap[candidateNum] = (frequencyMap[candidateNum] || 0) + 1;
-                        }
-                    }
+            console.warn(`⚠️ [1단계 불일치] ${targetName} 오류 가능성 높음. 올바른 조항 추적 시작...`);
+            await sleep(500);
 
-                    const bestMatch = Object.keys(frequencyMap).sort((a, b) => frequencyMap[b] - frequencyMap[a])[0];
+            const searchQuery = `${lawContext} ${topKeywords.slice(0, 3).join(' ')} 제${target.unit}`;
+            const res2 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, { headers, timeout: 4000 });
+            const text2 = parseSnippets(res2.data);
 
-                    if (bestMatch) {
-                        console.log(`🎯 [치환 확정] ${targetName} ➔ 제${bestMatch}${target.unit}`);
-                        return {
-                            oldArticleRegex: new RegExp(`제\\s*${target.num}\\s*${target.unit}`, 'g'),
-                            newArticle: `제${bestMatch}${target.unit}`
-                        };
+            const candidateRegex = new RegExp(`제\\s*(\\d+)\\s*${target.unit}`, 'g');
+            const candidates = [...text2.matchAll(candidateRegex)];
+
+            if (candidates.length > 0) {
+                const frequencyMap = {};
+                for (const cand of candidates) {
+                    const candidateNum = cand[1];
+                    if (candidateNum !== target.num) {
+                        frequencyMap[candidateNum] = (frequencyMap[candidateNum] || 0) + 1;
                     }
                 }
+
+                const bestMatch = Object.keys(frequencyMap).sort((a, b) => frequencyMap[b] - frequencyMap[a])[0];
+
+                if (bestMatch) {
+                    console.log(`🎯 [치환 확정] ${targetName} ➔ 제${bestMatch}${target.unit}`);
+                    const oldArticleRegex = new RegExp(`제\\s*${target.num}\\s*${target.unit}`, 'g');
+                    const newArticle = `제${bestMatch}${target.unit}`;
+
+                    if (typeof quiz.explanation === 'string') {
+                        quiz.explanation = quiz.explanation.replace(oldArticleRegex, newArticle);
+                    }
+                    if (typeof quiz.question === 'string') {
+                        quiz.question = quiz.question.replace(oldArticleRegex, newArticle);
+                    }
+                    if (typeof quiz.correctAnswerText === 'string') {
+                        quiz.correctAnswerText = quiz.correctAnswerText.replace(oldArticleRegex, newArticle);
+                    }
+                    replacedCount++;
+                }
+            } else {
                 console.log(`❌ [2단계 실패] 대체할 조항을 찾지 못했습니다.`);
-            } catch (err) {
-                console.error(`💥 [HTTP/파싱 에러] ${targetName} 처리 중 오류:`, err.message);
-                return null;
             }
-            return null;
-        });
-
-        const results = await Promise.all(tasks);
-        let replacedCount = 0;
-        for (const res of results) {
-            if (!res) continue;
-
-            const { oldArticleRegex, newArticle } = res;
-
-            if (typeof quiz.explanation === 'string') {
-                quiz.explanation = quiz.explanation.replace(oldArticleRegex, newArticle);
-            }
-            if (typeof quiz.question === 'string') {
-                quiz.question = quiz.question.replace(oldArticleRegex, newArticle);
-            }
-            if (typeof quiz.correctAnswerText === 'string') {
-                quiz.correctAnswerText = quiz.correctAnswerText.replace(oldArticleRegex, newArticle);
-            }
-            replacedCount++;
         }
+
         console.log(`🎉 [완료] 총 ${replacedCount}개 조항 치환 반영 완료`);
-        
+
     } catch (err) {
-        console.error("🔥 [최상위 에러] 치명적 오류 발생, serverErrorFlag 설정", err);
+        console.error("🔥 [최상위 에러] API 요청 실패, serverErrorFlag 설정", err.message);
         quiz.serverErrorFlag = true;
     }
 
     return quiz;
 }
-                    
 
 function extractJsonFromText(rawText) {
     if (typeof rawText !== "string") throw new Error("응답이 문자열이 아닙니다.");
