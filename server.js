@@ -377,7 +377,7 @@ async function harnessSyncArticleNumber(quiz) {
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     // 1단계/2단계 판정 기준 일치율 (45%)
-    const MATCH_THRESHOLD = 0.199;
+    const MATCH_THRESHOLD = 0.159;
 
     const cleanJosa = (word) => {
         if (!word) return '';
@@ -430,11 +430,12 @@ async function harnessSyncArticleNumber(quiz) {
 
     try {
         const lawSuffix = '(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시)';
-        const initialLawRegex = new RegExp(`(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)((?:[가-힣]{1,10}\\s+)*[가-힣]{1,10}${lawSuffix})`);
+        const lawPrefix = '(?:대한민국\\s+)?'; // "대한민국" 정도만 앞에 허용, 그 외엔 안 붙임
+        const initialLawRegex = new RegExp(`(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})`);
         const initialLawMatch = quiz.explanation.match(initialLawRegex);
         let anchorLaw = initialLawMatch ? initialLawMatch[1].replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '').trim() : (quiz.domain || '헌법');
 
-        const articleRegex = new RegExp(`(?:(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)((?:[가-힣]{1,10}\\s+)*[가-힣]{1,10}${lawSuffix})\\s*)?제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?|제\\s*(\\d+)\\s*항`, 'g');
+        const articleRegex = new RegExp(`(?:(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})\\s*)?제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?|제\\s*(\\d+)\\s*항`, 'g');
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) {
             console.log("ℹ️ [조항 없음] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
