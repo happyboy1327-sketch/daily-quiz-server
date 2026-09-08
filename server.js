@@ -517,23 +517,28 @@ async function validateQuizAccuracy(quizzes) {
     }
 
     if (invalidIndices.length > 0) {
-        return {
-            valid: false,
-            invalidIndices,
-            reason: invalidIndices
-                .map(i => `[${i + 1}번 문항 (${quizzes[i].topic})] ${results[i].reason}`)
-                .join(" / ")
-        };
-    }
+    const firstInvalidIndex = invalidIndices[0];
+    const firstResult = results[firstInvalidIndex];
 
     return {
-    valid: false,
-    invalidIndices,
-    reason: "",
-    errorType: results[invalidIndices[0]].errorType,
-    targetSnippet: results[invalidIndices[0]].targetSnippet,
-    suggestedFix: results[invalidIndices[0]].suggestedFix
-  };
+        valid: false,
+        invalidIndices,
+        reason: invalidIndices
+            .map(i =>
+                `[${i + 1}번 문항 (${quizzes[i].topic})] ${results[i].reason}`
+            )
+            .join(" / "),
+        errorType: firstResult.errorType || "NONE",
+        targetSnippet: firstResult.targetSnippet || null,
+        suggestedFix: firstResult.suggestedFix || null
+    };
+}
+
+return {
+    valid: true,
+    invalidIndices: [],
+    reason: ""
+};
 }
 
 function validateSpellingAnswer(quiz) {
