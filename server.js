@@ -375,6 +375,9 @@ async function harnessSyncArticleNumber(quiz) {
     let replacedCount = 0;
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+    // 1단계/2단계 판정 기준 일치율 (45%)
+    const MATCH_THRESHOLD = 0.45;
+
     const cleanJosa = (word) => {
         if (!word) return '';
         let cleaned = word.replace(/(에서는|으로부터|에서|으로|하므로|입니다|한다|얻어|하여)+$/g, '');
@@ -382,6 +385,46 @@ async function harnessSyncArticleNumber(quiz) {
             cleaned = cleaned.replace(/(은|는|이|가|을|를|의|에|로|와|과|도|만)+$/g, '');
         }
         return cleaned;
+    };
+
+    const stopWords = new Set([
+        '따라', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여', '각각', '등은',
+        '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로', '정답',
+        '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당', '정답은', '선택지인',
+        '출처', '근거', '국가법령정보센터'
+    ]);
+
+    // 키워드(A) x 스니펫토큰(B) 매칭 매트릭스로 일치율(0~1) 계산
+    // - targetKeywords: 해설에서 뽑아낸 문맥 키워드
+    // - compareText: 구글 검색 결과 스니펫 원문
+    const calculateMatchScore = (targetKeywords, compareText) => {
+        if (!targetKeywords || targetKeywords.length === 0 || !compareText) return 0;
+
+        const compareTokens = [...new Set(
+            compareText
+                .replace(/[^가-힣0-9\s]/g, ' ')
+                .split(/\s+/)
+                .map(w => cleanJosa(w))
+                .filter(w => w.length >= 2 && !stopWords.has(w))
+        )];
+        if (compareTokens.length === 0) return 0;
+
+        // targetKeywords 행 x compareTokens 열 매트릭스: 부분포함 매칭 시 1
+        // 짧은 범용 단어("모든","국민" 등)가 우연히 겹쳐서 점수를 부풀리는 것을 막기 위해
+        // 키워드 길이를 가중치로 사용 (길고 구체적인 단어일수록 변별력이 높다고 가정)
+        const matrix = targetKeywords.map(kw =>
+            compareTokens.map(tok => (tok.includes(kw) || kw.includes(tok)) ? 1 : 0)
+        );
+
+        let matchedWeight = 0;
+        let totalWeight = 0;
+        targetKeywords.forEach((kw, i) => {
+            const weight = kw.length; // 글자 수가 많을수록 변별력 높은 키워드로 간주
+            totalWeight += weight;
+            if (matrix[i].some(cell => cell === 1)) matchedWeight += weight;
+        });
+
+        return totalWeight > 0 ? matchedWeight / totalWeight : 0;
     };
 
     try {
@@ -399,13 +442,6 @@ async function harnessSyncArticleNumber(quiz) {
 
         const targets = [];
         const seen = new Set();
-        const stopWords = new Set([
-            '따라', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여', '각각', '등은', 
-            '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로', '정답', 
-            '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당', '정답은', '선택지인',
-            '출처', '근거', '국가법령정보센터'
-        ]);
-
         let currentArticle = '';
 
         for (const match of matches) {
@@ -441,13 +477,13 @@ async function harnessSyncArticleNumber(quiz) {
                 const startPos = Math.max(0, matchIndex - 60);
                 const endPos = Math.min(fullText.length, matchIndex + match[0].length + 100);
                 const rawSnippet = fullText.slice(startPos, endPos).replace(match[0], '');
-                
+
                 const keywords = rawSnippet
-                     .replace(/[^가-힣0-9\s]/g, ' ')
-                     .split(/\s+/)
-                     .filter(w => !stopWords.has(w))        // 조사 잘라내기 전 1차 차단 ('정답은' 차단)
-                     .map(w => cleanJosa(w))
-                     .filter(w => w.length >= 2 && !stopWords.has(w));
+                    .replace(/[^가-힣0-9\s]/g, ' ')
+                    .split(/\s+/)
+                    .filter(w => !stopWords.has(w))
+                    .map(w => cleanJosa(w))
+                    .filter(w => w.length >= 2 && !stopWords.has(w));
 
                 if (keywords.length > 0) {
                     targets.push({
@@ -480,29 +516,41 @@ async function harnessSyncArticleNumber(quiz) {
 
         for (const target of targets) {
             const lawContext = target.lawName;
-            const topKeywords = target.keywords.slice(0, 2); // 💡 키워드 최대 2개로 간소화
+            // 검색 쿼리 후보 선정: (1) "~다고/~하고/~받지"처럼 활용형 어미로 끝나는 동사성 표현 제외
+            //                      (2) "모든/국민"처럼 헌법 조항 전반에 범용적으로 쓰이는 명사 제외
+            //                      (3) 남은 단어 중 글자 수가 많아 변별력 있는 명사 위주로 우선 사용
+            const verbEndingRegex = /(다고|하고|받지|한다|았다|었다|니다|되어|이며|므로|하며|하는|되는)$/;
+            const genericQueryStop = new Set(['모든', '각각', '관련', '대한', '경우', '사항', '규정', '국민']);
+            let queryCandidates = target.keywords.filter(w => !verbEndingRegex.test(w) && !genericQueryStop.has(w));
+            if (queryCandidates.length === 0) queryCandidates = target.keywords; // 전부 걸러졌으면 원본으로 대체
+            const topKeywords = [...queryCandidates].sort((a, b) => b.length - a.length).slice(0, 3);
             if (topKeywords.length === 0) continue;
 
             await sleep(500);
 
-            // 1단계: 검색 쿼리 구성 단순화
-            const verifyQuery = `${lawContext} "${target.targetName}"`;
-            const res1 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(verifyQuery)}`, { headers, timeout: 4000 });
-            const text1 = parseSnippets(res1.data);
-
-            // 💡 완화된 1단계 통과 조건: 검색 결과 스니펫에 해당 조항 번호가 찍혀있기만 하면 무조건 정상 조항으로 신뢰
-            const isTargetPresent = text1.includes(`제${target.articleNum}조`) || text1.includes(target.targetName);
-
-            if (isTargetPresent) {
-                console.log(`✅ [1단계 통과] ${lawContext} ${target.targetName}는 존재하는 올바른 조항입니다.`);
-                continue; // 2단계 안 넘어가고 정상 종료
+            // ===== 1단계: 법률명 + 제몇조 제몇항 전체를 한 쿼리로 검색 후, 해설 키워드와 매트릭스 대조 =====
+            const verifyQuery = `${lawContext} ${target.targetName}`.trim();
+            let text1 = '';
+            try {
+                const res1 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(verifyQuery)}`, { headers, timeout: 4000 });
+                text1 = parseSnippets(res1.data);
+            } catch (e) {
+                console.warn(`⚠️ [1단계 요청 실패] ${lawContext} ${target.targetName} 검색 오류 → 2단계로 진행`);
             }
 
-            console.warn(`⚠️ [1단계 불일치] ${lawContext} ${target.targetName} 실제 검색 결과 없음. 2단계 올바른 조항 추적 시작...`);
+            const score1 = calculateMatchScore(target.keywords, text1);
+            console.log(`📊 [1단계 일치율] ${lawContext} ${target.targetName} → ${(score1 * 100).toFixed(1)}%`);
+
+            if (score1 >= MATCH_THRESHOLD) {
+                console.log(`✅ [1단계 통과] ${lawContext} ${target.targetName}는 존재하는 올바른 조항입니다. (일치율 ${(score1 * 100).toFixed(1)}%)`);
+                continue;
+            }
+
+            console.warn(`⚠️ [1단계 불일치] 일치율 ${(score1 * 100).toFixed(1)}% (기준 ${(MATCH_THRESHOLD * 100)}% 미만) → 2단계 올바른 조항 추적 시작...`);
             await sleep(500);
 
-            // 2단계: 원래 조항이 실제로 완전히 틀렸을 때만 교체 시도
-            const searchQuery = `${lawContext} ${topKeywords.join(' ')} ${target.paragraphNum ? '항' : '조'}`;
+            // ===== 2단계: 해설 속 키워드로 재검색, 검색결과 내 후보(법률명+조항)들을 매트릭스 대조하여 최적 후보 선정 =====
+            const searchQuery = topKeywords.join(' ');
             let text2 = '';
             try {
                 const res2 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, { headers, timeout: 6000 });
@@ -512,56 +560,62 @@ async function harnessSyncArticleNumber(quiz) {
                 continue;
             }
 
-            const originalArticleRegex = new RegExp(target.targetName.replace(/\s+/g, '\\s*'));
-            if (originalArticleRegex.test(text2)) {
-                console.log(`🛡️ [기존 유지] 2단계 검색에서 원래 조항(${target.targetName})이 확인되어 치환을 취소합니다.`);
+            const candidateRegex = new RegExp(`([가-힣]{1,10}${lawSuffix})?\\s*제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?`, 'g');
+            const candidateMatches = [...text2.matchAll(candidateRegex)];
+
+            if (candidateMatches.length === 0) {
+                console.log(`❌ [2단계 실패] 후보 조항을 찾지 못해 기존 조항을 유지합니다.`);
                 continue;
             }
 
-            const unitLabel = target.paragraphNum ? '항' : '조';
-            const candidateRegex = target.paragraphNum && target.articleNum
-                ? new RegExp(`제\\s*${target.articleNum}\\s*조\\s*제\\s*(\\d+)\\s*항`, 'g')
-                : new RegExp(`제\\s*(\\d+)\\s*${unitLabel}`, 'g');
+            let bestCandidate = null;
+            let bestScore = 0;
 
-            const candidates = [...text2.matchAll(candidateRegex)];
-            if (candidates.length > 0) {
-                const frequencyMap = {};
-                const currentNum = target.paragraphNum || target.articleNum;
+            for (const cand of candidateMatches) {
+                const candLaw = (cand[1] || lawContext).trim();
+                const candArticle = cand[2];
+                const candParagraph = cand[3] || '';
 
-                for (const cand of candidates) {
-                    const candidateNum = cand[1];
-                    if (candidateNum !== currentNum) {
-                        frequencyMap[candidateNum] = (frequencyMap[candidateNum] || 0) + 1;
-                    }
+                // 원래 조항과 완전히 동일한 후보는 이미 1단계에서 불일치 처리되었으므로 스킵
+                if (candLaw === lawContext && candArticle === target.articleNum && candParagraph === (target.paragraphNum || '')) {
+                    continue;
                 }
 
-                const bestMatch = Object.keys(frequencyMap)
-                    .filter(num => frequencyMap[num] >= 2)
-                    .sort((a, b) => frequencyMap[b] - frequencyMap[a])[0];
+                const idx = cand.index;
+                const snippet = text2.slice(Math.max(0, idx - 60), Math.min(text2.length, idx + cand[0].length + 100));
+                const score = calculateMatchScore(target.keywords, snippet);
 
-                if (bestMatch) {
-                    let oldArticleRegex;
-                    let newArticle = '';
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestCandidate = { candLaw, candArticle, candParagraph };
+                }
+            }
 
-                    if (target.paragraphNum && target.articleNum) {
-                        console.log(`🎯 [치환 확정] ${target.targetName} ➔ 제${target.articleNum}조 제${bestMatch}항 (검색 빈도: ${frequencyMap[bestMatch]}회)`);
-                        oldArticleRegex = new RegExp(`제\\s*${target.articleNum}\\s*조\\s*제\\s*${target.paragraphNum}\\s*항`, 'g');
-                        newArticle = `제${target.articleNum}조 제${bestMatch}항`;
-                    } else {
-                        console.log(`🎯 [치환 확정] ${target.targetName} ➔ 제${bestMatch}${unitLabel} (검색 빈도: ${frequencyMap[bestMatch]}회)`);
-                        oldArticleRegex = new RegExp(`제\\s*${currentNum}\\s*${unitLabel}`, 'g');
-                        newArticle = `제${bestMatch}${unitLabel}`;
-                    }
+            if (bestCandidate && bestScore >= MATCH_THRESHOLD) {
+                const newTargetName = bestCandidate.candParagraph
+                    ? `제${bestCandidate.candArticle}조 제${bestCandidate.candParagraph}항`
+                    : `제${bestCandidate.candArticle}조`;
 
-                    ['explanation', 'question', 'correctAnswerText'].forEach(key => {
-                        if (typeof quiz[key] === 'string') {
-                            quiz[key] = quiz[key].replace(oldArticleRegex, newArticle);
+                console.log(`🎯 [치환 확정] ${lawContext} ${target.targetName} ➔ ${bestCandidate.candLaw} ${newTargetName} (일치율 ${(bestScore * 100).toFixed(1)}%)`);
+
+                const oldArticleRegex = target.paragraphNum
+                    ? new RegExp(`제\\s*${target.articleNum}\\s*조\\s*제\\s*${target.paragraphNum}\\s*항`, 'g')
+                    : new RegExp(`제\\s*${target.articleNum}\\s*조`, 'g');
+
+                ['explanation', 'question', 'correctAnswerText'].forEach(key => {
+                    if (typeof quiz[key] === 'string') {
+                        quiz[key] = quiz[key].replace(oldArticleRegex, newTargetName);
+                        // 법률명 자체가 다른 후보로 확정된 경우, 법률명도 함께 치환
+                        if (bestCandidate.candLaw !== lawContext) {
+                            const escapedLaw = lawContext.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                            const oldLawRegex = new RegExp(escapedLaw, 'g');
+                            quiz[key] = quiz[key].replace(oldLawRegex, bestCandidate.candLaw);
                         }
-                    });
-                    replacedCount++;
-                } else {
-                    console.log(`❌ [2단계 실패] 신뢰할 만한 대체 조항(2회 이상 출현)을 찾지 못해 기존 조항을 유지합니다.`);
-                }
+                    }
+                });
+                replacedCount++;
+            } else {
+                console.log(`❌ [2단계 실패] 신뢰할 만한 대체 조항(일치율 ${(MATCH_THRESHOLD * 100)}% 이상)을 찾지 못해 기존 조항을 유지합니다. (최고 일치율 ${(bestScore * 100).toFixed(1)}%)`);
             }
         }
         console.log(`🎉 [완료] 총 ${replacedCount}개 조항 치환 반영 완료`);
@@ -571,6 +625,7 @@ async function harnessSyncArticleNumber(quiz) {
     }
     return quiz;
 }
+
 
 function extractJsonFromText(rawText) {
     if (typeof rawText !== "string") throw new Error("응답이 문자열이 아닙니다.");
