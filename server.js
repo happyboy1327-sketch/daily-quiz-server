@@ -313,6 +313,53 @@ function autoFixQuiz(quiz) {
     return quiz;
 }
 
+// 두 텍스트 간 부분 포함 관계 및 Bigram 유사도(Jaccard Index) 검사
+function isSimilarText(str1, str2, threshold = 0.35) {
+    if (!str1 || !str2) return false;
+    const s1 = str1.trim();
+    const s2 = str2.trim();
+
+    // 1. 단순 부분 문자열 포함 여부 (5자 이상 기준)
+    if (s1.length >= 5 && s2.length >= 5) {
+        if (s1.includes(s2) || s2.includes(s1)) return true;
+    }
+
+    // 2. 음절 Bigram 유사도 측정
+    const getBigrams = (text) => {
+        const cleaned = text.replace(/\s+/g, '').toLowerCase();
+        const bigrams = new Set();
+        for (let i = 0; i < cleaned.length - 1; i++) {
+            bigrams.add(cleaned.slice(i, i + 2));
+        }
+        return bigrams;
+    };
+
+    const b1 = getBigrams(s1);
+    const b2 = getBigrams(s2);
+
+    if (b1.size === 0 || b2.size === 0) return false;
+
+    let intersection = 0;
+    for (const bg of b1) {
+        if (b2.has(bg)) intersection++;
+    }
+
+    const union = b1.size + b2.size - intersection;
+    return (intersection / union) >= threshold;
+}
+
+// 해당 문항에 이미 적용했던 수정과 유사한 근본 오류인지 검증
+function isDuplicateError(history, targetSnippet, suggestedFix, reason) {
+    if (!history || history.length === 0) return false;
+
+    return history.some(prev => {
+        const targetMatch = targetSnippet && prev.targetSnippet && isSimilarText(targetSnippet, prev.targetSnippet);
+        const fixMatch = suggestedFix && prev.suggestedFix && isSimilarText(suggestedFix, prev.suggestedFix);
+        const reasonMatch = reason && prev.reason && isSimilarText(reason, prev.reason);
+
+        return targetMatch || fixMatch || reasonMatch;
+    });
+}
 
 /**
  * DB 조회 없이 AI 응답 객체 내부에서 정규식으로 실제 존재하는 조항 번호를 검색하여,
@@ -1197,20 +1244,14 @@ async function fetchNewQuizData() {
         `[API] AI 2차 문항별 병렬 크로스 팩트체크 수행 중...`
     );
 
+    const quizFixHistory = new Map();
+
     const MAX_VALIDATION_ROUNDS = 3;
     let validationPassed = false;
 
-    for (
-        let round = 1;
-        round <= MAX_VALIDATION_ROUNDS;
-        round++
-    ) {
-        const validation =
-            await validateQuizAccuracy(successfulQuizzes);
+    for (let round = 1; round <= MAX_VALIDATION_ROUNDS; round++) {
+        const validation = await validateQuizAccuracy(successfulQuizzes);
 
-        // --------------------------------------------------------
-        // 검증 성공
-        // --------------------------------------------------------
         if (validation.valid) {
             validationPassed = true;
             break;
@@ -1247,78 +1288,50 @@ async function fetchNewQuizData() {
                     )
                 : [];
 
-        // ========================================================
-        // 8. AI suggestedFix 자동수정
-        //
-        // 핵심:
-        // autoFixed를 forEach 내부에 선언하지 않는다.
-        // ========================================================
         let autoFixed = false;
 
-        if (
-            validation.suggestedFix &&
-            validation.targetSnippet
-        ) {
-            const target =
-                validation.targetSnippet;
-
-            const fix =
-                validation.suggestedFix;
+        if (validation.suggestedFix && validation.targetSnippet) {
+            const target = validation.targetSnippet;
+            const fix = validation.suggestedFix;
+            const reason = validation.reason || "";
 
             for (const idx of invalidIndices) {
-                const quiz =
-                    successfulQuizzes[idx];
+                const quiz = successfulQuizzes[idx];
+                if (!quiz) continue;
 
-                if (!quiz) {
-                    continue;
+                // 이미 해당 문항에 동일/유사한 근본 오류가 수정된 적이 있는지 확인
+                const history = quizFixHistory.get(idx) || [];
+                if (isDuplicateError(history, target, fix, reason)) {
+                    console.warn(
+                        `[AUTO-FIX SKIPPED] ⚠️ [${idx + 1}번 문항] ` +
+                        `이미 처리된 동일/유사 오류가 다시 감지되어 중복 자동수정을 건너뜁니다.`
+                    );
+                    continue; // 동일 오류 반복 수정 방지
                 }
 
                 let itemFixed = false;
 
-                // explanation
-                if (
-                    quiz.explanation &&
-                    quiz.explanation.includes(target)
-                ) {
-                    quiz.explanation =
-                        quiz.explanation.replaceAll(
-                            target,
-                            fix
-                        );
-
+                if (quiz.explanation && quiz.explanation.includes(target)) {
+                    quiz.explanation = quiz.explanation.replaceAll(target, fix);
                     itemFixed = true;
                 }
 
-                // question
-                if (
-                    quiz.question &&
-                    quiz.question.includes(target)
-                ) {
-                    quiz.question =
-                        quiz.question.replaceAll(
-                            target,
-                            fix
-                        );
-
+                if (quiz.question && quiz.question.includes(target)) {
+                    quiz.question = quiz.question.replaceAll(target, fix);
                     itemFixed = true;
                 }
 
-                // correctAnswerText
-                if (
-                    quiz.correctAnswerText &&
-                    quiz.correctAnswerText.includes(target)
-                ) {
-                    quiz.correctAnswerText =
-                        quiz.correctAnswerText.replaceAll(
-                            target,
-                            fix
-                        );
-
+                if (quiz.correctAnswerText && quiz.correctAnswerText.includes(target)) {
+                    quiz.correctAnswerText = quiz.correctAnswerText.replaceAll(target, fix);
                     itemFixed = true;
                 }
 
                 if (itemFixed) {
                     autoFixed = true;
+
+                    // 수정 성공 시 해당 문항의 이력에 기록
+                    history.push({ targetSnippet: target, suggestedFix: fix, reason });
+                    quizFixHistory.set(idx, history);
 
                     console.log(
                         `[AUTO-FIX] 🔧 ` +
@@ -1329,6 +1342,7 @@ async function fetchNewQuizData() {
                 }
             }
 
+            
             // ----------------------------------------------------
             // 자동수정이 실제로 발생했다면
             // 수정 후 기본 검증을 다시 수행한다.
