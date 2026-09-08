@@ -5,9 +5,9 @@ const path = require('path');
 const seedrandom = require('seedrandom');
 const crypto = require('crypto');
 const https = require('https');
-import { HttpsProxyAgent } from 'https-proxy-agent';
+//import { HttpsProxyAgent } from 'https-proxy-agent';
 
-const agent = new HttpsProxyAgent('http://168.63.76.32:3128');
+//const agent = new HttpsProxyAgent('http://168.63.76.32:3128');
 const cheerio = require('cheerio');
 
 const { createQuizPayload } = require('./prdPrompt');
@@ -468,7 +468,7 @@ let text2 = '';
 
 try {
     const res2 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, 
-       { headers, timeout: 6000, httpsAgent: proxyAgent, httpAgent: proxyAgent });
+       { headers, timeout: 6000}); //httpsAgent: proxyAgent, httpAgent: proxyAgent 
     text2 = parseSnippets(res2.data);
 } catch (e) {
     console.warn(`⚠️ [2단계 추적 실패] ㅅㅂ 검색 요청 오류로 기존 조항 유지`);
