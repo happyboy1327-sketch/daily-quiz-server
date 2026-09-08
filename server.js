@@ -375,12 +375,14 @@ async function harnessSyncArticleNumber(quiz) {
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     try {
+        const lawSuffix = '(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시)';
         // 💡 1. 최초 등장하는 법률명을 앵커(anchorLaw)로 고정
-        const initialLawMatch = quiz.explanation.match(/([가-힣]{1,10}(?:헌법|법률|법|규칙|조례|령))/);
+        const initialLawRegex = new RegExp(`(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)((?:[가-힣]{1,10}\\s+)*[가-힣]{1,10}${lawSuffix})`);
+        const initialLawMatch = quiz.explanation.match(initialLawRegex);
         let anchorLaw = initialLawMatch ? initialLawMatch[1].trim() : (quiz.domain || '');
 
         // 💡 2. 정규식: 법률명(선택) + 제X조 + 제Y항 (접두어 노이즈 차단)
-        const articleRegex = /(?:([가-힣]{1,10}(?:헌법|법률|법|규칙|조례|령))\s*)?제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?|제\s*(\d+)\s*항/g;
+        const articleRegex = new RegExp(`(?:(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)((?:[가-힣]{1,10}\\s+)*[가-힣]{1,10}${lawSuffix})\\s*)?제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?|제\\s*(\\d+)\\s*항`, 'g');
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) {
             console.log("ℹ️ [조항 없음] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
