@@ -375,7 +375,7 @@ async function harnessSyncArticleNumber(quiz) {
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     try {
-        const articleRegex = /(?:([가-힣]{2,10})\s*)?제\s*(\d+)\s*(조|항)/g;
+        const articleRegex = /(?:([가-힣]{2,10})\s*)?제\s*(\d+)\s*(조|항)(?:\s*제\s*(\d+)\s*항)?/g;
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) {
             console.log("ℹ️ [조항 없음] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
@@ -436,7 +436,8 @@ async function harnessSyncArticleNumber(quiz) {
 
         // 순차 실행 및 딜레이 적용
         for (const target of targets) {
-            const targetName = `제${target.num}${target.unit}`;
+            const targetName = unit === '조' ? `제${num}조` : `제${num}항`;
+            const key = `${lawName}_${targetName}`;
             const fullLawMatch = quiz.explanation.match(/([가-힣]{2,10}\s*(?:헌법|법률|법))/);
             const lawContext = target.lawName || (fullLawMatch ? fullLawMatch[1] : quiz.domain) || '';
             const topKeywords = target.keywords.slice(0, 5);
