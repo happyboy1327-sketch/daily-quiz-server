@@ -446,6 +446,28 @@ async function validateSingleQuiz(quiz) {
 5. 문제 중복 확인
    - 문장 표현이 달라도 정답 단어가 동일하거나 묻고자 하는 핵심 팩트와 보기 구성이 같은 경우 중복(false)으로 처리한다.
 
+ ### targetSnippet / suggestedFix 필수 규칙
+- targetSnippet은 실제 퀴즈 텍스트에 존재하는 오류 부분을 정확히 그대로 복사한다.
+- suggestedFix는 targetSnippet을 그대로 교체할 수 있는 최종 수정 문자열만 반환한다.
+- suggestedFix에는 절대로 설명, 이유, 지시문, 조항 설명, "정정해야 합니다", "수정하세요" 등의 문장을 포함하지 않는다.
+- targetSnippet과 suggestedFix는 동일한 문법적 위치와 역할을 가져야 하며, 조사와 문장 구조까지 100% 일치해야 한다.
+- targetText.replaceAll(targetSnippet, suggestedFix)을 수행했을 때 문장이 문법적으로 자연스럽고 의미가 정확해야 한다.
+- 수정 방법에 대한 설명이 필요한 경우 reason에 작성하고, suggestedFix에는 절대 작성하지 않는다.
+
+예시:
+
+잘못된 출력:
+{
+  "targetSnippet": "저작권법 제39조",
+  "suggestedFix": "저작권법 제39조의2로 정정해야 합니다. 제39조는 공동저작물..."
+}
+
+올바른 출력:
+{
+  "targetSnippet": "저작권법 제39조",
+  "suggestedFix": "저작권법 제39조의2"
+}
+
 ### OUTPUT FORMAT
 Return ONLY a valid, raw JSON object without markdown code blocks, code fences, or any preamble/postscript text.
 
