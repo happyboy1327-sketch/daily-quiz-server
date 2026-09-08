@@ -366,13 +366,18 @@ function isDuplicateError(history, targetSnippet, suggestedFix, reason) {
  * 퀴즈 전체(question, choices, explanation)의 조항 번호를 해당 검색값으로 통일
  */
 async function harnessSyncArticleNumber(quiz) {
-    if (!quiz || typeof quiz.explanation !== 'string') return quiz;
-
+    console.log("🔍 [시작] 조항 번호 동기화 로직 실행");
+    if (!quiz || typeof quiz.explanation !== 'string') {
+        console.log("⚠️ [중단] quiz 객체가 없거나 explanation이 문자열이 아닙니다.");
+        return quiz;
+     }
     try {
         const articleRegex = /(?:([가-힣]{2,10})\s*)?제\s*(\d+)\s*(조|항)/g;
         const matches = [...quiz.explanation.matchAll(articleRegex)];
-        if (matches.length === 0) return quiz;
-
+        if (matches.length === 0) {
+            console.log("ℹ️ [종료] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
+            return quiz;
+        }
         const targets = [];
         const seen = new Set();
 
@@ -413,7 +418,7 @@ async function harnessSyncArticleNumber(quiz) {
                 }
             }
         }
-
+        console.log(`📌 [추출 완료] 검증 대상 조항 목록 (${targets.length}개):`, targets.map(t => `제${t.num}${t.unit}`));
         if (targets.length === 0) return quiz;
 
         const headers = {
@@ -473,14 +478,16 @@ async function harnessSyncArticleNumber(quiz) {
                         };
                     }
                 }
-            } catch {
+                console.log(`❌ [2단계 실패] 대체할 조항을 찾지 못했습니다.`);
+            } catch (err) {
+                console.error(`💥 [HTTP/파싱 에러] ${targetName} 처리 중 오류:`, err.message);
                 return null;
             }
             return null;
         });
 
         const results = await Promise.all(tasks);
-
+        let replacedCount = 0;
         for (const res of results) {
             if (!res) continue;
 
@@ -495,8 +502,12 @@ async function harnessSyncArticleNumber(quiz) {
             if (typeof quiz.correctAnswerText === 'string') {
                 quiz.correctAnswerText = quiz.correctAnswerText.replace(oldArticleRegex, newArticle);
             }
+            replacedCount++;
         }
+        console.log(`🎉 [완료] 총 ${replacedCount}개 조항 치환 반영 완료`);
+        
     } catch (err) {
+        console.error("🔥 [최상위 에러] 치명적 오류 발생, serverErrorFlag 설정", err);
         quiz.serverErrorFlag = true;
     }
 
