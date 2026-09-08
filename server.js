@@ -5,6 +5,7 @@ const path = require('path');
 const seedrandom = require('seedrandom');
 const crypto = require('crypto');
 const https = require('https');
+const SERPAPI_KEY = process.env.SERPAPI_KEY;
 //import { HttpsProxyAgent } from 'https-proxy-agent';
 
 //const agent = new HttpsProxyAgent('http://168.63.76.32:3128');
@@ -532,8 +533,13 @@ async function harnessSyncArticleNumber(quiz) {
             const verifyQuery = `${lawContext} ${target.targetName}`.trim();
             let text1 = '';
             try {
-                const res1 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(verifyQuery)}`, { headers, timeout: 4000 });
-                text1 = parseSnippets(res1.data);
+                const res1 = await axios.get('https://serpapi.com/search.json', {
+                  params: { q: verifyQuery, hl: 'ko', gl: 'kr', api_key: SERPAPI_KEY },
+                  timeout: 8000
+                 });
+                const text1 = (res1.data.organic_results || [])
+                     .map(r => `${r.title || ''} ${r.snippet || ''}`)
+                     .join(' ');
             } catch (e) {
                 console.warn(`⚠️ [1단계 요청 실패] ${lawContext} ${target.targetName} 검색 오류 → 2단계로 진행`);
             }
@@ -553,8 +559,13 @@ async function harnessSyncArticleNumber(quiz) {
             const searchQuery = topKeywords.join(' ');
             let text2 = '';
             try {
-                const res2 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, { headers, timeout: 6000 });
-                text2 = parseSnippets(res2.data);
+                const res2 = await axios.get('https://serpapi.com/search.json', {
+                  params: { q: searchQuery, hl: 'ko', gl: 'kr', api_key: SERPAPI_KEY },
+                  timeout: 8000
+                  });
+                const text2 = (res2.data.organic_results || [])
+                     .map(r => `${r.title || ''} ${r.snippet || ''}`)
+                     .join(' ');
             } catch (e) {
                 console.warn(`⚠️ [2단계 추적 실패] 검색 요청 오류로 기존 조항 유지`);
                 continue;
