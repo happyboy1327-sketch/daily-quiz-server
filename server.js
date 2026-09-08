@@ -477,6 +477,8 @@ async function harnessSyncArticleNumber(quiz) {
             return (snippetText || $('body').text()).replace(/\s+/g, ' ').trim();
         };
 
+        let replacedCount = 0;
+        
         for (const target of targets) {
             const lawContext = target.lawName;
             const topKeywords = target.keywords.slice(0, 3);
