@@ -59,6 +59,11 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ If uncertain about any distractor's exact background, DO NOT attempt to explain or mention that distractor.
 □ Avoid ambiguous relative descriptors (e.g., "short", "long") in explanations; use exact names, figures, and definitive facts instead.
 □ Do NOT include long statutory text dumps or detailed legal sub-clauses in the explanation. (Main article citations like "헌법 제70조" are permitted ONLY as sources).
+□ 오류 BEST 4(**절대로 실행하지 마시오.**):
+- ***헌법 제41조 제2항은 국회의원의 임기를 4년으로 정하는 조항이 절대(NEVER) 아닙니다. 헌법 제41조 제2항은 "국회의원의 수는 법률로 정하되, 200인 이상으로 한다"고 규정하고 있습니다. 국회의원 임기는 헌법 제42조에서 규정하고 있습니다.***
+- ***대통령 임기는 헌법 제70조에 따라 5년이며 중임할 수 없다고 나와있습니다.***
+- ***한글 맞춤법 분야에서 정확한 조항 안에 교묘하게 다른 조항 내용을 섞는 행위***
+- **jina.ai에서 검색된 법령 조항이라는 이유만으로 임의로 불신하거나 다른 출처의 내용으로 바꿔 쓰는 행위**
 □ ***관련없는 조항 번호는 절대로 해설에 적지 마시오.***
 □ 조항이 2개 이상 적용되는 문제일 경우, 출처에 조항을 2개 이상 병기하시오. [근거: 헌법 제86조·제87조]
 
