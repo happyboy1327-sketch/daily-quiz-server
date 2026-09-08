@@ -469,14 +469,14 @@ try {
        { headers, timeout: 6000, httpsAgent: proxyAgent, httpAgent: proxyAgent });
     text2 = parseSnippets(res2.data);
 } catch (e) {
-    console.warn(`⚠️ [2단계 추적 실패] 검색 요청 오류로 기존 조항 유지`);
+    console.warn(`⚠️ [2단계 추적 실패] ㅅㅂ 검색 요청 오류로 기존 조항 유지`);
     continue;
 }
 
 // 💡 1. 2단계 검색 결과에 원래 조항 번호가 존재하면, 1단계 오탐으로 판단하고 기존 조항 유지
 const originalArticleRegex = new RegExp(`제\\s*${target.num}\\s*${target.unit}`);
 if (originalArticleRegex.test(text2)) {
-    console.log(`🛡️ [기존 유지] 2단계 검색에서 원래 조항(${targetName})이 확인되어 치환을 취소합니다.`);
+    console.log(`🛡️ [기존 유지] 2단계 ㅅㅂ검색에서 원래 조항(${targetName})이 확인되어 치환을 취소합니다.`);
     continue;
 }
 
@@ -520,6 +520,7 @@ if (candidates.length > 0) {
     }  
         console.log(`🎉 [완료] 총 ${replacedCount}개 조항 치환 반영 완료`);
 }
+        }
     } catch (err) {
         console.error("🔥 [최상위 에러] API 요청 실패, serverErrorFlag 설정", err.message);
         quiz.serverErrorFlag = true;
