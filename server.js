@@ -529,7 +529,7 @@ async function validateQuizAccuracy(quizzes) {
     return {
     valid: false,
     invalidIndices,
-    reason: ...,
+    reason: "",
     errorType: results[invalidIndices[0]].errorType,
     targetSnippet: results[invalidIndices[0]].targetSnippet,
     suggestedFix: results[invalidIndices[0]].suggestedFix
