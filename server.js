@@ -364,10 +364,7 @@ function isDuplicateError(history, targetSnippet, suggestedFix, reason) {
     });
 }
 
-/**
- * DB 조회 없이 AI 응답 객체 내부에서 정규식으로 실제 존재하는 조항 번호를 검색하여,
- * 퀴즈 전체(question, choices, explanation)의 조항 번호를 해당 검색값으로 통일
- */
+
 async function harnessSyncArticleNumber(quiz) {
     console.log("🔍 [시작] 조항 번호 동기화 로직 실행");
     if (!quiz || typeof quiz.explanation !== 'string') {
@@ -378,8 +375,12 @@ async function harnessSyncArticleNumber(quiz) {
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     try {
-        // 법률명, 조, 항을 유연하게 추출하는 통합 정규식 (조+항 결합 형태 및 단독 항 추적)
-        const articleRegex = /(?:([가-힣]{1,10}(?:맞춤법|법|헌법|규칙|조례|령))\s*)?제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?|제\s*(\d+)\s*항/g;
+        // 💡 1. 최초 등장하는 법률명을 앵커(anchorLaw)로 고정
+        const initialLawMatch = quiz.explanation.match(/([가-힣]{1,10}(?:헌법|법률|법|규칙|조례|령))/);
+        let anchorLaw = initialLawMatch ? initialLawMatch[1].trim() : (quiz.domain || '');
+
+        // 💡 2. 정규식: 법률명(선택) + 제X조 + 제Y항 (접두어 노이즈 차단)
+        const articleRegex = /(?:([가-힣]{1,10}(?:헌법|법률|법|규칙|조례|령))\s*)?제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?|제\s*(\d+)\s*항/g;
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) {
             console.log("ℹ️ [조항 없음] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
@@ -391,32 +392,28 @@ async function harnessSyncArticleNumber(quiz) {
         const stopWords = new Set([
             '따라', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여',
             '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로',
-            '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당'
+            '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당', '정답은', '선택지인'
         ]);
 
-        // 이전 조항 상태 상속용 변수 (법률명, 조 번호)
-        let currentLaw = '';
         let currentArticle = '';
 
-        const fullLawMatch = quiz.explanation.match(/([가-힣]{2,10}\s*(?:헌법|법률|법|맞춤법))/);
-        const defaultLaw = fullLawMatch ? fullLawMatch[1].trim() : (quiz.domain || '');
-
         for (const match of matches) {
-            const lawName = match[1] || '';
+            const matchedLaw = match[1] ? match[1].trim() : '';
+            if (matchedLaw) {
+                anchorLaw = matchedLaw; // 새로운 명시적 법률명이 나오면 앵커 업데이트
+            }
+
             const articleNum = match[2] || '';
             const paragraphNum = match[3] || match[4] || '';
 
-            // 💡 맥락 유지: 새로운 법 이름이나 조 번호가 나오면 상속 상태 업데이트
-            if (lawName) currentLaw = lawName;
             if (articleNum) currentArticle = articleNum;
 
-            const effectiveLaw = currentLaw || defaultLaw;
+            const effectiveLaw = anchorLaw;
             const effectiveArticle = currentArticle;
 
             let targetName = '';
             let searchTargetKey = '';
 
-            // 법률명 + 제X조 + 제Y항 완성 조합
             if (effectiveArticle && paragraphNum) {
                 targetName = `제${effectiveArticle}조 제${paragraphNum}항`;
                 searchTargetKey = `${effectiveLaw}_${effectiveArticle}_조_${paragraphNum}_항`;
@@ -454,7 +451,9 @@ async function harnessSyncArticleNumber(quiz) {
             }
         }
 
-        console.log(`📌 [추출 완료] 검증 대상 조항 목록 (${targets.length}개):`, targets.map(t => `${t.lawName ? t.lawName + ' ' : ''}${t.targetName}`));
+        // 💡 📌 요구사항 출력 형식 반영: ['헌법 제11조 제1항', '헌법 제10조', ...]
+        const formattedList = targets.map(t => `${t.lawName} ${t.targetName}`.trim());
+        console.log(`📌 [추출 완료] 검증 대상 조항 목록 (${targets.length}개):`, formattedList);
         if (targets.length === 0) return quiz;
 
         const headers = {
@@ -475,13 +474,12 @@ async function harnessSyncArticleNumber(quiz) {
         let replacedCount = 0;
 
         for (const target of targets) {
-            const lawContext = target.lawName || defaultLaw;
+            const lawContext = target.lawName;
             const topKeywords = target.keywords.slice(0, 5);
             if (topKeywords.length === 0) continue;
 
             await sleep(500);
 
-            // 💡 1단계 검색 쿼리: "법 이름 + 제X조 제Y항" 전체 조합으로 검증
             const verifyQuery = `${lawContext} "${target.targetName}" ${topKeywords.join(' ')}`;
             const res1 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(verifyQuery)}`, { headers, timeout: 4000 });
             const text1 = parseSnippets(res1.data);
@@ -490,11 +488,11 @@ async function harnessSyncArticleNumber(quiz) {
             const matchRatio = matchCount / topKeywords.length;
 
             if (matchRatio >= 0.5) {
-                console.log(`✅ [1단계 통과] ${target.targetName}는 올바른 조항입니다.`);
+                console.log(`✅ [1단계 통과] ${lawContext} ${target.targetName}는 올바른 조항입니다.`);
                 continue;
             }
 
-            console.warn(`⚠️ [1단계 불일치] ${target.targetName} 검증 실패. 2단계 올바른 조항 추적 시작...`);
+            console.warn(`⚠️ [1단계 불일치] ${lawContext} ${target.targetName} 검증 실패. 2단계 올바른 조항 추적 시작...`);
             await sleep(500);
 
             const searchQuery = `${lawContext} ${topKeywords.slice(0, 3).join(' ')} ${target.paragraphNum ? '항' : '조'}`;
