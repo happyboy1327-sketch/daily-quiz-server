@@ -375,7 +375,7 @@ async function harnessSyncArticleNumber(quiz) {
         const articleRegex = /(?:([가-힣]{2,10})\s*)?제\s*(\d+)\s*(조|항)/g;
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) {
-            console.log("ℹ️ [종료] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
+            console.log("ℹ️ [조항 없음] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
             return quiz;
         }
         const targets = [];
@@ -451,8 +451,12 @@ async function harnessSyncArticleNumber(quiz) {
                 const matchCount = topKeywords.filter(kw => text1.includes(kw)).length;
                 const matchRatio = matchCount / topKeywords.length;
 
-                if (matchRatio >= 0.5) return null;
-
+                if (matchRatio >= 0.5) {
+                    console.log(`✅ [1단계 통과] ${targetName}는 올바른 조항입니다.`);
+                    return null;
+                }
+                
+                console.warn(`⚠️ [1단계 불일치] ${targetName} 오류 가능성 높음. 올바른 조항 추적 시작...`);
                 const searchQuery = `${lawContext} ${topKeywords.slice(0, 3).join(' ')} 제${target.unit}`;
                 const res2 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, { headers, timeout: 4000 });
                 const text2 = parseSnippets(res2.data);
@@ -472,6 +476,7 @@ async function harnessSyncArticleNumber(quiz) {
                     const bestMatch = Object.keys(frequencyMap).sort((a, b) => frequencyMap[b] - frequencyMap[a])[0];
 
                     if (bestMatch) {
+                        console.log(`🎯 [치환 확정] ${targetName} ➔ 제${bestMatch}${target.unit}`);
                         return {
                             oldArticleRegex: new RegExp(`제\\s*${target.num}\\s*${target.unit}`, 'g'),
                             newArticle: `제${bestMatch}${target.unit}`
