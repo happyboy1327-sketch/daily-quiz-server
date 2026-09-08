@@ -549,7 +549,9 @@ async function validateQuizAccuracy(quizzes) {
             .join(" / "),
         errorType: results[invalidIndices[0]].errorType || "NONE",
         targetSnippet: results[invalidIndices[0]].targetSnippet || null,
-        suggestedFix: results[invalidIndices[0]].suggestedFix || null
+        suggestedFix: results[invalidIndices[0]].suggestedFix || null, 
+
+        results
     };
 }
 
