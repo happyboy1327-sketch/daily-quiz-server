@@ -379,7 +379,7 @@ async function harnessSyncArticleNumber(quiz) {
 
     try {
         // 법률명, 조, 항을 유연하게 추출하는 통합 정규식 (조+항 결합 형태 및 단독 항 추적)
-        const articleRegex = /(?:([가-힣]{2,10})\s*)?제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?|제\s*(\d+)\s*항/g;
+        const articleRegex = /(?:([가-힣]{1,10}(?:맞춤법|법|헌법|규칙|조례|령))\s*)?제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?|제\s*(\d+)\s*항/g;
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) {
             console.log("ℹ️ [조항 없음] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
@@ -398,7 +398,7 @@ async function harnessSyncArticleNumber(quiz) {
         let currentLaw = '';
         let currentArticle = '';
 
-        const fullLawMatch = quiz.explanation.match(/([가-힣]{2,10}\s*(?:헌법|법률|법))/);
+        const fullLawMatch = quiz.explanation.match(/([가-힣]{2,10}\s*(?:헌법|법률|법|맞춤법))/);
         const defaultLaw = fullLawMatch ? fullLawMatch[1].trim() : (quiz.domain || '');
 
         for (const match of matches) {
