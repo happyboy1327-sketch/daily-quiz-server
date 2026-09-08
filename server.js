@@ -439,6 +439,7 @@ async function harnessSyncArticleNumber(quiz) {
         };
 
         const tasks = targets.map(async (target) => {
+            const targetName = `제${target.num}${target.unit}`;
             const lawContext = target.lawName || quiz.domain || '';
             const topKeywords = target.keywords.slice(0, 5);
             if (topKeywords.length === 0) return null;
