@@ -517,9 +517,6 @@ async function validateQuizAccuracy(quizzes) {
     }
 
     if (invalidIndices.length > 0) {
-    const firstInvalidIndex = invalidIndices[0];
-    const firstResult = results[firstInvalidIndex];
-
     return {
         valid: false,
         invalidIndices,
@@ -528,9 +525,9 @@ async function validateQuizAccuracy(quizzes) {
                 `[${i + 1}번 문항 (${quizzes[i].topic})] ${results[i].reason}`
             )
             .join(" / "),
-        errorType: firstResult.errorType || "NONE",
-        targetSnippet: firstResult.targetSnippet || null,
-        suggestedFix: firstResult.suggestedFix || null
+        errorType: results[invalidIndices[0]].errorType || "NONE",
+        targetSnippet: results[invalidIndices[0]].targetSnippet || null,
+        suggestedFix: results[invalidIndices[0]].suggestedFix || null
     };
 }
 
