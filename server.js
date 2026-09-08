@@ -366,53 +366,51 @@ function isDuplicateError(history, targetSnippet, suggestedFix, reason) {
 
 
 async function harnessSyncArticleNumber(quiz) {
-    console.log("🔍 [시작] 조항 번호 동기화 로직 실행");
-    if (!quiz || typeof quiz.explanation !== 'string') {
-        console.log("⚠️ [중단] quiz 객체가 없거나 explanation이 문자열이 아닙니다.");
-        return quiz;
-    }
+    if (!quiz || typeof quiz.explanation !== 'string') return quiz;
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+    // 💡 1. 2글자 단어 훼손 방지 조사 정제 함수
+    const cleanJosa = (word) => {
+        if (!word) return '';
+        let cleaned = word.replace(/(에서는|으로부터|에서|으로|하므로|입니다|한다|얻어|하여)+$/g, '');
+        if (cleaned.length >= 3) {
+            cleaned = cleaned.replace(/(은|는|이|가|을|를|의|에|로|와|과|도|만)+$/g, '');
+        }
+        return cleaned;
+    };
+
     try {
-        const lawSuffix = '(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시)';
-        // 💡 1. 최초 등장하는 법률명을 앵커(anchorLaw)로 고정
+        const lawSuffix = '(?:헌법|법률|한글 맞춤법|법|규칙|조례|령|규정|세칙|고시)';
         const initialLawRegex = new RegExp(`(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)((?:[가-힣]{1,10}\\s+)*[가-힣]{1,10}${lawSuffix})`);
         const initialLawMatch = quiz.explanation.match(initialLawRegex);
-        let anchorLaw = initialLawMatch ? initialLawMatch[1].trim() : (quiz.domain || '');
+        let anchorLaw = initialLawMatch ? initialLawMatch[1].replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '').trim() : (quiz.domain || '');
 
-        // 💡 2. 정규식: 법률명(선택) + 제X조 + 제Y항 (접두어 노이즈 차단)
         const articleRegex = new RegExp(`(?:(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)((?:[가-힣]{1,10}\\s+)*[가-힣]{1,10}${lawSuffix})\\s*)?제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?|제\\s*(\\d+)\\s*항`, 'g');
         const matches = [...quiz.explanation.matchAll(articleRegex)];
-        if (matches.length === 0) {
-            console.log("ℹ️ [조항 없음] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
-            return quiz;
-        }
+        if (matches.length === 0) return quiz;
 
         const targets = [];
         const seen = new Set();
         const stopWords = new Set([
-            '따라', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여', '등등', '등은',
-            '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로', '각각', 
-            '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당', '정답은', '선택지인'
+            '따라', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여',
+            '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로',
+            '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당', '정답은', '선택지인',
+            '출처', '근거', '국가법령정보센터'
         ]);
 
         let currentArticle = '';
 
         for (const match of matches) {
-            const matchedLaw = match[1] ? match[1].trim() : '';
-            if (matchedLaw) {
-                anchorLaw = matchedLaw; // 새로운 명시적 법률명이 나오면 앵커 업데이트
-            }
+            let rawLaw = match[1] ? match[1].replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '').trim() : '';
+            if (rawLaw) anchorLaw = rawLaw;
 
             const articleNum = match[2] || '';
             const paragraphNum = match[3] || match[4] || '';
-
             if (articleNum) currentArticle = articleNum;
 
             const effectiveLaw = anchorLaw;
             const effectiveArticle = currentArticle;
-
             let targetName = '';
             let searchTargetKey = '';
 
@@ -436,9 +434,12 @@ async function harnessSyncArticleNumber(quiz) {
                 const startPos = Math.max(0, matchIndex - 60);
                 const endPos = Math.min(fullText.length, matchIndex + match[0].length + 100);
                 const rawSnippet = fullText.slice(startPos, endPos).replace(match[0], '');
+                
+                // 💡 2. 안전한 키워드 추출
                 const keywords = rawSnippet
                     .replace(/[^가-힣0-9\s]/g, ' ')
                     .split(/\s+/)
+                    .map(w => cleanJosa(w))
                     .filter(w => w.length >= 2 && !stopWords.has(w));
 
                 if (keywords.length > 0) {
@@ -447,15 +448,12 @@ async function harnessSyncArticleNumber(quiz) {
                         articleNum: effectiveArticle,
                         paragraphNum: paragraphNum,
                         targetName: targetName,
-                        keywords: keywords
+                        keywords: [...new Set(keywords)]
                     });
                 }
             }
         }
 
-        // 💡 📌 요구사항 출력 형식 반영: ['헌법 제11조 제1항', '헌법 제10조', ...]
-        const formattedList = targets.map(t => `${t.lawName} ${t.targetName}`.trim());
-        console.log(`📌 [추출 완료] 검증 대상 조항 목록 (${targets.length}개):`, formattedList);
         if (targets.length === 0) return quiz;
 
         const headers = {
@@ -467,52 +465,33 @@ async function harnessSyncArticleNumber(quiz) {
             const $ = cheerio.load(html);
             $('script, style, header, footer, nav, noscript').remove();
             let snippetText = '';
-            $('.g, div[data-snc], #search').each((_, el) => {
-                snippetText += $(el).text() + ' ';
-            });
+            $('.g, div[data-snc], #search').each((_, el) => { snippetText += $(el).text() + ' '; });
             return (snippetText || $('body').text()).replace(/\s+/g, ' ').trim();
         };
 
-        let replacedCount = 0;
-
         for (const target of targets) {
             const lawContext = target.lawName;
-            const topKeywords = target.keywords.slice(0, 5);
+            const topKeywords = target.keywords.slice(0, 3);
             if (topKeywords.length === 0) continue;
 
             await sleep(500);
 
-            const verifyQuery = `${lawContext} "${target.targetName}" ${topKeywords.join(' ')}`;
+            // 1단계 검증
+            const verifyQuery = `${lawContext} ${target.targetName} ${topKeywords.join(' ')}`;
             const res1 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(verifyQuery)}`, { headers, timeout: 4000 });
             const text1 = parseSnippets(res1.data);
 
             const matchCount = topKeywords.filter(kw => text1.includes(kw)).length;
-            const matchRatio = matchCount / topKeywords.length;
+            if (matchCount / topKeywords.length >= 0.5) continue; // 통과 시 다음 조항으로
 
-            if (matchRatio >= 0.5) {
-                console.log(`✅ [1단계 통과] ${lawContext} ${target.targetName}는 올바른 조항입니다.`);
-                continue;
-            }
-
-            console.warn(`⚠️ [1단계 불일치] ${lawContext} ${target.targetName} 검증 실패. 2단계 올바른 조항 추적 시작...`);
+            // 2단계 자동 추적 및 치환
             await sleep(500);
-
-            const searchQuery = `${lawContext} ${topKeywords.slice(0, 3).join(' ')} ${target.paragraphNum ? '항' : '조'}`;
-            let text2 = '';
-
-            try {
-                const res2 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, { headers, timeout: 6000 });
-                text2 = parseSnippets(res2.data);
-            } catch (e) {
-                console.warn(`⚠️ [2단계 추적 실패] 검색 요청 오류로 기존 조항 유지`);
-                continue;
-            }
+            const searchQuery = `${lawContext} ${topKeywords.join(' ')} ${target.paragraphNum ? '항' : '조'}`;
+            const res2 = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, { headers, timeout: 6000 });
+            const text2 = parseSnippets(res2.data);
 
             const originalArticleRegex = new RegExp(target.targetName.replace(/\s+/g, '\\s*'));
-            if (originalArticleRegex.test(text2)) {
-                console.log(`🛡️ [기존 유지] 2단계 검색에서 원래 조항(${target.targetName})이 확인되어 치환을 취소합니다.`);
-                continue;
-            }
+            if (originalArticleRegex.test(text2)) continue;
 
             const unitLabel = target.paragraphNum ? '항' : '조';
             const candidateRegex = target.paragraphNum && target.articleNum
@@ -520,10 +499,10 @@ async function harnessSyncArticleNumber(quiz) {
                 : new RegExp(`제\\s*(\\d+)\\s*${unitLabel}`, 'g');
 
             const candidates = [...text2.matchAll(candidateRegex)];
-
             if (candidates.length > 0) {
                 const frequencyMap = {};
                 const currentNum = target.paragraphNum || target.articleNum;
+
                 for (const cand of candidates) {
                     const candidateNum = cand[1];
                     if (candidateNum !== currentNum) {
@@ -531,44 +510,28 @@ async function harnessSyncArticleNumber(quiz) {
                     }
                 }
 
-                const sortedCandidates = Object.keys(frequencyMap)
+                const bestMatch = Object.keys(frequencyMap)
                     .filter(num => frequencyMap[num] >= 2)
-                    .sort((a, b) => frequencyMap[b] - frequencyMap[a]);
-
-                const bestMatch = sortedCandidates[0];
+                    .sort((a, b) => frequencyMap[b] - frequencyMap[a])[0];
 
                 if (bestMatch) {
-                    let oldArticleRegex;
-                    let newArticle = '';
+                    const oldArticleRegex = target.paragraphNum && target.articleNum
+                        ? new RegExp(`제\\s*${target.articleNum}\\s*조\\s*제\\s*${target.paragraphNum}\\s*항`, 'g')
+                        : new RegExp(`제\\s*${currentNum}\\s*${unitLabel}`, 'g');
+                    
+                    const newArticle = target.paragraphNum && target.articleNum
+                        ? `제${target.articleNum}조 제${bestMatch}항`
+                        : `제${bestMatch}${unitLabel}`;
 
-                    if (target.paragraphNum && target.articleNum) {
-                        console.log(`🎯 [치환 확정] ${target.targetName} ➔ 제${target.articleNum}조 제${bestMatch}항 (검색 빈도: ${frequencyMap[bestMatch]}회)`);
-                        oldArticleRegex = new RegExp(`제\\s*${target.articleNum}\\s*조\\s*제\\s*${target.paragraphNum}\\s*항`, 'g');
-                        newArticle = `제${target.articleNum}조 제${bestMatch}항`;
-                    } else {
-                        console.log(`🎯 [치환 확정] ${target.targetName} ➔ 제${bestMatch}${unitLabel} (검색 빈도: ${frequencyMap[bestMatch]}회)`);
-                        oldArticleRegex = new RegExp(`제\\s*${currentNum}\\s*${unitLabel}`, 'g');
-                        newArticle = `제${bestMatch}${unitLabel}`;
-                    }
-
-                    if (typeof quiz.explanation === 'string') {
-                        quiz.explanation = quiz.explanation.replace(oldArticleRegex, newArticle);
-                    }
-                    if (typeof quiz.question === 'string') {
-                        quiz.question = quiz.question.replace(oldArticleRegex, newArticle);
-                    }
-                    if (typeof quiz.correctAnswerText === 'string') {
-                        quiz.correctAnswerText = quiz.correctAnswerText.replace(oldArticleRegex, newArticle);
-                    }
-                    replacedCount++;
-                } else {
-                    console.log(`❌ [2단계 실패] 신뢰할 만한 대체 조항(2회 이상 출현)을 찾지 못해 기존 조항을 유지합니다.`);
+                    ['explanation', 'question', 'correctAnswerText'].forEach(key => {
+                        if (typeof quiz[key] === 'string') {
+                            quiz[key] = quiz[key].replace(oldArticleRegex, newArticle);
+                        }
+                    });
                 }
             }
         }
-        console.log(`🎉 [완료] 총 ${replacedCount}개 조항 치환 반영 완료`);
     } catch (e) {
-        console.error("🔥 [최상위 에러] API 요청 실패, serverErrorFlag 설정", e.message);
         quiz.serverErrorFlag = true;
     }
     return quiz;
