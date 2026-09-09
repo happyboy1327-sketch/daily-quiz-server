@@ -746,6 +746,7 @@ async function validateSingleQuiz(quiz) {
 
 3. 정답 및 오답지 역검증
    - 정답이 실제로 타당한지 검증합니다.
+   - 정답 가능성이 있는 선택지가 correctAnswerText 하나만 있는지 검증합니다.
    - 모든 오답지가 어떤 해석·조건에서도 정답이 될 수 없는지 개별 검증합니다.
    - 문제의 전제조건이 부족하여 복수정답 가능성이 조금이라도 있으면 valid=false 처리합니다.
 
@@ -753,7 +754,9 @@ async function validateSingleQuiz(quiz) {
    - 출제자의 의도와 관계없이 문제·보기·정답·해설·출처를 공격적으로 검토하여 반례와 허점을 찾습니다.
    - [논점 일탈(Goalpost Shifting) 검증] 해설(조항 포함)이 문제의 정확한 전제를 직접 증명하고 있는지 확인하십시오. 논점 일탈 주의: 문제에서 "X는 언제 시작되었는가?"를 묻는데 해설이 "X는 언제 감소했는가?"를 설명하는 등, 질문의 본질과 다른 내용을 증명하고 있다면 즉시 false 처리하십시오.
 
-5. 문제 중복 확인
+5. 실제로 올바른 문항(필수 검증 절차의 1.~4.를 모두 통과)인데 억지로 틀렸다고 검증하는 것을 금지한다. 
+
+6. 문제 중복 확인
    - 문장 표현이 달라도 정답 단어가 동일하거나 묻고자 하는 핵심 팩트와 보기 구성이 같은 경우 중복(false)으로 처리한다.
 
  ### targetSnippet / suggestedFix 필수 규칙
@@ -784,7 +787,7 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
 {
   "valid": boolean, // 문제, 정답, 해설, 인용 조항이 완벽히 일치하면 true, 하나라도 틀리면 false
   "reason": string, // 검증 결과 및 오류 원인에 대한 상세 설명
-  "errorType": string, // NONE | ARTICLE_MISMATCH | GRAMMAR_LOGIC_ERROR | MULTIPLE_ANSWERS | TYPO
+  "errorType": string, // NONE | ARTICLE_MISMATCH | GRAMMAR_LOGIC_ERROR | SOURCE_ERROR | PREMISE_MISMATCH | MULTIPLE_CORRECT_ANSWERS | TYPO
   "targetSnippet": string | null, // 해설 내에서 문법적/사실적 오류가 발생한 정확한 문장/단어 (오류 없을 시 null)
   "suggestedFix": string | null // 정정되어야 할 올바른 표현 또는 조항 번호 (오류 없을 시 null)
 }
