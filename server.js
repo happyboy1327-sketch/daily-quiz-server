@@ -1520,6 +1520,7 @@ async function fetchNewQuizData() {
                         `[AUTO-FIX SKIPPED] ⚠️ [${idx + 1}번 문항] ` +
                         `이미 처리된 동일/유사 오류가 다시 감지되어 중복 자동수정을 건너뜁니다.`
                     );
+                    autoFixed = true;
                     continue; // 동일 오류 반복 수정 방지
                 }
 
