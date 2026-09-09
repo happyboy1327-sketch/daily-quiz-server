@@ -446,15 +446,14 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
 ${topic}
 
 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.
-
+이미 출제된 목록과 동일하거나 유사한 문제는 절대 출제하지 말고, 다양한 세부 주제와 사실을 선택하십시오.
+동일한 개념이나 정답을 같은 topic에 넣어 반복하지 마십시오. 또한, systemPrompt와 FEW_SHOT_DATABASE에서 다뤄지지 않은 새로운 소재를 사용하십시오.
 이미 출제된 목록:
 ${formattedPreviousList || "- 없음"}
-
-이미 출제된 목록과 동일하거나 유사한 문제는 절대 출제하지 말고, 다양한 세부 주제와 사실을 선택하십시오.
-동일한 개념이나 정답을 같은 topic에 넣어 반복하지 마십시오.`
+`
 }
     ],
-    temperature: 0.01, 
+    temperature: 0.03, 
     presence_penalty: 0.1,
     frequency_penalty: 0.2,
     max_tokens: 1650
