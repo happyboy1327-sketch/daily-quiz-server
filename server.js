@@ -8,6 +8,8 @@ const https = require('https');
 //const SERPAPI_KEY = process.env.SERPAPI_KEY;
 const RESERP_API_KEY = process.env.RESERP_API_KEY;
 //import { HttpsProxyAgent } from 'https-proxy-agent';
+let ANSWER_HISTORY = [];   // 👈 새로 추가 - 절대 교체(=) 하지 않고 push만
+const MAX_HISTORY = 200;   // 무한정 커지지 않게 상한
 
 //const agent = new HttpsProxyAgent('http://168.63.76.32:3128');
 const cheerio = require('cheerio');
@@ -1006,7 +1008,7 @@ async function fetchNewQuizData() {
                 const payload = createQuizPayload(
                     topic,
                     spellingParam,
-                    MASTER_QUIZ_DATA.map(q => q.question)
+                    ANSWER_HISTORY
                 );
 
                 console.log(
@@ -1196,7 +1198,7 @@ async function fetchNewQuizData() {
                 // ----------------------------------------------------
                 // 7. 중복 정답/개념 검증
                 // ----------------------------------------------------
-                if (isDuplicateQuiz(quiz, MASTER_QUIZ_DATA)) {
+                if (isDuplicateQuiz(quiz, ANSWER_HISTORY)) {
                     throw new Error(
                         `중복된 정답/개념 감지: ${quiz.correctAnswerText}`
                     );
@@ -1747,6 +1749,15 @@ async function fetchNewQuizData() {
             correctAnswerText: q.correctAnswerText,
             explanation: q.explanation
         }));
+
+    // 👇 추가: 히스토리에는 누적만, 절대 덮어쓰지 않음
+          ANSWER_HISTORY.push(...successfulQuizzes.map(q => ({
+               question: q.question,
+               correctAnswerText: q.correctAnswerText
+        })));
+       if (ANSWER_HISTORY.length > MAX_HISTORY) {
+            ANSWER_HISTORY = ANSWER_HISTORY.slice(-MAX_HISTORY);
+          }
 
     LAST_FETCH_TIME = Date.now();
     LAST_TOPICS = [...selectedTopics];
