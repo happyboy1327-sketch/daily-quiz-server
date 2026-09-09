@@ -5,7 +5,8 @@ const path = require('path');
 const seedrandom = require('seedrandom');
 const crypto = require('crypto');
 const https = require('https');
-const SERPAPI_KEY = process.env.SERPAPI_KEY;
+//const SERPAPI_KEY = process.env.SERPAPI_KEY;
+const RESERP_API_KEY = process.env.RESERP_API_KEY;
 //import { HttpsProxyAgent } from 'https-proxy-agent';
 
 //const agent = new HttpsProxyAgent('http://168.63.76.32:3128');
@@ -531,16 +532,25 @@ async function harnessSyncArticleNumber(quiz) {
             await sleep(1200);
 
             // ===== 1단계: 법률명 + 제몇조 제몇항 전체를 한 쿼리로 검색 후, 해설 키워드와 매트릭스 대조 =====
-            const verifyQuery = `${lawContext} ${target.targetName}`.trim();
-            let text1 = '';
-            try {
-                const res1 = await axios.get('https://serpapi.com/search.json', {
-                params: { q: verifyQuery, hl: 'ko', gl: 'kr', api_key: SERPAPI_KEY },
-               timeout: 11500
-              });
-             console.log('🐛 [디버그] SerpApi 응답:', JSON.stringify(res1.data).slice(0, 300));
-                text1 = (res1.data.organic_results || [])
-                     .map(r => `${r.title || ''} ${r.snippet || ''}`)
+            const verifyQuery = `${lawContext} "제${target.num}${target.unit}" ${topKeywords.join(' ')}`;
+            
+           try {
+             const res1 = await axios.post(
+              'https://api.reserp.ai/v2/serp/search',
+              {
+                url: `https://www.google.com/search?q=${encodeURIComponent(verifyQuery)}&gl=kr&hl=ko`
+               },
+              {
+                  headers: {
+                      Authorization: `Bearer ${RESERP_API_KEY}`,
+                     'Content-Type': 'application/json'
+                  },
+                 timeout: 11500
+               }
+              );
+             console.log('🐛 [디버그] RESERP 응답:', JSON.stringify(res1.data).slice(0, 300));
+                text1 = (res1.data.urls || [])
+                     .map(r => `${r.title || ''} ${r.text || ''}`)
                      .join(' ');
             } catch (e) {
                 console.warn(`⚠️ [1단계 요청 실패] ${lawContext} ${target.targetName} 검색 오류 → 2단계로 진행`);
@@ -561,13 +571,22 @@ async function harnessSyncArticleNumber(quiz) {
             const searchQuery = topKeywords.join(' ');
             let text2 = '';
             try {
-                const res2 = await axios.get('https://serpapi.com/search.json', {
-                  params: { q: searchQuery, hl: 'ko', gl: 'kr', api_key: SERPAPI_KEY },
-                  timeout: 11500
-                  });
-                console.log('🐛 [디버그] SerpApi 응답:', JSON.stringify(res2.data).slice(0, 300));
-                text2 = (res2.data.organic_results || [])
-                     .map(r => `${r.title || ''} ${r.snippet || ''}`)
+                const res2 = await axios.post(
+              'https://api.reserp.ai/v2/serp/search',
+              {
+                url: `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}&gl=kr&hl=ko`
+               },
+              {
+                  headers: {
+                      Authorization: `Bearer ${RESERP_API_KEY}`,
+                     'Content-Type': 'application/json'
+                  },
+                 timeout: 11500
+               }
+              );
+                console.log('🐛 [디버그] RESERP 응답:', JSON.stringify(res2.data).slice(0, 300));
+                text2 = (res2.data.urls || [])
+                     .map(r => `${r.title || ''} ${r.text || ''}`)
                      .join(' ');
             } catch (e) {
                 console.warn(`⚠️ [2단계 추적 실패] 검색 요청 오류로 기존 조항 유지`);
