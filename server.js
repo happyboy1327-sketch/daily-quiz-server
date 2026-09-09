@@ -461,7 +461,7 @@ async function harnessSyncArticleNumber(quiz) {
             if (articleNum) currentArticle = articleNum;
 
             const effectiveLaw = anchorLaw;
-            const effectiveArticle = standaloneParagraphNum ? '' : currentArticle;
+            const effectiveArticle = currentArticle;
             let targetName = '';
             let searchTargetKey = '';
 
