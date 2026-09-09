@@ -456,11 +456,12 @@ async function harnessSyncArticleNumber(quiz) {
             if (rawLaw) anchorLaw = rawLaw;
 
             const articleNum = match[2] || '';
-            const paragraphNum = match[3] || match[4] || '';
+            const paragraphNum = match[3] || '';
+            const standaloneParagraphNum = match[4] || '';
             if (articleNum) currentArticle = articleNum;
 
             const effectiveLaw = anchorLaw;
-            const effectiveArticle = currentArticle;
+            const effectiveArticle = standaloneParagraphNum ? '' : currentArticle;
             let targetName = '';
             let searchTargetKey = '';
 
@@ -470,9 +471,9 @@ async function harnessSyncArticleNumber(quiz) {
             } else if (effectiveArticle) {
                 targetName = `제${effectiveArticle}조`;
                 searchTargetKey = `${effectiveLaw}_${effectiveArticle}_조`;
-            } else if (paragraphNum) {
-                targetName = `제${paragraphNum}항`;
-                searchTargetKey = `${effectiveLaw}_항_${paragraphNum}`;
+            } else if (standaloneParagraphNum) {
+                targetName = `제${standaloneParagraphNum}항`;
+                searchTargetKey = `${effectiveLaw}_항_${standaloneParagraphNum}`;
             } else {
                 continue;
             }
@@ -497,6 +498,7 @@ async function harnessSyncArticleNumber(quiz) {
                         lawName: effectiveLaw,
                         articleNum: effectiveArticle,
                         paragraphNum: paragraphNum,
+                        standaloneParagraphNum: standaloneParagraphNum,
                         targetName: targetName,
                         keywords: [...new Set(keywords)]
                     });
@@ -522,13 +524,16 @@ async function harnessSyncArticleNumber(quiz) {
         };
 
         for (const target of targets) {
-            const currentMatchThreshold = target.paragraphNum
-               ? MATCH_THRESHOLD + 0.10
-               : MATCH_THRESHOLD;
+            const hasArticleAndParagraph =
+                Boolean(target.articleNum && target.paragraphNum);
 
-             const currentReplacementThreshold = target.paragraphNum
-               ? REPLACEMENT_THRESHOLD + 0.10
-               : REPLACEMENT_THRESHOLD;
+            const currentMatchThreshold = hasArticleAndParagraph
+                ? MATCH_THRESHOLD + 0.10
+                : MATCH_THRESHOLD;
+
+            const currentReplacementThreshold = hasArticleAndParagraph
+                ? REPLACEMENT_THRESHOLD + 0.10
+                : REPLACEMENT_THRESHOLD;
             const lawContext = target.lawName;
             // 검색 쿼리 후보 선정: (1) "~다고/~하고/~받지"처럼 활용형 어미로 끝나는 동사성 표현 제외
             //                      (2) "모든/국민"처럼 헌법 조항 전반에 범용적으로 쓰이는 명사 제외
@@ -543,7 +548,12 @@ async function harnessSyncArticleNumber(quiz) {
             await sleep(1200);
 
             // ===== 1단계: 법률명 + 제몇조 제몇항 전체를 한 쿼리로 검색 후, 해설 키워드와 매트릭스 대조 =====
-            const verifyQuery = `${lawContext} "제${target.articleNum}조${target.paragraphNum ? ` 제${target.paragraphNum}항` : '항'}" ${topKeywords.join(' ')}`;
+            const citation = target.standaloneParagraphNum
+                ? `제${target.standaloneParagraphNum}항`
+                : target.articleNum && target.paragraphNum
+                    ? `제${target.articleNum}조 제${target.paragraphNum}항`
+                    : `제${target.articleNum}조`;
+            const verifyQuery = `${lawContext} "${citation}" ${topKeywords.join(' ')}`;
             let text1 = '';
            try {
              const res1 = await axios.post(
@@ -607,7 +617,10 @@ async function harnessSyncArticleNumber(quiz) {
                 continue;
             }
 
-            const candidateRegex = new RegExp(`([가-힣]{1,10}${lawSuffix})?\\s*제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?`, 'g');
+            const candidateRegex = new RegExp(
+                `(?:(?:(?:([가-힣]{1,10}${lawSuffix})?\\s*제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?)|(?:(?:([가-힣]{1,10}${lawSuffix})?\\s*제\\s*(\\d+)\\s*항)))`,
+                'g'
+            );
             const candidateMatches = [...text2.matchAll(candidateRegex)];
 
             if (candidateMatches.length === 0) {
@@ -619,12 +632,19 @@ async function harnessSyncArticleNumber(quiz) {
             let bestScore = 0;
 
             for (const cand of candidateMatches) {
-                const candLaw = (cand[1] || lawContext).trim();
-                const candArticle = cand[2];
+                const candLaw = (cand[1] || cand[4] || lawContext).trim();
+                const candArticle = cand[2] || '';
                 const candParagraph = cand[3] || '';
+                const candStandaloneParagraph = cand[5] || '';
 
                 // 원래 조항과 완전히 동일한 후보는 이미 1단계에서 불일치 처리되었으므로 스킵
-                if (candLaw === lawContext && candArticle === target.articleNum && candParagraph === (target.paragraphNum || '')) {
+                const sameTarget = target.standaloneParagraphNum
+                    ? candLaw === lawContext && candStandaloneParagraph === target.standaloneParagraphNum
+                    : candLaw === lawContext &&
+                      candArticle === target.articleNum &&
+                      candParagraph === (target.paragraphNum || '') &&
+                      !candStandaloneParagraph;
+                if (sameTarget) {
                     continue;
                 }
 
@@ -634,20 +654,29 @@ async function harnessSyncArticleNumber(quiz) {
 
                 if (score > bestScore) {
                     bestScore = score;
-                    bestCandidate = { candLaw, candArticle, candParagraph };
+                    bestCandidate = {
+                        candLaw,
+                        candArticle,
+                        candParagraph,
+                        candStandaloneParagraph
+                    };
                 }
             }
 
             if (bestCandidate && bestScore >= currentReplacementThreshold) {
-                const newTargetName = bestCandidate.candParagraph
-                    ? `제${bestCandidate.candArticle}조 제${bestCandidate.candParagraph}항`
-                    : `제${bestCandidate.candArticle}조`;
+                const newTargetName = bestCandidate.candStandaloneParagraph
+                    ? `제${bestCandidate.candStandaloneParagraph}항`
+                    : bestCandidate.candParagraph
+                        ? `제${bestCandidate.candArticle}조 제${bestCandidate.candParagraph}항`
+                        : `제${bestCandidate.candArticle}조`;
 
                 console.log(`🎯 [치환 확정] ${lawContext} ${target.targetName} ➔ ${bestCandidate.candLaw} ${newTargetName} (일치율 ${(bestScore * 100).toFixed(1)}%)`);
 
-                const oldArticleRegex = target.paragraphNum
-                    ? new RegExp(`제\\s*${target.articleNum}\\s*조\\s*제\\s*${target.paragraphNum}\\s*항`, 'g')
-                    : new RegExp(`제\\s*${target.articleNum}\\s*조`, 'g');
+                const oldArticleRegex = target.standaloneParagraphNum
+                    ? new RegExp(`제\\s*${target.standaloneParagraphNum}\\s*항`, 'g')
+                    : target.paragraphNum
+                        ? new RegExp(`제\\s*${target.articleNum}\\s*조\\s*제\\s*${target.paragraphNum}\\s*항`, 'g')
+                        : new RegExp(`제\\s*${target.articleNum}\\s*조`, 'g');
 
                 ['explanation', 'question', 'correctAnswerText'].forEach(key => {
                     if (typeof quiz[key] === 'string') {
