@@ -575,7 +575,10 @@ async function harnessSyncArticleNumber(quiz) {
                 continue;
             }
 
-            console.warn(`⚠️ [1단계 불일치] 일치율 ${(score1 * 100).toFixed(1)}% (기준 ${(MATCH_THRESHOLD * 100)}% 미만) → 2단계 올바른 조항 추적 시작...`);
+            console.warn(
+    `⚠️ [1단계 불일치] 일치율 ${(score1 * 100).toFixed(1)}% ` +
+    `(기준 ${(currentMatchThreshold * 100)}% 미만) → 2단계 올바른 조항 추적 시작...`
+             );
             await sleep(1200);
 
             // ===== 2단계: 해설 속 키워드로 재검색, 검색결과 내 후보(법률명+조항)들을 매트릭스 대조하여 최적 후보 선정 =====
@@ -659,7 +662,11 @@ async function harnessSyncArticleNumber(quiz) {
                 });
                 replacedCount++;
             } else {
-                console.log(`❌ [2단계 실패] 신뢰할 만한 대체 조항(일치율 ${(MATCH_THRESHOLD * 100)}% 이상)을 찾지 못해 기존 조항을 유지합니다. (최고 일치율 ${(bestScore * 100).toFixed(1)}%)`);
+                console.log(
+    `❌ [2단계 실패] 신뢰할 만한 대체 조항 ` +
+    `(일치율 ${(currentReplacementThreshold * 100)}% 이상)을 찾지 못해 기존 조항을 유지합니다. ` +
+    `(최고 일치율 ${(bestScore * 100).toFixed(1)}%)`
+);
             }
         }
         console.log(`🎉 [완료] 총 ${replacedCount}개 조항 치환 반영 완료`);
