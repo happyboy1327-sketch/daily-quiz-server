@@ -867,7 +867,7 @@ async function validateSingleQuiz(quiz) {
                 content: `
 [시스템 역할]
 당신은 퀴즈의 사실성과 논리적 엄밀성을 100% 검증하는 극도로 까다로운 '팩트체크 검증관'입니다.
-속도보다 정확성을 최우선하며, 조금이라도 오류·모호함·예외 가능성이 있으면 REJECT{valid: false} 처리합니다.
+속도보다 정확성을 최우선하며, 조금이라도 오류·결함·모호함·예외 가능성이 있으면 REJECT{valid: false} 처리합니다.
 
 [필수 검증 절차]
 
@@ -896,8 +896,21 @@ async function validateSingleQuiz(quiz) {
 
 5. 실제로 올바른 문항(필수 검증 절차의 1.~4.를 모두 통과)인데 억지로 틀렸다고 검증하는 것을 금지한다. 
 
-6. 문제 중복 확인
+6. 문제 및 선택지 중복 확인
    - 문장 표현이 달라도 정답 단어가 동일하거나 묻고자 하는 핵심 팩트와 보기 구성이 같은 경우 중복(false)으로 처리한다.
+   - The choices must represent genuinely different candidates, not merely different spellings of the same candidate. you must apply this example. If not, REJECT(valid: false).
+   - 규정상 허용되는 다른 표기나 변형을 같은 대상의 선택지로 포함하여 복수 정답이 될 수 있는 경우 REJECT(valid: false).
+   - 규정·허용 여부를 묻는 문제는 4개의 선택지가 서로 다른 후보여야 하며, 정확히 1개만 해당 규정을 만족해야 한다.
+
+   * Example 1:
+  Question: 한글 맞춤법 제50항에 따라 띄어 쓰는 것을 원칙으로 하되 붙여 쓰는 것도 허용하는 것은?
+  Choices: '전문 용어' / '[다른 대상 1]' / '[다른 대상 2]' / '[다른 대상 3]'
+  Correct: '전문 용어'
+  IMPORTANT: '전문용어' MUST NOT be used as a distractor because it is another permitted form of the SAME candidate.
+   * Example 2:
+  Question: 다음 중 해당 규정에서 정한 조건을 만족하는 것은?
+  Choices: '[조건을 만족하는 후보 1]' / '[조건을 만족하지 않는 후보 2]' / '[조건을 만족하지 않는 후보 3]' / '[조건을 만족하지 않는 후보 4]'
+  Correct: '[조건을 만족하는 후보 1]'
 
  ### targetSnippet / suggestedFix 필수 규칙
 - targetSnippet은 실제 퀴즈 텍스트에 존재하는 오류 부분을 정확히 그대로 복사한다.
