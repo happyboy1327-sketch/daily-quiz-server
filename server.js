@@ -383,6 +383,14 @@ async function harnessSyncArticleNumber(quiz) {
     const MATCH_THRESHOLD = 0.43;
     const REPLACEMENT_THRESHOLD = 0.45;
 
+    const currentMatchThreshold = target.paragraphNum
+    ? MATCH_THRESHOLD + 0.10
+    : MATCH_THRESHOLD;
+
+    const currentReplacementThreshold = target.paragraphNum
+      ? REPLACEMENT_THRESHOLD + 0.10
+    : REPLACEMENT_THRESHOLD;
+
     const cleanJosa = (word) => {
         if (!word) return '';
         let cleaned = word.replace(/(에서는|으로부터|에서|으로|하므로|입니다|한다|얻어|하여)+$/g, '');
@@ -562,7 +570,7 @@ async function harnessSyncArticleNumber(quiz) {
             const score1 = calculateMatchScore(target.keywords, text1);
             console.log(`📊 [1단계 일치율] ${lawContext} ${target.targetName} → ${(score1 * 100).toFixed(1)}%`);
 
-            if (score1 >= MATCH_THRESHOLD) {
+            if (score1 >= currentMatchThreshold) {
                 console.log(`✅ [1단계 통과] ${lawContext} ${target.targetName}는 존재하는 올바른 조항입니다. (일치율 ${(score1 * 100).toFixed(1)}%)`);
                 continue;
             }
@@ -627,7 +635,7 @@ async function harnessSyncArticleNumber(quiz) {
                 }
             }
 
-            if (bestCandidate && bestScore >= REPLACEMENT_THRESHOLD) {
+            if (bestCandidate && bestScore >= currentReplacementThreshold) {
                 const newTargetName = bestCandidate.candParagraph
                     ? `제${bestCandidate.candArticle}조 제${bestCandidate.candParagraph}항`
                     : `제${bestCandidate.candArticle}조`;
