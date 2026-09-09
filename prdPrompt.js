@@ -46,11 +46,52 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 (Except for 한글 맞춤법).
 □ All 4 choices MUST target the EXACT same phrase structure, rule, or conceptual category.
 □ Character Set: Use ONLY standard Korean, numbers, and basic ASCII. NEVER use Hanja.
-□ FOR KOREAN GRAMMAR / SPELLING QUIZZES (CRITICAL RULE):
-  - The 3 distractors MUST be misspelled forms (phonetic spellings, common vowel/consonant typos, spacing errors) based on the target word.
-  - ❌ PROHIBITION: Putting valid standard Korean words, synonyms, or grammatically correct alternative expressions into distractor options.
-  - ⭕ Correct Distractor Examples: '갑씨', '감이', '갑시' (Misspellings only)
-  - If any distractor forms a valid standard Korean word, REPLACE IT IMMEDIATELY with a misspelled form.
+□ ***FOR KOREAN GRAMMAR / SPELLING QUIZZES (CRITICAL RULE)***:
+
+* First determine whether the question asks about:
+  (A) the correct spelling/spacing of a specific expression, OR
+  (B) a rule, permitted form, grammatical category, or orthographic condition.
+
+[A] CORRECT SPELLING / SPACING QUESTIONS:
+
+* The correct answer MUST be the one objectively correct standard form.
+* The 3 distractors MUST be objectively incorrect misspellings, spacing errors, phonetic spellings, or common typographical errors based on the target expression.
+* NEVER use another valid standard form, synonym, or grammatically correct alternative expression as a distractor.
+* Example 1:
+  Question: 다음 중 '할 수 있다'의 올바른 띄어쓰기는?
+  Choices: '할 수 있다' / '할수 있다' / '할 수있다' / '할수있다'
+  Correct: '할 수 있다'
+* Example 2:
+  Question: 다음 중 '며칠'의 올바른 표기는?
+  Choices: '며칠' / '몇일' / '몇칠' / '며츨'
+  Correct: '며칠'
+
+[B] RULE / PERMITTED-FORM / CATEGORY QUESTIONS:
+
+* Do NOT force the 3 distractors to be misspellings of the correct answer.
+* The 4 choices MUST be different candidates belonging to the EXACT category or condition asked about.
+* EXACTLY ONE choice must satisfy the condition stated in the question.
+* The other 3 choices MUST be objectively outside that condition.
+* NEVER use another form of the same expression when that form is also explicitly permitted by the cited rule.
+* NEVER create choices where two or more choices satisfy the cited rule, even if their spelling or spacing differs.
+* The choices must represent genuinely different candidates, not merely different spellings of the same candidate.
+* Example 1:
+  Question: 한글 맞춤법 제50항에 따라 띄어 쓰는 것을 원칙으로 하되 붙여 쓰는 것도 허용하는 것은?
+  Choices: '전문 용어' / '[다른 대상 1]' / '[다른 대상 2]' / '[다른 대상 3]'
+  Correct: '전문 용어'
+  IMPORTANT: '전문용어' MUST NOT be used as a distractor because it is another permitted form of the SAME candidate.
+* Example 2:
+  Question: 다음 중 해당 규정에서 정한 조건을 만족하는 것은?
+  Choices: '[조건을 만족하는 후보 1]' / '[조건을 만족하지 않는 후보 2]' / '[조건을 만족하지 않는 후보 3]' / '[조건을 만족하지 않는 후보 4]'
+  Correct: '[조건을 만족하는 후보 1]'
+  IMPORTANT: The 3 distractors must be different candidates that fail the stated condition, not alternative forms that are also permitted by the same rule.
+
+[CRITICAL]:
+
+* Before finalizing ANY Korean grammar/spelling quiz, evaluate ALL 4 choices against the EXACT rule or condition being tested.
+* If two or more choices are acceptable, permitted, or correct under that rule, DISCARD the question and generate a new one.
+* The final quiz MUST have exactly ONE objectively correct choice.
+
 
 ### 4. EXPLANATION AND CITATION CONSTRAINTS
 □ Explanation MUST begin EXACTLY with: 정답은 {correctAnswerText}입니다. [출처/ 근거: ...]
