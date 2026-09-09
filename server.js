@@ -523,6 +523,10 @@ async function harnessSyncArticleNumber(quiz) {
             return (snippetText || $('body').text()).replace(/\s+/g, ' ').trim();
         };
 
+        // 2단계에서 확정된 후보의 순서를 기억한다.
+// 같은 법률 안에서는 뒤에서 등장한 target이 앞의 조항으로 되돌아가는 것을 방지한다.
+         const lastAssignedOrderByLaw = new Map();
+
         for (const target of targets) {
             const hasArticleAndParagraph =
                 Boolean(target.articleNum && target.paragraphNum);
@@ -629,41 +633,177 @@ async function harnessSyncArticleNumber(quiz) {
             }
 
             let bestCandidate = null;
-            let bestScore = 0;
+let bestScore = 0;
 
-            for (const cand of candidateMatches) {
-                const candLaw = (cand[1] || cand[4] || lawContext).trim();
-                const candArticle = cand[2] || '';
-                const candParagraph = cand[3] || '';
-                const candStandaloneParagraph = cand[5] || '';
+// 현재 target의 항 번호
+const targetParagraphNumber = Number(
+    target.paragraphNum || target.standaloneParagraphNum || 0
+);
 
-                // 원래 조항과 완전히 동일한 후보는 이미 1단계에서 불일치 처리되었으므로 스킵
-                const sameTarget = target.standaloneParagraphNum
-                    ? candLaw === lawContext && candStandaloneParagraph === target.standaloneParagraphNum
-                    : candLaw === lawContext &&
-                      candArticle === target.articleNum &&
-                      candParagraph === (target.paragraphNum || '') &&
-                      !candStandaloneParagraph;
-                if (sameTarget) {
-                    continue;
+// 현재 target의 조항 번호
+const targetArticleNumber = Number(target.articleNum || 0);
+
+// 현재 target을 숫자 순서로 표현
+// 조문이 있으면 조문 → 항 순서,
+// 독립 항이면 항 순서만 사용
+const targetOrderKey = target.standaloneParagraphNum
+    ? Number(target.standaloneParagraphNum)
+    : targetArticleNumber * 10000 + targetParagraphNumber;
+
+// 같은 법률에서 앞서 확정된 후보의 순서
+const lastAssignedOrder = lastAssignedOrderByLaw.get(lawContext);
+
+for (const cand of candidateMatches) {
+    const candLaw = (cand[1] || cand[4] || lawContext).trim();
+    const candArticle = cand[2] || '';
+    const candParagraph = cand[3] || '';
+    const candStandaloneParagraph = cand[5] || '';
+
+    const candArticleNumber = Number(candArticle || 0);
+    const candParagraphNumber = Number(
+        candParagraph || candStandaloneParagraph || 0
+    );
+
+    // 원래 조항과 완전히 동일한 후보는 스킵
+    const sameTarget = target.standaloneParagraphNum
+        ? candLaw === lawContext &&
+          candStandaloneParagraph === target.standaloneParagraphNum
+        : candLaw === lawContext &&
+          candArticle === target.articleNum &&
+          candParagraph === (target.paragraphNum || '') &&
+          !candStandaloneParagraph;
+
+    if (sameTarget) {
+        continue;
+    }
+
+    // 후보의 법률상 순서
+    const candOrderKey = candStandaloneParagraph
+        ? candParagraphNumber
+        : candArticleNumber * 10000 + candParagraphNumber;
+
+    // ----------------------------------------------------------
+    // 순서 보정
+    // ----------------------------------------------------------
+
+    let orderBonus = 0;
+    let orderPenalty = 0;
+
+    if (targetOrderKey > 0 && candOrderKey > 0) {
+
+        const orderDistance = Math.abs(
+            candOrderKey - targetOrderKey
+        );
+
+        // 정확히 같은 순서의 조항/항을 가장 강하게 우선
+        if (candOrderKey === targetOrderKey) {
+            orderBonus = 0.25;
+        }
+
+        // 바로 앞/뒤 조항 또는 항
+        else if (orderDistance <= 1) {
+            orderBonus = 0.10;
+        }
+
+        // 조금 떨어진 조항
+        else if (orderDistance <= 2) {
+            orderBonus = 0;
+        }
+
+        // 순서가 크게 어긋난 후보는 감점
+        else {
+            orderPenalty = 0.15;
+        }
+    }
+
+    // ----------------------------------------------------------
+    // 이미 앞 target에서 확정된 후보보다 뒤로 가지 않는지 확인
+    // ----------------------------------------------------------
+
+    if (
+        lastAssignedOrder !== undefined &&
+        candLaw === lawContext &&
+        candOrderKey > 0 &&
+        candOrderKey < lastAssignedOrder
+    ) {
+        console.log(
+            `⛔ [순서 역행 후보 제외] ` +
+            `${target.targetName} → ` +
+            `${candLaw} ` +
+            `${candStandaloneParagraph
+                ? `제${candStandaloneParagraph}항`
+                : candParagraph
+                    ? `제${candArticle}조 제${candParagraph}항`
+                    : `제${candArticle}조`} ` +
+            `(이전 확정 순서 ${lastAssignedOrder}, 현재 후보 ${candOrderKey})`
+        );
+
+        continue;
+    }
+
+    const idx = cand.index;
+
+    const snippet = text2.slice(
+        Math.max(0, idx - 60),
+        Math.min(
+            text2.length,
+            idx + cand[0].length + 100
+        )
+    );
+
+    // 핵심: 후보 조항 자체 주변의 문맥을 먼저 비교
+    const rawScore = calculateMatchScore(
+        target.keywords,
+        snippet
+    );
+
+    // 최종 점수 = 문맥 일치도 + 순서 보정 - 순서 역차이 감점
+    const score = Math.max(
+        0,
+        Math.min(
+            1,
+            rawScore + orderBonus - orderPenalty
+        )
+    );
+
+    console.log(
+        `🔎 [후보 평가] ${target.targetName} → ` +
+        `${candLaw} ` +
+        `${candStandaloneParagraph
+            ? `제${candStandaloneParagraph}항`
+            : candParagraph
+                ? `제${candArticle}조 제${candParagraph}항`
+                : `제${candArticle}조`} ` +
+        `문맥 ${(rawScore * 100).toFixed(1)}% ` +
+        `순서보정 +${(orderBonus * 100).toFixed(1)}% ` +
+        `순서감점 -${(orderPenalty * 100).toFixed(1)}% ` +
+        `최종 ${(score * 100).toFixed(1)}%`
+    );
+
+    if (score > bestScore) {
+        bestScore = score;
+
+        bestCandidate = {
+            candLaw,
+            candArticle,
+            candParagraph,
+            candStandaloneParagraph,
+            candOrderKey
+        };
+    }
+}
+            // 다음 target이 같은 법률에서 더 앞쪽 조항으로 되돌아가지 않도록 기억
+            if (
+    bestCandidate &&
+    bestScore >= currentReplacementThreshold
+) {
+           if (bestCandidate.candLaw === lawContext && bestCandidate.candOrderKey > 0) {
+               lastAssignedOrderByLaw.set(
+                  lawContext,
+                bestCandidate.candOrderKey
+                 );
                 }
-
-                const idx = cand.index;
-                const snippet = text2.slice(Math.max(0, idx - 60), Math.min(text2.length, idx + cand[0].length + 100));
-                const score = calculateMatchScore(target.keywords, snippet);
-
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestCandidate = {
-                        candLaw,
-                        candArticle,
-                        candParagraph,
-                        candStandaloneParagraph
-                    };
-                }
-            }
-
-            if (bestCandidate && bestScore >= currentReplacementThreshold) {
+                
                 const newTargetName = bestCandidate.candStandaloneParagraph
                     ? `제${bestCandidate.candStandaloneParagraph}항`
                     : bestCandidate.candParagraph
