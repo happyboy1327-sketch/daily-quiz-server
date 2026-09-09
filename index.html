@@ -223,6 +223,27 @@
         // ==========================================================
         // Local Storage 오답 노트
         // ==========================================================
+        const HISTORY_KEY = 'quiz_history'; // 새 storage key
+
+        function getQuizHistory() {
+         try {
+        const data = localStorage.getItem(HISTORY_KEY);
+        return data ? JSON.parse(data) : [];
+         } catch (e) {
+        return [];
+           }
+        }
+
+         function saveToQuizHistory(newQuestions) {
+            try {
+          const history = getQuizHistory();
+          const updated = [...history, ...newQuestions].slice(-50); // 최근 50개만 유지
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+           } catch (e) {
+          console.error("히스토리 저장 실패:", e);
+          }
+          }
+        
         function getWrongAnswers() {
             try {
                 const data = localStorage.getItem(STORAGE_KEY);
@@ -306,7 +327,9 @@
             loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중...";
 
             try {
-                const quizRes = await fetch(QUIZ_API_URL);
+                const history = getQuizHistory();
+                const historyParam = encodeURIComponent(JSON.stringify(history));
+                const quizRes = await fetch(`${QUIZ_API_URL}?history=${historyParam}`);
 
                 if (quizRes.status === 503 && retryCount < 2) {
                     setTimeout(() => {
@@ -330,6 +353,7 @@
                     ...q,
                     correctAnswerIndex: answerMap[q.id] ?? q.correctAnswerIndex
                 }));
+                saveToQuizHistory(currentQuizData.map(q => ({ question: q.question, correctAnswerText: q.choices?.[q.correctAnswerIndex] })));
                 
                 loadingDiv.style.display = 'none';
                 currentQuestionIndex = 0;
