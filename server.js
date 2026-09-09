@@ -547,6 +547,7 @@ async function harnessSyncArticleNumber(quiz) {
                  timeout: 11500
                }
               );
+             console.log('🐛 [디버그] RESERP 전체 응답:', JSON.stringify(res1.data, null, 2));
              console.log('🐛 [디버그] RESERP urls:', JSON.stringify(res1.data.urls, null, 2));
                 text1 = (res1.data.urls || [])
                      .map(r => `${r.title || ''} ${r.text || ''}`)
@@ -583,6 +584,7 @@ async function harnessSyncArticleNumber(quiz) {
                  timeout: 11500
                }
               );
+                console.log('🐛 [디버그] RESERP 전체 응답:', JSON.stringify(res2.data, null, 2));
                 console.log('🐛 [디버그] RESERP urls:', JSON.stringify(res2.data.urls, null, 2));
                 text2 = (res2.data.urls || [])
                      .map(r => `${r.title || ''} ${r.text || ''}`)
