@@ -379,8 +379,9 @@ async function harnessSyncArticleNumber(quiz) {
     let replacedCount = 0;
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-    // 1단계/2단계 판정 기준 일치율 (45%)
+    // 1단계/2단계 판정 기준 일치율 (16%/45%)
     const MATCH_THRESHOLD = 0.159;
+    const REPLACEMENT_THRESHOLD = 0.45;
 
     const cleanJosa = (word) => {
         if (!word) return '';
@@ -534,7 +535,7 @@ async function harnessSyncArticleNumber(quiz) {
             await sleep(1200);
 
             // ===== 1단계: 법률명 + 제몇조 제몇항 전체를 한 쿼리로 검색 후, 해설 키워드와 매트릭스 대조 =====
-            const verifyQuery = `${lawContext} "제${target.articleNum}${target.paragraphNum ? ` 제${target.paragraphNum}항` : '항'}" ${topKeywords.join(' ')}`;
+            const verifyQuery = `${lawContext} "제${target.articleNum}조${target.paragraphNum ? ` 제${target.paragraphNum}항` : '항'}" ${topKeywords.join(' ')}`;
            try {
              const res1 = await axios.post(
               'https://api.reserp.ai/v2/serp/search',
@@ -625,7 +626,7 @@ async function harnessSyncArticleNumber(quiz) {
                 }
             }
 
-            if (bestCandidate && bestScore >= MATCH_THRESHOLD) {
+            if (bestCandidate && bestScore >= REPLACEMENT_THRESHOLD) {
                 const newTargetName = bestCandidate.candParagraph
                     ? `제${bestCandidate.candArticle}조 제${bestCandidate.candParagraph}항`
                     : `제${bestCandidate.candArticle}조`;
