@@ -383,13 +383,6 @@ async function harnessSyncArticleNumber(quiz) {
     const MATCH_THRESHOLD = 0.43;
     const REPLACEMENT_THRESHOLD = 0.45;
 
-    const currentMatchThreshold = target.paragraphNum
-    ? MATCH_THRESHOLD + 0.10
-    : MATCH_THRESHOLD;
-
-    const currentReplacementThreshold = target.paragraphNum
-      ? REPLACEMENT_THRESHOLD + 0.10
-    : REPLACEMENT_THRESHOLD;
 
     const cleanJosa = (word) => {
         if (!word) return '';
@@ -529,6 +522,13 @@ async function harnessSyncArticleNumber(quiz) {
         };
 
         for (const target of targets) {
+            const currentMatchThreshold = target.paragraphNum
+               ? MATCH_THRESHOLD + 0.10
+               : MATCH_THRESHOLD;
+
+             const currentReplacementThreshold = target.paragraphNum
+               ? REPLACEMENT_THRESHOLD + 0.10
+               : REPLACEMENT_THRESHOLD;
             const lawContext = target.lawName;
             // 검색 쿼리 후보 선정: (1) "~다고/~하고/~받지"처럼 활용형 어미로 끝나는 동사성 표현 제외
             //                      (2) "모든/국민"처럼 헌법 조항 전반에 범용적으로 쓰이는 명사 제외
