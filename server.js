@@ -536,6 +536,7 @@ async function harnessSyncArticleNumber(quiz) {
 
             // ===== 1단계: 법률명 + 제몇조 제몇항 전체를 한 쿼리로 검색 후, 해설 키워드와 매트릭스 대조 =====
             const verifyQuery = `${lawContext} "제${target.articleNum}조${target.paragraphNum ? ` 제${target.paragraphNum}항` : '항'}" ${topKeywords.join(' ')}`;
+            let text1 = '';
            try {
              const res1 = await axios.post(
               'https://api.reserp.ai/v2/serp/search',
