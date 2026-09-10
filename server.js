@@ -849,9 +849,15 @@ for (const cand of candidateMatches) {
 
 function extractJsonFromText(rawText) {
     if (typeof rawText !== "string") throw new Error("응답이 문자열이 아닙니다.");
+
     const start = rawText.indexOf("{");
     const end = rawText.lastIndexOf("}");
-    if (start === -1 || end === -1 || end < start) throw new Error("JSON 객체를 찾지 못했습니다.");
+
+    if (start === -1 || end === -1 || end < start) {
+        console.error("❌ [JSON 추출 실패] rawText:", JSON.stringify(rawText));
+        throw new Error("JSON 객체를 찾지 못했습니다.");
+    }
+
     return rawText.slice(start, end + 1).trim();
 }
 /**
