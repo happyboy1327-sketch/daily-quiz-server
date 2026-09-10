@@ -1792,9 +1792,9 @@ async function fetchNewQuizData() {
                 }
 
                 if (!autoFixValidationFailed) {
-                    // 자동수정된 상태로 다음 AI 검증 라운드 진행
-                    continue;
-                }
+               validationPassed = true;
+               break;
+              }
 
                 // 자동수정 후 구조/정답이 깨졌다면
                 // 아래 재생성 로직으로 넘어간다.
