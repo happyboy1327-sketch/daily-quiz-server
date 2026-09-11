@@ -532,7 +532,7 @@ async function harnessSyncArticleNumber(quiz) {
                 Boolean(target.articleNum && target.paragraphNum);
 
             const currentMatchThreshold = hasArticleAndParagraph
-                ? MATCH_THRESHOLD + 0.10
+                ? MATCH_THRESHOLD + 0.05
                 : MATCH_THRESHOLD;
 
             const currentReplacementThreshold = hasArticleAndParagraph
@@ -697,7 +697,7 @@ for (const cand of candidateMatches) {
 
         // 정확히 같은 순서의 조항/항을 가장 강하게 우선
         if (candOrderKey === targetOrderKey) {
-            orderBonus = 0.25;
+            orderBonus = 0.22;
         }
 
         // 바로 앞/뒤 조항 또는 항
