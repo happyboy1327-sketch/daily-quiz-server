@@ -147,7 +147,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
  */
 const FEW_SHOT_DATABASE = {
   "정치": [
-    { role: "user", content: "선택된 분야:\n정치\n\n정확하고 다양한 조항 번호와 공식 정치 관련 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해라. 조항 일부라도 모르면 깝치지 말고 내지 마라 ㅅㅂ." },
+    { role: "user", content: "선택된 분야:\n정치\n\n정확하고 다양한 조항 번호(헌법은 총 130개 조 중에서 한 문제마다 골고루 사용할것)와 공식 정치 관련 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해라. 조항 일부라도 모르면 깝치지 말고 내지 마라 ㅅㅂ." },
     {
       role: "assistant",
       content: JSON.stringify({
