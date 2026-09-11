@@ -1787,19 +1787,32 @@ async function fetchNewQuizData() {
                 }
 
                 if (itemFixed) {
-                    autoFixed = true;
+    // 자동수정으로 정답 텍스트가 변경된 경우
+    // choices에서 새 정답 위치를 다시 찾아 index 동기화
+       if (quiz.correctAnswerText) {
+        const newCorrectIndex = quiz.choices.findIndex(
+            choice => choice.trim() === quiz.correctAnswerText.trim()
+        );
 
-                    // 수정 성공 시 해당 문항의 이력에 기록
-                    history.push({ targetSnippet: target, suggestedFix: fix, reason });
-                    quizFixHistory.set(idx, history);
+        if (newCorrectIndex !== -1) {
+            quiz.correctAnswerIndex = newCorrectIndex;
+            quiz.correctAnswerText = quiz.choices[newCorrectIndex];
+            }
+        }
 
-                    console.log(
-                        `[AUTO-FIX] 🔧 ` +
-                        `[${idx + 1}번 문항] ` +
-                        `"${target}" -> "${fix}" ` +
-                        `자동 수정 완료`
-                    );
-                }
+        autoFixed = true;
+
+    // 수정 성공 시 해당 문항의 이력에 기록
+        history.push({ targetSnippet: target, suggestedFix: fix, reason });
+        quizFixHistory.set(idx, history);
+
+          console.log(
+          `[AUTO-FIX] 🔧 ` +
+          `[${idx + 1}번 문항] ` +
+          `"${target}" -> "${fix}" ` +
+          `자동 수정 완료`
+                 );
+               }
             }
 
             
