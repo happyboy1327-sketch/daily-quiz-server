@@ -622,7 +622,7 @@ async function harnessSyncArticleNumber(quiz) {
             }
 
             const candidateRegex = new RegExp(
-                `(?:(?:(?:([가-힣]{1,10}${lawSuffix})?\\s*제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?)|(?:(?:([가-힣]{1,10}${lawSuffix})?\\s*제\\s*(\\d+)\\s*항)))`,
+                `(?:(?:(?:([가-힣]{1,10}${lawSuffix})?\\s*제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?)|(?:(?:([가-힣]{1,10}${lawSuffix})?\\s*제\\s*(\\d+)\\s*항))))`,
                 'g'
             );
             const candidateMatches = [...text2.matchAll(candidateRegex)];
