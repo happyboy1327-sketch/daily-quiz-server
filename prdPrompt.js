@@ -147,7 +147,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
  */
 const FEW_SHOT_DATABASE = {
   "정치": [
-    { role: "user", content: "선택된 분야:\n정치\n\n정확한 조항 번호와 공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해라. 조항 일부라도 모르면 깝치지 말고 내지 마라 ㅅㅂ." },
+    { role: "user", content: "선택된 분야:\n정치\n\n정확하고 다양한 조항 번호와 공식 정치 관련 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해라. 조항 일부라도 모르면 깝치지 말고 내지 마라 ㅅㅂ." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -162,7 +162,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "역사": [
-    { role: "user", content: "선택된 분야:\n역사\n\n공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n역사\n\n다양한 공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -175,7 +175,7 @@ const FEW_SHOT_DATABASE = {
         correctAnswerText: "정중부"
       })
     },
-    { role: "user", content: "선택된 분야:\n역사\n\n공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n역사\n\n다양한 공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -190,7 +190,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "문화예술": [
-    { role: "user", content: "선택된 분야:\n문화예술\n\n공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n문화예술\n\n다양한 공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요. 한국뿐만이 아닌 전 세계의 문화예술을 소재로 출제합니다." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -205,7 +205,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "한글 맞춤법": [
-    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\njina.ai로 검색된 공식 자료와 조항 번호를 알맞게 사용하여 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요. 단, 조항 번호와 그 내용을 조금이라도 모르면 문제 자체를 내지 마 ㅅㅂ." },
+    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\njina.ai로 검색된 다양한 공식 자료와 다양한 조항 번호를 정확하게 사용하여 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요. 단, 조항 번호와 그 내용을 조금이라도 모르면 문제 자체를 내지 마 ㅅㅂ." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -235,7 +235,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "인권 리터러시": [
-    { role: "user", content: "선택된 분야:\n인권 리터러시\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n인권 리터러시\n\n다양한 공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -252,7 +252,7 @@ const FEW_SHOT_DATABASE = {
   "환경": [
     {
       role: "user",
-      content: "선택된 분야:\n환경\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요."
+      content: "선택된 분야:\n환경\n\n다양한 공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요."
     },
     {
       role: "assistant",
@@ -273,7 +273,7 @@ const FEW_SHOT_DATABASE = {
     },
     {
       role: "user",
-      content: "선택된 분야:\n환경\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요."
+      content: "선택된 분야:\n환경\n\n다양한 공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요."
     },
     {
       role: "assistant",
@@ -294,7 +294,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "과학": [
-    { role: "user", content: "선택된 분야:\n과학\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n과학\n\n다양한 공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -324,7 +324,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "안전 및 건강상식": [
-    { role: "user", content: "선택된 분야:안전 및 건강상식\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:안전 및 건강상식\n\n다양한 공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -357,7 +357,7 @@ const FEW_SHOT_DATABASE = {
         correctAnswerText: "기회비용"
       })
     },
-    { role: "user", content: "선택된 분야:\n경제\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n경제\n\n다양한 공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -372,7 +372,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "지리": [
-    { role: "user", content: "선택된 분야:\n지리\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n지리\n\n다양한 공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -387,7 +387,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "심리학": [
-    { role: "user", content: "선택된 분야:\n심리학\n\n공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n심리학\n\n다양한 공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -498,7 +498,7 @@ ${formattedPreviousList || "- 없음"}
 }
     ],
     temperature: 0.01, 
-    presence_penalty: 0.5,
+    presence_penalty: 0.55,
     frequency_penalty: 0.2,
     max_tokens: 1850
   };
