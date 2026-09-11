@@ -549,7 +549,7 @@ async function harnessSyncArticleNumber(quiz) {
             const topKeywords = [...queryCandidates].sort((a, b) => b.length - a.length).slice(0, 3);
             if (topKeywords.length === 0) continue;
 
-            await sleep(1200);
+            await sleep(1300);
 
             // ===== 1단계: 법률명 + 제몇조 제몇항 전체를 한 쿼리로 검색 후, 해설 키워드와 매트릭스 대조 =====
             const citation = target.standaloneParagraphNum
@@ -570,7 +570,7 @@ async function harnessSyncArticleNumber(quiz) {
                       Authorization: `Bearer ${RESERP_API_KEY}`,
                      'Content-Type': 'application/json'
                   },
-                 timeout: 11500
+                 timeout: 15500
                }
               );
              console.log('🐛 [디버그] RESERP 전체 응답:', JSON.stringify(res1.data, null, 2));
@@ -593,7 +593,7 @@ async function harnessSyncArticleNumber(quiz) {
     `⚠️ [1단계 불일치] 일치율 ${(score1 * 100).toFixed(1)}% ` +
     `(기준 ${(currentMatchThreshold * 100)}% 미만) → 2단계 올바른 조항 추적 시작...`
              );
-            await sleep(1200);
+            await sleep(1300);
 
             // ===== 2단계: 해설 속 키워드로 재검색, 검색결과 내 후보(법률명+조항)들을 매트릭스 대조하여 최적 후보 선정 =====
             const searchQuery = topKeywords.join(' ');
@@ -609,7 +609,7 @@ async function harnessSyncArticleNumber(quiz) {
                       Authorization: `Bearer ${RESERP_API_KEY}`,
                      'Content-Type': 'application/json'
                   },
-                 timeout: 11500
+                 timeout: 15500
                }
               );
                 console.log('🐛 [디버그] RESERP 전체 응답:', JSON.stringify(res2.data, null, 2));
