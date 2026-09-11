@@ -563,7 +563,7 @@ async function harnessSyncArticleNumber(quiz) {
              const res1 = await axios.post(
               'https://api.reserp.ai/v2/serp/search',
               {
-                url: `https://www.google.com/search?q=${encodeURIComponent(verifyQuery)}&gl=kr&hl=ko`
+                url: `https://www.google.com/search?q=${encodeURIComponent(`${verifyQuery} -site:namu.wiki`)}&gl=kr&hl=ko`
                },
               {
                   headers: {
@@ -602,7 +602,7 @@ async function harnessSyncArticleNumber(quiz) {
                 const res2 = await axios.post(
               'https://api.reserp.ai/v2/serp/search',
               {
-                url: `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}&gl=kr&hl=ko`
+                url: `https://www.google.com/search?q=${encodeURIComponent(`${searchQuery} -site:namu.wiki`)}&gl=kr&hl=ko`
                },
               {
                   headers: {
