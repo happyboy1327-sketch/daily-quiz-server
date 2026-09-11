@@ -440,7 +440,7 @@ async function harnessSyncArticleNumber(quiz) {
         const initialLawMatch = quiz.explanation.match(initialLawRegex);
         let anchorLaw = initialLawMatch ? initialLawMatch[1].replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '').trim() : (quiz.domain || '헌법');
 
-        const articleRegex = new RegExp(`(?:(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})\\s*)?제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?|제\\s*(\\d+)\\s*항`, 'g');
+        const articleRegex = new RegExp(`(?:(?:[^\\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})\\s*)?제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?|제\\s*(\\d+)\\s*항`,'g');
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) {
             console.log("ℹ️ [조항 없음] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
@@ -918,7 +918,8 @@ async function validateSingleQuiz(quiz) {
   Choices: '[조건을 만족하는 후보 1]' / '[조건을 만족하지 않는 후보 2]' / '[조건을 만족하지 않는 후보 3]' / '[조건을 만족하지 않는 후보 4]'
   Correct: '[조건을 만족하는 후보 1]'
 
- ### targetSnippet / suggestedFix 필수 규칙
+ ### reason, targetSnippet 및 suggestedFix 필수 규칙
+- reason은 190자 이내로 작성하시오.
 - targetSnippet은 실제 퀴즈 텍스트에 존재하는 오류 부분을 정확히 그대로 복사한다.
 - suggestedFix는 targetSnippet을 그대로 교체할 수 있는 최종 수정 문자열만 반환한다.
 - suggestedFix에는 절대로 설명, 이유, 지시문, 조항 설명, "정정해야 합니다", "수정하세요" 등의 문장을 포함하지 않는다.
@@ -945,7 +946,7 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
 
 {
   "valid": boolean, // 문제, 정답, 해설, 인용 조항이 완벽히 일치하면 true, 하나라도 틀리면 false
-  "reason": string, // 검증 결과 및 오류 원인에 대한 상세 설명
+  "reason": string, // 검증 결과 및 오류 원인에 대한 설명
   "errorType": string, // NONE | ARTICLE_MISMATCH | GRAMMAR_LOGIC_ERROR | SOURCE_ERROR | PREMISE_MISMATCH | MULTIPLE_CORRECT_ANSWERS | TYPO
   "targetSnippet": string | null, // 해설 내에서 문법적/사실적 오류가 발생한 정확한 문장/단어 (오류 없을 시 null)
   "suggestedFix": string | null // 정정되어야 할 올바른 표현 또는 조항 번호 (오류 없을 시 null)
@@ -960,7 +961,7 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
             }
         ],
         temperature: 0,
-        max_tokens: 1200
+        max_tokens: 1300
     };
 
     try {
