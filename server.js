@@ -1161,30 +1161,63 @@ function fetchJinaSpellingData() {
 }
 
 function isDuplicateQuiz(newQuiz, masterData) {
-  if (!newQuiz?.correctAnswerText || !Array.isArray(masterData)) return false;
-  const newAns = newQuiz.correctAnswerText.trim();
+  if (!newQuiz || !Array.isArray(masterData)) return false;
+
+  const newAns = (newQuiz.correctAnswerText || "").trim();
+  const newQuestion = (newQuiz.question || "").trim();
 
   return masterData.some(prev => {
-    const prevAns = (typeof prev === "string" ? prev : prev?.correctAnswerText || "").trim();
-    if (!prevAns) return false;
+    const prevAns = (
+      typeof prev === "string"
+        ? prev
+        : prev?.correctAnswerText || ""
+    ).trim();
 
-    // 1. 포함 관계 검사 (예: "지구 자전축" <-> "지구 자전축의 기울기")
-    if (prevAns.includes(newAns) || newAns.includes(prevAns)) {
+    const prevQuestion = (
+      typeof prev === "object"
+        ? prev?.question || ""
+        : ""
+    ).trim();
+
+    if (!prevAns && !prevQuestion) return false;
+
+    // 1. 정답/개념 포함 관계
+    if (
+      newAns &&
+      prevAns &&
+      (prevAns.includes(newAns) || newAns.includes(prevAns))
+    ) {
       return true;
     }
 
-    // 2. 주요 단어(2자 이상) 2개 이상 겹침 검사
-    const newKeywords = newAns.split(/\s+/).filter(w => w.length >= 2);
-    const prevKeywords = prevAns.split(/\s+/).filter(w => w.length >= 2);
+    // 2. 정답/개념 주요 단어 2개 이상 겹침
+    if (newAns && prevAns) {
+      const newKeywords = newAns.split(/\s+/).filter(w => w.length >= 2);
+      const prevKeywords = prevAns.split(/\s+/).filter(w => w.length >= 2);
 
-    const overlapCount = newKeywords.filter(word =>
-      prevKeywords.some(pWord => pWord.includes(word) || word.includes(pWord))
-    ).length;
+      const overlapCount = newKeywords.filter(word =>
+        prevKeywords.some(
+          pWord => pWord.includes(word) || word.includes(pWord)
+        )
+      ).length;
 
-    return overlapCount >= 2;
+      if (overlapCount >= 2) {
+        return true;
+      }
+    }
+
+    // 3. 질문이 거의 동일
+    if (
+      newQuestion &&
+      prevQuestion &&
+      newQuestion == prevQuestion
+    ) {
+      return true;
+    }
+
+    return false;
   });
 }
-
 // Node.js 실행 테스트
 
 async function fetchNewQuizData() {
