@@ -419,10 +419,7 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
     Math.random() < 0.8;
 
   if (shouldUseSpellingData) {
-  const selectedIndex = Math.min(
-  Math.floor(Math.random() * spellingData.length + Math.random() * 10),
-  spellingData.length - 1
-);
+  const selectedIndex = Math.floor(Math.random() * spellingData.length);
 
 const selectedSpelling = spellingData[selectedIndex];
   systemPrompt += `\n\n## Mandatory Spelling Reference Dataset
