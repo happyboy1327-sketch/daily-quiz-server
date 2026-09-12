@@ -377,7 +377,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "지리": [
-    { role: "user", content: "선택된 분야:\n지리\n\n다양한 공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n지리\n\n다양한 공식 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요. 한국뿐만이 아닌 전 세계의 모든 지리 내용을 소재로 출제합니다." },
     {
       role: "assistant",
       content: JSON.stringify({
