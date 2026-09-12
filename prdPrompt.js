@@ -507,9 +507,9 @@ ${formattedPreviousList || "- 없음"}
 }
     ],
     temperature: 0.01, 
-    presence_penalty: 0.55,
-    frequency_penalty: 0.2,
-    max_tokens: 1850
+    presence_penalty: 0.6,
+    frequency_penalty: 0.4,
+    max_tokens: 1900
   };
 }
 
