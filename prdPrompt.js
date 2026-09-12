@@ -419,14 +419,12 @@ function createQuizPayload(topic, spellingData = null, previousQuestions = []) {
     Math.random() < 0.8;
 
   if (shouldUseSpellingData) {
-  // 1단계: spellingData에서 배열 하나를 랜덤 선택
-  const selectedArray =
-    spellingData[Math.floor(Math.random() * spellingData.length)];
+  const selectedIndex = Math.min(
+  Math.floor(Math.random() * spellingData.length + Math.random() * 10),
+  spellingData.length - 1
+);
 
-  // 2단계: 선택된 배열 내부에서 항목 하나를 랜덤 선택
-  const selectedSpelling =
-    selectedArray[Math.floor(Math.random() * selectedArray.length)];
-
+const selectedSpelling = spellingData[selectedIndex];
   systemPrompt += `\n\n## Mandatory Spelling Reference Dataset
 When generating questions for "한글 맞춤법", you MUST strictly use the following dataset:
 ${JSON.stringify(selectedSpelling)}`;
