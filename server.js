@@ -1079,8 +1079,6 @@ function validateSpellingAnswer(quiz) {
 function fetchJinaSpellingData() {
     return new Promise((resolve) => {
         const url = 'https://r.jina.ai/https://korean.go.kr/kornorms/m/m_regltn.do?';
-        
-        // Jina AI에 HTML 구조를 유지해달라는 헤더 설정
         const options = {
             headers: {
                 'Authorization': `Bearer ${process.env.JINA_API_KEY}`,
@@ -1090,69 +1088,52 @@ function fetchJinaSpellingData() {
         };
 
         https.get(url, options, (res) => {
-    // 429 원인 확인용
-    if (res.statusCode === 429) {
-        let errorData = '';
+            if (res.statusCode === 429) {
+                let errorData = '';
+                res.on('data', chunk => errorData += chunk);
+                res.on('end', () => {
+                    console.error('[Jina 429]', { statusCode: res.statusCode, headers: res.headers, body: errorData });
+                    resolve(null);
+                });
+                return;
+            }
 
-        res.on('data', (chunk) => {
-            errorData += chunk;
-        });
-
-        res.on('end', () => {
-            console.error('[Jina 429]', {
-                statusCode: res.statusCode,
-                headers: res.headers,
-                body: errorData
-            });
-
-            resolve(null);
-        });
-
-        return;
-    }
-
-    let data = '';
-
-            res.on('data', (chunk) => { data += chunk; });
+            let data = '';
+            res.on('data', chunk => { data += chunk; });
 
             res.on('end', () => {
                 if (!data) return resolve(null);
 
                 const $ = cheerio.load(data);
-                
-                // 1. '제N항' 탐색 (Cheerio 객체 유지)
                 const ruleElements = $('h6').filter((_, el) => $(el).text().trim().match(/^제\s*\d+\s*항/));
                 if (ruleElements.length === 0) return resolve(null);
 
-                // 2. 무작위 1개 추출
-                const randomIndex = Math.floor(Math.random() * ruleElements.length);
-                const selectedRule = ruleElements.eq(randomIndex);
+                // 무작위 1개가 아니라 전체 규정을 배열로 수집
+                const allRules = [];
 
-                // 3. 텍스트 및 예시 추출
-                const ruleText = selectedRule.text().replace(/\s+/g, ' ').trim();
-                let exampleText = "";
-                
-                let nextSibling = selectedRule.closest('.black14_word').length 
-                    ? selectedRule.closest('.black14_word').next() 
-                    : selectedRule.next();
-                
-                while (nextSibling.length) {
-                    if (nextSibling.find('h6').length || nextSibling.hasClass('black14_word') || nextSibling.is('h4, h5')) {
-                        break;
-                    }
-                    if (nextSibling.hasClass('explnaArea')) {
+                ruleElements.each((_, el) => {
+                    const rule = $(el);
+                    const ruleText = rule.text().replace(/\s+/g, ' ').trim();
+                    let exampleText = '';
+
+                    let nextSibling = rule.closest('.black14_word').length
+                        ? rule.closest('.black14_word').next()
+                        : rule.next();
+
+                    while (nextSibling.length) {
+                        if (nextSibling.find('h6').length || nextSibling.hasClass('black14_word') || nextSibling.is('h4, h5')) break;
+                        if (nextSibling.hasClass('explnaArea')) { nextSibling = nextSibling.next(); continue; }
+                        if (nextSibling.hasClass('subList_ex')) {
+                            exampleText += nextSibling.text().replace(/\s+/g, ' ').trim() + '\n';
+                        }
                         nextSibling = nextSibling.next();
-                        continue;
                     }
-                    if (nextSibling.hasClass('subList_ex')) {
-                        exampleText += nextSibling.text().replace(/\s+/g, ' ').trim() + "\n";
-                    }
-                    nextSibling = nextSibling.next();
-                }
-                
-                resolve([`[${ruleText}]\n\n[예시]\n${exampleText.trim() || '예시 없음'}`]);
-            });
 
+                    allRules.push(`[${ruleText}]\n\n[예시]\n${exampleText.trim() || '예시 없음'}`);
+                });
+
+                resolve(allRules); // 이제 길이가 ruleElements.length 만큼 됨
+            });
         }).on('error', (err) => {
             console.error('[Jina] 수집 실패:', err.message);
             resolve(null);
