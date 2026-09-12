@@ -329,7 +329,7 @@
             try {
                 const history = getQuizHistory();
                 const historyParam = encodeURIComponent(JSON.stringify(history));
-                const quizRes = await fetch(`${QUIZ_API_URL}?history=${historyParam}`);
+                const quizRes = await fetch(`${QUIZ_API_URL}?t=${Date.now()}&history=${historyParam}`);
 
                 if (quizRes.status === 503 && retryCount < 2) {
                     setTimeout(() => {
