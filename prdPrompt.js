@@ -53,18 +53,20 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
   (B) a rule, permitted form, grammatical category, or orthographic condition.
 
 [A] CORRECT SPELLING / SPACING QUESTIONS:
-
+ 
 * The correct answer MUST be the one objectively correct standard form.
 * The 3 distractors MUST be objectively incorrect misspellings, spacing errors, phonetic spellings, or common typographical errors based on the target expression.
 * NEVER use another valid standard form, synonym, or grammatically correct alternative expression as a distractor.
-* Example 1:
-  Question: 다음 중 '할 수 있다'의 올바른 띄어쓰기는?
-  Choices: '할 수 있다' / '할수 있다' / '할 수있다' / '할수있다'
-  Correct: '할 수 있다'
-* Example 2:
-  Question: 다음 중 '며칠'의 올바른 표기는?
-  Choices: '며칠' / '몇일' / '몇칠' / '며츨'
-  Correct: '며칠'
+* Example 1 (FORMAT TEMPLATE ONLY):
+  Question: 다음 중 '[표준 표기 대상 어휘]'의 올바른 띄어쓰기는?
+  Choices: '[표준 표기]' / '[띄어쓰기 오류 있는 오표기 1]' / '[띄어쓰기 오류 있는 오표기 2]' / '[띄어쓰기 오류 있는 오표기 3]'
+  Correct: '[표준 표기]'
+* Example 2 (FORMAT TEMPLATE ONLY):
+  Question: 다음 중 '[표준 표기 대상 어휘]'의 올바른 표기는?
+  Choices: '[표준 표기]' / '[오표기 1]' / '[오표기 2]' / '[오표기 3]'
+  Correct: '[표준 표기]'
+ 
+***CRITICAL - DO NOT COPY THE EXAMPLES ABOVE***: The two examples above illustrate FORMAT ONLY (question/choices/answer structure). They are placeholders, NOT real content. You MUST NOT generate a question about '할 수 있다', '수' as a dependent noun, '며칠', or any bracketed placeholder text shown above. If a "Mandatory Spelling Reference Dataset" is provided below, you MUST base the actual question content strictly on that dataset instead.
 
 [B] RULE / PERMITTED-FORM / CATEGORY QUESTIONS:
 
@@ -101,9 +103,9 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ Avoid ambiguous relative descriptors (e.g., "short", "long") in explanations; use exact names, figures, and definitive facts instead.
 □ Do NOT include long statutory text dumps or detailed legal sub-clauses in the explanation. (Main article citations like "헌법 제70조" are permitted ONLY as sources).
 □ 오류 BEST 8(**절대로 실행하지 마시오.**):
-- ***헌법 제41조 제2항은 국회의원의 임기를 4년으로 정하는 조항이 절대(NEVER) 아닙니다. 헌법 제41조 제2항은 "국회의원의 수는 법률로 정하되, 200인 이상으로 한다"고 규정하고 있습니다. 국회의원 임기는 헌법 제42조에서 규정하고 있습니다.***
-- ***대통령 임기는 헌법 제70조에 따라 5년이며 중임할 수 없다고 나와있습니다.***
-- ***한글 맞춤법 제50항은 전문 용어의 띄어쓰기에 관한 규정이며, 의존 명사의 띄어쓰기는 제42항에 규정되어 있습니다.***
+- 헌법 제41조 제2항은 국회의원의 임기를 4년으로 정하는 조항이 절대(NEVER) 아닙니다. 헌법 제41조 제2항은 "국회의원의 수는 법률로 정하되, 200인 이상으로 한다"고 규정하고 있습니다. 국회의원 임기는 헌법 제42조에서 규정하고 있습니다.
+- 대통령 임기는 헌법 제70조에 따라 5년이며 중임할 수 없다고 나와있습니다.
+- 한글 맞춤법 제50항은 전문 용어의 띄어쓰기에 관한 규정이며, 의존 명사의 띄어쓰기는 제42항에 규정되어 있습니다.
 - ***한글 맞춤법 분야에서 정확한 조항 안에 교묘하게 다른 조항 내용을 섞는 행위***
 - **jina.ai에서 검색된 법령 조항이라는 이유만으로 임의로 불신하거나 다른 출처의 내용으로 바꿔 쓰는 행위**
 - ***대한민국(남한)에서 유역 면적이 가장 넓은 하천은 한강입니다.***
