@@ -1225,7 +1225,22 @@ async function fetchNewQuizData() {
 
                 if (topic === "한글 맞춤법") {
                     const fetchedData = await fetchJinaSpellingData();
-                    spellingParam = fetchedData || SPELLING_DATA;
+
+                    let normalized = fetchedData;
+                if (typeof normalized === 'string') {
+                try {
+                    normalized = JSON.parse(normalized);
+               } catch {
+                 normalized = normalized
+                .split('\n')
+                .map(line => line.trim())
+                .filter(Boolean);
+        }
+    }
+
+          spellingParam = (Array.isArray(normalized) && normalized.length > 0)
+        ? normalized
+        : SPELLING_DATA;
                 }
 
                 // 재시도마다 새로운 payload 생성
