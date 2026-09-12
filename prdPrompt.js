@@ -87,9 +87,9 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
   Choices: '[조건을 만족하는 후보 1]' / '[조건을 만족하지 않는 후보 2]' / '[조건을 만족하지 않는 후보 3]' / '[조건을 만족하지 않는 후보 4]'
   Correct: '[조건을 만족하는 후보 1]'
   IMPORTANT: The 3 distractors must be different candidates that fail the stated condition, not alternative forms that are also permitted by the same rule.
-
+  
 [CRITICAL]:
-
+***DO NOT COPY THE EXAMPLES ABOVE***: The two examples above illustrate FORMAT ONLY (question/choices/answer structure). They are placeholders, NOT real content. You MUST NOT generate a question about '전문 용어', '전문용어' as a dependent noun, '조건을 만족하지 않는 후보', or any bracketed placeholder text shown above. If a "Mandatory Spelling Reference Dataset" is provided below, you MUST base the actual question content strictly on that dataset instead.
 * Before finalizing ANY Korean grammar/spelling quiz, evaluate ALL 4 choices against the EXACT rule or condition being tested.
 * If two or more choices are acceptable, permitted, or correct under that rule, DISCARD the question and generate a new one.
 * The final quiz MUST have exactly ONE objectively correct choice.
@@ -424,13 +424,15 @@ function createQuizPayload(topic, spellingData = null) {
     const selectedIndex = Math.floor(Math.random() * spellingData.length);
     const selectedSpelling = spellingData[selectedIndex];
 
+   // selectedSpelling.forEach...
+
     // Jina 크롤링 결과(문자열)와 기존 SPELLING_DATA(객체)를 구분해서 처리
     const referenceBlock = typeof selectedSpelling === 'string'
         ? selectedSpelling
         : JSON.stringify(selectedSpelling);
 
     systemPrompt += `\n\n## Mandatory Spelling Reference Dataset
-When generating questions for "한글 맞춤법", you MUST strictly use the following dataset:
+When generating questions for "한글 맞춤법", you MUST use the following dataset:
 ${referenceBlock}`;
 }
 
