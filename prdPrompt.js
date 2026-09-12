@@ -421,12 +421,17 @@ function createQuizPayload(topic, spellingData = null) {
     Math.random() < 0.8;
 
   if (shouldUseSpellingData) {
-  const selectedIndex = Math.floor(Math.random() * spellingData.length);
+    const selectedIndex = Math.floor(Math.random() * spellingData.length);
+    const selectedSpelling = spellingData[selectedIndex];
 
-const selectedSpelling = spellingData[selectedIndex];
-  systemPrompt += `\n\n## Mandatory Spelling Reference Dataset
+    // Jina 크롤링 결과(문자열)와 기존 SPELLING_DATA(객체)를 구분해서 처리
+    const referenceBlock = typeof selectedSpelling === 'string'
+        ? selectedSpelling
+        : JSON.stringify(selectedSpelling);
+
+    systemPrompt += `\n\n## Mandatory Spelling Reference Dataset
 When generating questions for "한글 맞춤법", you MUST strictly use the following dataset:
-${JSON.stringify(selectedSpelling)}`;
+${referenceBlock}`;
 }
 
   const properties = {
@@ -503,7 +508,7 @@ ${topic}
 `
 }
     ],
-    temperature: 0.1, 
+    temperature: 0.15, 
     presence_penalty: 0.6,
     frequency_penalty: 0.5,
     max_tokens: 1900
