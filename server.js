@@ -369,6 +369,19 @@ function isDuplicateError(history, targetSnippet, suggestedFix, reason) {
 }
 
 
+function extractClauseAroundMatch(text, matchIndex, matchLength) {
+    const before = text.slice(0, matchIndex);
+    const after = text.slice(matchIndex + matchLength);
+    const start = Math.max(before.lastIndexOf(','), before.lastIndexOf('.')) + 1;
+    const endOffset = (() => {
+        const c = after.indexOf(',');
+        const p = after.indexOf('.');
+        const vals = [c, p].filter(v => v !== -1);
+        return vals.length ? Math.min(...vals) : after.length;
+    })();
+    return text.slice(start, matchIndex + matchLength + endOffset);
+}
+
 async function harnessSyncArticleNumber(quiz) {
     console.log("🔍 [시작] 조항 번호 동기화 로직 실행");
     if (!quiz || typeof quiz.explanation !== 'string') {
@@ -380,8 +393,8 @@ async function harnessSyncArticleNumber(quiz) {
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     // 1단계/2단계 판정 기준 일치율 (19%/45%)
-    const MATCH_THRESHOLD = 0.55;
-    const REPLACEMENT_THRESHOLD = 0.45;
+    const MATCH_THRESHOLD = 0.52;
+    const REPLACEMENT_THRESHOLD = 0.46;
 
 
     const cleanJosa = (word) => {
@@ -482,9 +495,7 @@ async function harnessSyncArticleNumber(quiz) {
                 seen.add(searchTargetKey);
                 const matchIndex = match.index;
                 const fullText = quiz.explanation;
-                const startPos = Math.max(0, matchIndex - 60);
-                const endPos = Math.min(fullText.length, matchIndex + match[0].length + 100);
-                const rawSnippet = fullText.slice(startPos, endPos).replace(match[0], '');
+                const rawSnippet = extractClauseAroundMatch(fullText, matchIndex, match[0].length).replace(match[0], '');
 
                 const keywords = rawSnippet
                     .replace(/[^가-힣0-9\s]/g, ' ')
