@@ -1185,8 +1185,8 @@ function isDuplicateQuiz(newQuiz, masterData) {
 
     // 2. 정답/개념 주요 단어 2개 이상 겹침
     if (newAns && prevAns) {
-      const newKeywords = newAns.split(/\s+/).filter(w => w.length >= 2);
-      const prevKeywords = prevAns.split(/\s+/).filter(w => w.length >= 2);
+      const newKeywords = newAns.split(/\s+/).filter(w => w.length >= 1);
+      const prevKeywords = prevAns.split(/\s+/).filter(w => w.length >= 1);
 
       const overlapCount = newKeywords.filter(word =>
         prevKeywords.some(
