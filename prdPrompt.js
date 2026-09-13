@@ -418,6 +418,7 @@ function createQuizPayload(topic, spellingData = null, ANSWER_HISTORY) {
   const randomSeed = Math.floor(Math.random() * 2147583640);
   const randomDirective = Math.random().toString(36).slice(2, 10);
 
+
   const shouldUseSpellingData =
     topic === "한글 맞춤법" &&
     Array.isArray(spellingData) &&
@@ -513,6 +514,7 @@ ${topic}
 ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반복하지 마십시오. 또한, systemPrompt와 FEW_SHOT_DATABASE에서 다뤄지지 않은 새로운 소재를 사용하십시오.
 
 출제 식별값: ${randomSeed}-${randomDirective}
+이전 문제 목록: ANSWER_HISTORY.slice(-14).map(entry => `- [${entry.topic}] ${entry.correctAnswerText}`)
 
 `
 }
