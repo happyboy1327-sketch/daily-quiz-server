@@ -415,7 +415,7 @@ function createQuizPayload(topic, spellingData = null, ANSWER_HISTORY) {
 
   let systemPrompt = PRD_SYSTEM_PROMPT;
 
-  const randomSeed = Math.floor(Math.random() * 2147483647);
+  const randomSeed = Math.floor(Math.random() * 2147583640);
   const randomDirective = Math.random().toString(36).slice(2, 10);
 
   const shouldUseSpellingData =
@@ -486,6 +486,7 @@ ${referenceBlock}`;
   
   return {
     model: MODEL_ID,
+    random_seed: randomSeed,
     response_format: {
       type: "json_schema",
       json_schema: {
