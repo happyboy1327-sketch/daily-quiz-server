@@ -486,7 +486,7 @@ ${referenceBlock}`;
   
   return {
     model: MODEL_ID,
-    random_seed: randomSeed,
+    seed: randomSeed,
     response_format: {
       type: "json_schema",
       json_schema: {
