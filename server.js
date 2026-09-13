@@ -394,7 +394,7 @@ async function harnessSyncArticleNumber(quiz) {
 
     // 1단계/2단계 판정 기준 일치율 (19%/45%)
     const MATCH_THRESHOLD = 0.52;
-    const REPLACEMENT_THRESHOLD = 0.46;
+    const REPLACEMENT_THRESHOLD = 0.72;
 
 
     const cleanJosa = (word) => {
