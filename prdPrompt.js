@@ -511,8 +511,8 @@ ${topic}
 `
 }
     ],
-    temperature: 0.15, 
-    presence_penalty: 0.8,
+    temperature: 0.18, 
+    presence_penalty: 1.0,
     frequency_penalty: 0.5,
     max_tokens: 1900
   };
