@@ -2017,7 +2017,9 @@ async function fetchNewQuizData() {
     // 👇 추가: 히스토리에는 누적만, 절대 덮어쓰지 않음
           ANSWER_HISTORY.push(...successfulQuizzes.map(q => ({
                topic: q.topic, 
+               explanation: q.explanation, 
                question: q.question,
+               choices: q.choices,
                correctAnswerText: q.correctAnswerText
         })));
        if (ANSWER_HISTORY.length > MAX_HISTORY) {
