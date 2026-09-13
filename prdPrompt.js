@@ -19,7 +19,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ NEVER use any key nouns, hints, titles, or core vocabulary from the answer inside the question prompt.
   - If the answer includes a work title or core term (e.g., "씨름"), use abstract nouns like "이 작품", "이 그림", "다음 사건" in the prompt instead.
 
-  - ❌ BAD: "1895년 명성황후가 시해된 을미사변의 발생 연도는?" (정답인 1895가 질문에 포함됨 - 절대 금지)
+  - ❌ BAD: "1895년 명성황후가 시해된 을미사변의 발생 연도는?" (정답인 '1895년'이 질문에 포함됨 - 절대 금지)
   - ⭕ GOOD: "명성황후가 시해된 '을미사변'이 발생한 연도는?"
 
   - ❌ BAD: "관형사 '웬'을 바르게 표기하여 사용한 단어는?" (정답 '웬'이 질문에 노출됨 - 절대 금지)
@@ -37,8 +37,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ When generating Geography questions using superlative terms (e.g., "largest", "longest", "1st"), do not combine metrics belonging to different entities (such as basin area vs. stream length) into a single contradictory premise.
 □ For Coding: Plain text code only. Markdown code blocks within JSON strings are strictly prohibited.
 □ [생성 금지 지침]
-- 단체/기관마다 기준 수치가 다른 문제(예: 적정 온도, 체온 수치, 권장 시간 등)는 절대로 출제하지 마십시오.
-- 어원, 표준어/비표준어, 명확한 고유명사, 역사적 사실 등 단 하나의 정답만 존재하는 배타적 팩트만 출제하십시오.
+- 단체/기관마다 기준 수치가 다른 문제(예: 적정 온도, 체온 수치, 권장 시간 등)는 절대로 출제하지 마십시오. 단 하나의 정답만 존재하는 배타적 팩트만 출제하십시오.
 
 ### 3. CHOICES AND CHARACTER SET CONSTRAINTS
 □ Exactly 4 choices, exactly 1 objectively correct answer.
