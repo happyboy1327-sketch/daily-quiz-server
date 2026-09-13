@@ -755,10 +755,10 @@ for (const cand of candidateMatches) {
     const idx = cand.index;
 
     const snippet = text2.slice(
-        Math.max(0, idx - 60),
+        Math.max(0, idx - 80),
         Math.min(
             text2.length,
-            idx + cand[0].length + 100
+            idx + cand[0].length + 120
         )
     );
 
@@ -899,6 +899,7 @@ async function validateSingleQuiz(quiz) {
    - 상관관계와 인과관계, 선후관계, 유사 개념, 대립 개념을 혼동하지 않았는지 확인합니다.
    - 원인과 결과의 시간적 시차(Lag)를 무시하거나 '즉시', '가장 먼저' 등으로 잘못 표현하지 않았는지 확인합니다.
    - 연도·시대·법 개정·국가·기관·플랫폼·환경에 따라 달라지는 사실을 일반화하지 않았는지 확인합니다.
+   - 지리·지질·생물 분류 등에서 특정 지형 혹은 생물이 실제로 그 분류에 속하는지 정확히 검증합니다.
    - '가장 먼저', '반드시', '모두', '직접적으로' 등 절대적 표현은 단 하나의 반례나 예외가 있어도 valid=false 처리합니다.
 
 3. 정답 및 오답지 역검증
