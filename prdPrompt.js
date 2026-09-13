@@ -208,7 +208,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "한글 맞춤법": [
-    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\njina.ai로 검색된 다양한 공식 자료와 다양한 조항 번호를 정확하게 사용하여 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요. 단, 조항 번호와 그 내용을 조금이라도 모르면 문제 자체를 내지 마 ㅅㅂ." },
+    { role: "user", content: "선택된 분야:\n한글 맞춤법\n\njina.ai로 검색된 다양한 공식 자료와 다양한 조항 번호를 정확하게 사용하여 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요. 단, 조항 번호와 그 내용을 조금이라도 모르면 문제 자체를 내지 마 ㅅㅂ. 한글 맞춤법은 N조가 아니라 N항이다 개새끼야." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -511,8 +511,8 @@ ${topic}
 `
 }
     ],
-    temperature: 0.18, 
-    presence_penalty: 1.0,
+    temperature: 0.15, 
+    presence_penalty: 0.9,
     frequency_penalty: 0.5,
     max_tokens: 1900
   };
