@@ -17,6 +17,11 @@ const cheerio = require('cheerio');
 const { createQuizPayload } = require('./prdPrompt');
 
 const app = express();
+
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
+});
+
 const UPSTAGE_API_KEY = process.env.UPSTAGE_API_KEY;
 
 const SERVER_START_TIME = Date.now();
