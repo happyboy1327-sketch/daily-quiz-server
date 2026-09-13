@@ -213,8 +213,8 @@ const FEW_SHOT_DATABASE = {
       role: "assistant",
       content: JSON.stringify({
         topic: "한글 맞춤법",
-        concept_summary: "한글 맞춤법 제 N항에 따라 '정답단어'가 올바른 표준어 표기입니다.",
-        explanation: "정답은 정답단어입니다. [출처/ 근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제N항] [조항 내용 없이 간단 설명].",
+        concept_summary: "한글 맞춤법 제N항에 따라 '정답단어'가 올바른 표준어 표기입니다.",
+        explanation: "정답은 정답 단어입니다. [출처/ 근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제N항] [조항 내용 없이 간단 설명].",
         question: "올바른 표기로 적절한 것은 무엇입니까?",
         choices: ["정답 단어", "오답 단어 1", "오답 단어 2", "오답 단어 3"],
         correctAnswerIndex: 0,
@@ -518,8 +518,8 @@ ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반�
     ],
     temperature: 0.15, 
     presence_penalty: 0.9,
-    frequency_penalty: 0.5,
-    max_tokens: 1900
+    frequency_penalty: 0.6,
+    max_tokens: 2000
   };
 }
 
