@@ -593,18 +593,56 @@ async function harnessSyncArticleNumber(quiz) {
             }
 
             const score1 = calculateMatchScore(target.keywords, text1);
-            console.log(`📊 [1단계 일치율] ${lawContext} ${target.targetName} → ${(score1 * 100).toFixed(1)}%`);
+console.log(
+    `📊 [1단계 키워드 일치율] ${lawContext} ${target.targetName} → ${(score1 * 100).toFixed(1)}%`
+);
 
-            if (score1 >= currentMatchThreshold) {
-                console.log(`✅ [1단계 통과] ${lawContext} ${target.targetName}는 존재하는 올바른 조항입니다. (일치율 ${(score1 * 100).toFixed(1)}%)`);
-                continue;
-            }
+// 조항 번호는 키워드 점수와 별도로 판정
+const hasExactArticle = text1.includes(
+    target.standaloneParagraphNum
+        ? `제${target.standaloneParagraphNum}항`
+        : target.paragraphNum
+            ? `제${target.articleNum}조 제${target.paragraphNum}항`
+            : `제${target.articleNum}조`
+);
 
-            console.warn(
-    `⚠️ [1단계 불일치] 일치율 ${(score1 * 100).toFixed(1)}% ` +
-    `(기준 ${(currentMatchThreshold * 100)}% 미만) → 2단계 올바른 조항 추적 시작...`
-             );
-            await sleep(1300);
+console.log(
+    `📜 [1단계 조항 존재 여부] ${lawContext} ${target.targetName} → ` +
+    `${hasExactArticle ? '확인됨' : '확인 안 됨'}`
+);
+
+// ① 조항 존재 여부
+// ② 해설 키워드 일치율
+// 두 조건을 별도로 판정한 뒤 둘 다 만족해야 1단계 통과
+if (hasExactArticle && score1 >= currentMatchThreshold) {
+    console.log(
+        `✅ [1단계 통과] ${lawContext} ${target.targetName} → ` +
+        `조항 확인 + 키워드 일치율 ${(score1 * 100).toFixed(1)}%`
+    );
+    continue;
+}
+
+if (!hasExactArticle) {
+    console.warn(
+        `⚠️ [1단계 조항 불일치] ${lawContext} ${target.targetName} ` +
+        `→ 검색 결과에서 해당 조항을 확인하지 못했습니다.`
+    );
+}
+
+if (score1 < currentMatchThreshold) {
+    console.warn(
+        `⚠️ [1단계 키워드 불일치] ${lawContext} ${target.targetName} ` +
+        `→ 일치율 ${(score1 * 100).toFixed(1)}% ` +
+        `(기준 ${(currentMatchThreshold * 100)}%)`
+    );
+}
+
+console.warn(
+    `⚠️ [1단계 불통과] ${lawContext} ${target.targetName} ` +
+    `→ 조항 존재 여부 또는 키워드 일치율 조건 미충족 → 2단계 진행`
+);
+
+await sleep(1300);
 
             // ===== 2단계: 해설 속 키워드로 재검색, 검색결과 내 후보(법률명+조항)들을 매트릭스 대조하여 최적 후보 선정 =====
             const searchQuery = topKeywords.join(' ');
