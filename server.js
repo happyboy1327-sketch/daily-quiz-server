@@ -958,6 +958,13 @@ async function validateSingleQuiz(quiz) {
    - 연도·시대·법 개정·국가·기관·플랫폼·환경에 따라 달라지는 사실을 일반화하지 않았는지 확인합니다. 특히, 연도의 숫자가 한 글자라도 실제 사실과 다르면 false 처리하여라.
    - 지리·지질·생물 분류 등에서 특정 지형 혹은 생물이 실제로 그 분류에 속하는지 정확히 검증합니다.
    - '가장 먼저', '반드시', '모두', '직접적으로' 등 절대적 표현은 단 하나의 반례나 예외가 있어도 valid=false 처리합니다.
+   
+2번 규칙 준수를 하지 못한 잘못된 검증 예시:
+{"valid": true, 
+"reason": "빅토리아 호는 동아프리카 지구대의 단층 작용으로 형성된 구조호이며 나일 강 수계의 주요 수원이라는 설명이 지리적으로 정확합니다. 선택지들도 서로 다른 호수로서 중복되지 않으며, 정답과 오답의 구분도 명확합니다.", //빅토리아 호는 단층 작용이 아닌 동부 열곡과 서부 열곡이 양쪽에서 솟아오르면서 가운데 땅이 사발 모양으로 완만하게 내려앉은 지각 뒤틀림 분지입니다.
+"errorType": "NONE",  
+"targetSnippet": null, 
+"suggestedFix": null}
 
 3. 정답 및 오답지 역검증
    - 정답이 실제로 타당한지 검증합니다.
@@ -990,7 +997,7 @@ async function validateSingleQuiz(quiz) {
   Correct: '[조건을 만족하는 후보 1]'
 
  ### reason, targetSnippet 및 suggestedFix 필수 규칙
-- reason은 190자 이내로 작성하시오.
+- reason은 230자 이내로 작성하시오.
 - targetSnippet은 실제 퀴즈 텍스트에 존재하는 오류 부분을 정확히 그대로 복사한다.
 - suggestedFix는 targetSnippet을 그대로 교체할 수 있는 최종 수정 문자열만 반환한다.
 - suggestedFix에는 절대로 설명, 이유, 지시문, 조항 설명, "정정해야 합니다", "수정하세요" 등의 문장을 포함하지 않는다.
@@ -1039,7 +1046,7 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
             }
         ],
         temperature: 0,
-        max_tokens: 1300
+        max_tokens: 1400
     };
 
     try {
