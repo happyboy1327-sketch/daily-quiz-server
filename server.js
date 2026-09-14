@@ -1935,9 +1935,17 @@ if (isDuplicateQuiz(quiz, duplicatePool)) {
                 }
 
                 if (!autoFixValidationFailed) {
-               validationPassed = true;
-               break;
-              }
+    for (const idx of invalidIndices) {
+        const quiz = successfulQuizzes[idx];
+
+        if (quiz) {
+            autoFixQuiz(quiz);
+        }
+    }
+
+    validationPassed = true;
+    break;
+}
 
                 // 자동수정 후 구조/정답이 깨졌다면
                 // 아래 재생성 로직으로 넘어간다.
