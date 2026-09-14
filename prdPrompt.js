@@ -540,9 +540,9 @@ ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반�
 }
     ],
     temperature: 0.185, 
-    presence_penalty: 0.9,
+    presence_penalty: 0.85,
     frequency_penalty: 0.7,
-    max_tokens: 2250
+    max_tokens: 2550
   };
 }
 
