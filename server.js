@@ -8,8 +8,6 @@ const https = require('https');
 //const SERPAPI_KEY = process.env.SERPAPI_KEY;
 const RESERP_API_KEY = process.env.RESERP_API_KEY;
 //import { HttpsProxyAgent } from 'https-proxy-agent';
-let ANSWER_HISTORY = [];   // 👈 새로 추가 - 절대 교체(=) 하지 않고 push만
-const MAX_HISTORY = 200;   // 무한정 커지지 않게 상한
 
 //const agent = new HttpsProxyAgent('http://168.63.76.32:3128');
 const cheerio = require('cheerio');
@@ -18,13 +16,7 @@ const { createQuizPayload } = require('./prdPrompt');
 
 const app = express();
 
-app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'OK',
-        historyCount: ANSWER_HISTORY.length,
-        quizCount: MASTER_QUIZ_DATA.length
-    });
-});
+
 
 const UPSTAGE_API_KEY = process.env.UPSTAGE_API_KEY;
 
@@ -1226,94 +1218,9 @@ console.log(
     });
 }
 
-function isDuplicateQuiz(newQuiz, masterData) {
-  if (!newQuiz || !Array.isArray(masterData)) return false;
 
-  const newAns = (newQuiz.correctAnswerText || "").trim();
-  const newQuestion = (newQuiz.question || "").trim();
+    
 
-  return masterData.some(prev => {
-    const prevAns = (
-      typeof prev === "string"
-        ? prev
-        : prev?.correctAnswerText || ""
-    ).trim();
-
-    const prevQuestion = (
-      typeof prev === "object"
-        ? prev?.question || ""
-        : ""
-    ).trim();
-
-    if (!prevAns && !prevQuestion) return false;
-
-    // 1. 정답/개념 포함 관계
-    if (
-      newAns &&
-      prevAns &&
-      (prevAns.includes(newAns) || newAns.includes(prevAns))
-    ) {
-      return true;
-    }
-
-    // 2. 정답/개념 주요 단어 2개 이상 겹침
-    if (newAns && prevAns) {
-      const newKeywords = newAns.split(/\s+/).filter(w => w.length >= 1);
-      const prevKeywords = prevAns.split(/\s+/).filter(w => w.length >= 1);
-
-      const overlapCount = newKeywords.filter(word =>
-        prevKeywords.some(
-          pWord => pWord.includes(word) || word.includes(pWord)
-        )
-      ).length;
-
-      if (overlapCount >= 2) {
-        return true;
-      }
-    }
-
-    // 3. 질문 핵심부 중복 검사
-if (newQuestion && prevQuestion) {
-  const getQuestionCore = (question) => {
-    // 쉼표가 있으면:
-    // 쉼표 앞 10글자 + 쉼표 뒤 16글자
-    if (question.includes(",")) {
-      const commaIndex = question.indexOf(",");
-
-      const beforeComma = question
-        .slice(0, commaIndex)
-        .replace(/\s+/g, "")
-        .slice(0, 10);
-
-      const afterComma = question
-        .slice(commaIndex + 1)
-        .replace(/\s+/g, "")
-        .slice(0, 16);
-
-      return beforeComma + afterComma;
-    }
-
-    // 쉼표가 없으면 앞에서부터 24글자
-    return question
-      .replace(/\s+/g, "")
-      .slice(0, 24);
-  };
-
-  const newCore = getQuestionCore(newQuestion);
-  const prevCore = getQuestionCore(prevQuestion);
-
-  // 핵심부가 서로 포함되면 중복
-  if (
-    newCore.includes(prevCore) ||
-    prevCore.includes(newCore)
-  ) {
-    return true;
-  }
-}
-
-    return false;
-  });
-}
 // Node.js 실행 테스트
 
 async function fetchNewQuizData() {
@@ -1362,7 +1269,7 @@ async function fetchNewQuizData() {
                 const payload = createQuizPayload(
                     topic,
                     spellingParam,
-                    ANSWER_HISTORY
+                    MASTER_QUIZ_DATA
                 );
 
                 console.log(
@@ -1550,18 +1457,10 @@ async function fetchNewQuizData() {
                 }
 
                 // ----------------------------------------------------
-                // 7. 중복 정답/개념 검증
+                // 7. 중복 정답/개념 검증(폐지)
                 // ----------------------------------------------------
-                const duplicatePool = [
-    ...(Array.isArray(MASTER_QUIZ_DATA) ? MASTER_QUIZ_DATA : []),
-    ...(Array.isArray(ANSWER_HISTORY) ? ANSWER_HISTORY : [])
-];
+                
 
-if (isDuplicateQuiz(quiz, duplicatePool)) {
-    throw new Error(
-        `중복된 정답/개념 감지: ${quiz.correctAnswerText}`
-    );
-}
 
                 // ----------------------------------------------------
                 // 8. 해설 접두사 정형화
@@ -2142,16 +2041,7 @@ if (isDuplicateQuiz(quiz, duplicatePool)) {
         }));
 
     // 👇 추가: 히스토리에는 누적만, 절대 덮어쓰지 않음
-          ANSWER_HISTORY.push(...successfulQuizzes.map(q => ({
-               topic: q.topic, 
-               explanation: q.explanation, 
-               question: q.question,
-               choices: q.choices,
-               correctAnswerText: q.correctAnswerText
-        })));
-       if (ANSWER_HISTORY.length > MAX_HISTORY) {
-            ANSWER_HISTORY = ANSWER_HISTORY.slice(-MAX_HISTORY);
-          }
+          
 
     LAST_FETCH_TIME = Date.now();
     LAST_TOPICS = [...selectedTopics];
