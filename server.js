@@ -1121,13 +1121,10 @@ if (
 }
 
     return result;
-}
-}
-
-return result;
     } catch (err) {
         return { valid: false, reason: `단일 문항 검증 통신 오류: ${err.message}` };
     }
+}
     
 async function validateQuizAccuracy(quizzes) {
     const results = new Array(quizzes.length);
