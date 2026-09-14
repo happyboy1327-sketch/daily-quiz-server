@@ -2176,12 +2176,17 @@ app.post('/api/quiz', async (req, res) => {
     const history = Array.isArray(req.body?.history) ? req.body.history : [];
     const seenQuestions = history.map(h => (h.question || '').trim()).filter(Boolean);
 
+    if (!isCacheExpired) {
+    // 1시간 캐시 중: 기존 문제를 그대로 프론트에 보여줌
+    finalList = [...MASTER_QUIZ_DATA];
+} else {
+    // 1시간 만료: 이때만 history와 중복되는 문제를 제거
     const filtered = MASTER_QUIZ_DATA.filter(q =>
-    !seenQuestions.some(seen =>
-        isSimilarText(q.question, seen, 0.5)
-    )
-);
-
+        !seenQuestions.some(seen =>
+            isSimilarText(q.question, seen, 0.5)
+        )
+    );
+        
    let finalList = [...filtered];
 
     if (
@@ -2239,6 +2244,7 @@ app.post('/api/quiz', async (req, res) => {
         ...q,
         token: encrypt(JSON.stringify({ id: q.id, correctAnswerIndex }))
     }));
+    
     return res.status(200).json(sanitized);
     });
 
