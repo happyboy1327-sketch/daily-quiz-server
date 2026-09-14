@@ -1284,13 +1284,13 @@ console.log(
 
 // Node.js 실행 테스트
 
-async function fetchNewQuizData() {
+async function fetchNewQuizData(requiredCount = 5, excludedQuestions = []) {
     if (!UPSTAGE_API_KEY) {
         console.error("[ERROR] UPSTAGE_API_KEY 환경변수가 설정되지 않았습니다.");
         return false;
     }
 
-    const selectedTopics = getSelectedTopics();
+    const selectedTopics = getSelectedTopics().slice(0, requiredCount);
 
     console.log(
         `[API] 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`
@@ -1328,13 +1328,19 @@ async function fetchNewQuizData() {
 
                 // 재시도마다 새로운 payload 생성
                 const payload = createQuizPayload(
-                    topic,
-                    spellingParam,
-                    MASTER_QUIZ_DATA.map(q => ({
-        question: q.question,
-        choices: q.choices
-    }))
-                );
+    topic,
+    spellingParam,
+    [
+        ...MASTER_QUIZ_DATA.map(q => ({
+            question: q.question,
+            choices: q.choices
+        })),
+        ...excludedQuestions.map(question => ({
+            question,
+            choices: []
+        }))
+    ]
+);
 
                 console.log(
                     `[${label}] ${topic} 생성 시도 (${attempt}/${MAX_TOPIC_RETRIES})`
@@ -2159,7 +2165,27 @@ app.post('/api/quiz', async (req, res) => {
     const filtered = MASTER_QUIZ_DATA.filter(q =>
         !seenQuestions.some(seen => isSimilarText(q.question, seen, 0.5))
     );
-    const finalList = filtered.length > 0 ? filtered : MASTER_QUIZ_DATA;
+    let finalList = filtered;
+
+if (filtered.length < 5) {
+    const neededCount = 5 - filtered.length;
+
+    await fetchNewQuizData(
+        neededCount,
+        seenQuestions
+    );
+
+    const regenerated = MASTER_QUIZ_DATA.filter(q =>
+        !seenQuestions.some(seen =>
+            isSimilarText(q.question, seen, 0.5)
+        )
+    );
+
+    finalList = [
+        ...filtered,
+        ...regenerated
+    ].slice(0, 5);
+}
 
     const sanitized = finalList.map(({ correctAnswerIndex, ...q }) => ({
         ...q,
