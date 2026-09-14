@@ -1026,7 +1026,8 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
   "reason": string, // 검증 결과 및 오류 원인에 대한 설명
   "errorType": string, // NONE | ARTICLE_MISMATCH | GRAMMAR_LOGIC_ERROR | SOURCE_ERROR | PREMISE_MISMATCH | MULTIPLE_CORRECT_ANSWERS | TYPO
   "targetSnippet": string | null, // 해설 내에서 문법적/사실적 오류가 발생한 정확한 문장/단어 (오류 없을 시 null)
-  "suggestedFix": string | null // 정정되어야 할 올바른 표현 또는 조항 번호 (오류 없을 시 null)
+  "suggestedFix": string | null // 정정되어야 할 올바른 표현 또는 조항 번호 (오류 없을 시 null),
+  "correctAnswerCandidates": string[] // 실제로 정답이 될 수 있는 모든 선택지
 }
 
 
@@ -1056,7 +1057,67 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
         console.log("[AI RAW RESPONSE]", JSON.stringify(rawText));
         
         const cleanJson = extractJsonFromText(rawText);
-        return JSON.parse(cleanJson);
+const result = JSON.parse(cleanJson);
+
+if (
+    result.valid === true &&
+    result.errorType === "NONE"
+) {
+    // 1. 정답 후보 개수 강제 검사
+    if (
+        Array.isArray(result.correctAnswerCandidates) &&
+        result.correctAnswerCandidates.length !== 1
+    ) {
+        return {
+            ...result,
+            valid: false,
+            errorType: result.correctAnswerCandidates.length > 1
+                ? "MULTIPLE_CORRECT_ANSWERS"
+                : "PREMISE_MISMATCH",
+            reason: `정답 후보가 ${result.correctAnswerCandidates.length}개로 확인되어 단일 정답 조건을 만족하지 않습니다.`,
+            targetSnippet: null,
+            suggestedFix: null
+        };
+    }
+
+    // 2. AI 검증 reason 자체의 자기모순 검사
+    if (typeof result.reason === "string") {
+        const reason = result.reason;
+
+        const contradictionPatterns = [
+            /다른 선택지.*?(?:올바른|정답|타당)/,
+            /나머지 선택지.*?(?:올바른|정답|타당)/,
+            /다른 보기.*?(?:올바른|정답|타당)/,
+            /나머지 보기.*?(?:올바른|정답|타당)/,
+            /(?:보아|막아|쉬어|피어).*?(?:올바른|정답)/,
+            /복수정답.*?(?:있|가능)/,
+            /복수의 정답.*?(?:있|가능)/,
+            /정답이 여러 개/,
+            /여러.*?정답/
+        ];
+
+        const hasContradiction = contradictionPatterns.some(pattern =>
+            pattern.test(reason)
+        );
+
+        if (hasContradiction) {
+            console.warn(
+                "[VALIDATOR GUARD] AI의 valid:true 자기모순 감지 → valid:false"
+            );
+
+            return {
+                ...result,
+                valid: false,
+                errorType: "MULTIPLE_CORRECT_ANSWERS",
+                reason: "검증 AI가 복수의 정답 가능성을 인정하면서 valid=true로 판정했습니다.",
+                targetSnippet: null,
+                suggestedFix: null
+            };
+        }
+    }
+}
+
+return result;
     } catch (err) {
         return { valid: false, reason: `단일 문항 검증 통신 오류: ${err.message}` };
     }
