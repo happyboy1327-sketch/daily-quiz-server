@@ -1502,11 +1502,16 @@ async function fetchNewQuizData() {
                 // ----------------------------------------------------
                 // 7. 중복 정답/개념 검증
                 // ----------------------------------------------------
-                if (!isDuplicateQuiz(quiz, ANSWER_HISTORY)) {
-                    throw new Error(
-                        `중복된 정답/개념 감지: ${quiz.correctAnswerText}`
-                    );
-                }
+                const duplicatePool = [
+    ...(Array.isArray(MASTER_QUIZ_DATA) ? MASTER_QUIZ_DATA : []),
+    ...(Array.isArray(ANSWER_HISTORY) ? ANSWER_HISTORY : [])
+];
+
+if (isDuplicateQuiz(quiz, duplicatePool)) {
+    throw new Error(
+        `중복된 정답/개념 감지: ${quiz.correctAnswerText}`
+    );
+}
 
                 // ----------------------------------------------------
                 // 8. 해설 접두사 정형화
