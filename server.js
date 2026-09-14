@@ -1252,14 +1252,44 @@ function isDuplicateQuiz(newQuiz, masterData) {
       }
     }
 
-    // 3. 질문이 거의 동일
-    if (
-      newQuestion &&
-      prevQuestion &&
-      newQuestion == prevQuestion
-    ) {
-      return true;
+    // 3. 질문 핵심부 중복 검사
+if (newQuestion && prevQuestion) {
+  const getQuestionCore = (question) => {
+    // 쉼표가 있으면:
+    // 쉼표 앞 10글자 + 쉼표 뒤 16글자
+    if (question.includes(",")) {
+      const commaIndex = question.indexOf(",");
+
+      const beforeComma = question
+        .slice(0, commaIndex)
+        .replace(/\s+/g, "")
+        .slice(0, 10);
+
+      const afterComma = question
+        .slice(commaIndex + 1)
+        .replace(/\s+/g, "")
+        .slice(0, 16);
+
+      return beforeComma + afterComma;
     }
+
+    // 쉼표가 없으면 앞에서부터 24글자
+    return question
+      .replace(/\s+/g, "")
+      .slice(0, 24);
+  };
+
+  const newCore = getQuestionCore(newQuestion);
+  const prevCore = getQuestionCore(prevQuestion);
+
+  // 핵심부가 서로 포함되면 중복
+  if (
+    newCore.includes(prevCore) ||
+    prevCore.includes(newCore)
+  ) {
+    return true;
+  }
+}
 
     return false;
   });
