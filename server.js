@@ -1401,7 +1401,7 @@ async function fetchNewQuizData() {
                     !quiz.question ||
                     !Array.isArray(quiz.choices) ||
                     !quiz.correctAnswerText ||
-                    typeof quiz.correctAnswerIndex !== "number" ||
+                    typeof quiz.correctAnswerIndex !== "integer" ||
                     !quiz.explanation
                 ) {
                     throw new Error("필수 필드 누락");
