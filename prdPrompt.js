@@ -437,7 +437,7 @@ function createQuizPayload(topic, spellingData = null, ANSWER_HISTORY) {
 
   let systemPrompt = PRD_SYSTEM_PROMPT;
 
-  const randomSeed = Math.floor(Math.random() * 2147583640);
+  const randomSeed = crypto.randomUUID();
   const randomDirective = Math.random().toString(36).slice(2, 10);
 
 
