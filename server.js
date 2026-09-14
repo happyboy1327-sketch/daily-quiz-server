@@ -1269,7 +1269,10 @@ async function fetchNewQuizData() {
                 const payload = createQuizPayload(
                     topic,
                     spellingParam,
-                    MASTER_QUIZ_DATA
+                    MASTER_QUIZ_DATA.map(q => ({
+        question: q.question,
+        choices: q.choices
+    }))
                 );
 
                 console.log(
