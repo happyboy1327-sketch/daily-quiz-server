@@ -1171,6 +1171,20 @@ function fetchJinaSpellingData() {
 
                 const $ = cheerio.load(data);
                 const ruleElements = $('h6').filter((_, el) => $(el).text().trim().match(/^제\s*\d+\s*항/));
+
+                console.log(
+    '[Jina 맞춤법] 발견된 항목:',
+    ruleElements
+        .map((_, el) =>
+            $(el).text().replace(/\s+/g, ' ').trim()
+        )
+        .get()
+);
+
+console.log(
+    '[Jina 맞춤법] 항목 개수:',
+    ruleElements.length
+);
                 if (ruleElements.length === 0) return resolve(null);
 
                 // 무작위 1개가 아니라 전체 규정을 배열로 수집
