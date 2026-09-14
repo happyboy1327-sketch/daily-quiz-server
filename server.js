@@ -2225,8 +2225,13 @@ let finalList = [...filtered];
     );
 
     }
+    LAST_FETCH_TIME = Date.now()
+    if (MASTER_QUIZ_DATA.length > 0 && (Date.now() - LAST_FETCH_TIME) <= ONE_HOUR) {
+        return;
+    }
 
-    return finalList;
+    fetchPromise = null;
+    
     const sanitized = finalList.map(({ correctAnswerIndex, ...q }) => ({
         ...q,
         token: encrypt(JSON.stringify({ id: q.id, correctAnswerIndex }))
