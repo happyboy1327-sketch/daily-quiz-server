@@ -33,6 +33,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
   - ⭕ RIGHT: 조선 제4대 왕인 세종대왕 재위 기간에 창제된 한국어의 독자적 문자 체계는?
 □ Scope, assumptions, units, and criteria must be explicit when relevant.
 □ Do not ask for obscure dates or numbers EXCEPT for verified fields like HISTORY, SCIENCE, MEDICINE, and PUBLIC GUIDELINES (e.g., food safety hours, intake intervals).
+□ 정치 분야에서, 헌법 조항 번호를 특정 몇 개에 편중하지 말고, 이미 사용된 조항과 다른 조항을 우선 선택하라. 정치 분야에서 가능한 경우 기본권, 국회, 정부, 대통령, 법원, 헌법재판소, 지방자치, 헌법기관 등 서로 다른 영역을 순환하여 출제하라.
 □ Avoid unresolved controversies, time-varying political facts, and dumping detailed legal statutory texts into the question body.
 □ When generating Geography questions using superlative terms (e.g., "largest", "longest", "1st"), do not combine metrics belonging to different entities (such as basin area vs. stream length) into a single contradictory premise.
 □ For Coding: Plain text code only. Markdown code blocks within JSON strings are strictly prohibited.
@@ -149,7 +150,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
  */
 const FEW_SHOT_DATABASE = {
   "정치": [
-    { role: "user", content: "선택된 분야:\n정치\n\n정확하고 다양한 조항 번호(헌법은 총 130개 조 중에서 한 문제마다 골고루 사용할것)와 공식 정치 관련 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해라. 조항 일부라도 모르면 깝치지 말고 내지 마라 ㅅㅂ." },
+    { role: "user", content: "선택된 분야:\n정치\n\n정확하고 다양한 조항 번호(헌법은 총 130개 조 전 범위에서 한 문제마다 골고루 사용할것, 다른 정치 법률도 포함)와 공식 정치 관련 자료를 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해라. 조항 일부라도 모르면 깝치지 말고 내지 마라 ㅅㅂ." },
     {
       role: "assistant",
       content: JSON.stringify({
