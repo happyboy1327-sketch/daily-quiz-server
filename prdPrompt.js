@@ -488,7 +488,9 @@ ${referenceBlock}`;
     "correctAnswerIndex",
     "correctAnswerText"
   ];
-
+  const presencePenalty =
+    Number((Math.floor(Math.random() * 16) + 75) / 100);
+  
   const matchedFewShot = FEW_SHOT_DATABASE[topic] || [];
 
   // 토픽이 "한글 맞춤법"일 때만 morpheme_check 스키마 동적 주입
@@ -540,7 +542,7 @@ ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반�
 }
     ],
     temperature: 0.185, 
-    presence_penalty: 0.85,
+    presence_penalty: presencePenalty,
     frequency_penalty: 0.7,
     max_tokens: 2550
   };
