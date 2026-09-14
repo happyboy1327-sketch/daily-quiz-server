@@ -1903,9 +1903,16 @@ if (isDuplicateQuiz(quiz, duplicatePool)) {
                 }
 
                 if (itemFixed) {
-    // 자동수정으로 정답 텍스트가 변경된 경우
-    // choices에서 새 정답 위치를 다시 찾아 index 동기화
-       if (quiz.correctAnswerText) {
+    // 자동수정된 내용이 보기에도 존재하면 보기 자체를 수정
+    quiz.choices = quiz.choices.map(choice => {
+        if (typeof choice === "string" && choice.includes(target)) {
+            return choice.replaceAll(target, fix);
+        }
+        return choice;
+    });
+
+    // 수정된 정답 텍스트를 choices에서 다시 찾아 index 동기화
+    if (quiz.correctAnswerText) {
         const newCorrectIndex = quiz.choices.findIndex(
             choice => choice.trim() === quiz.correctAnswerText.trim()
         );
@@ -1913,23 +1920,27 @@ if (isDuplicateQuiz(quiz, duplicatePool)) {
         if (newCorrectIndex !== -1) {
             quiz.correctAnswerIndex = newCorrectIndex;
             quiz.correctAnswerText = quiz.choices[newCorrectIndex];
-            }
         }
+    }
 
-        autoFixed = true;
+    autoFixed = true;
 
-    // 수정 성공 시 해당 문항의 이력에 기록
-        history.push({ targetSnippet: target, suggestedFix: fix, reason });
-        quizFixHistory.set(idx, history);
+    history.push({
+        targetSnippet: target,
+        suggestedFix: fix,
+        reason
+    });
 
-          console.log(
-          `[AUTO-FIX] 🔧 ` +
-          `[${idx + 1}번 문항] ` +
-          `"${target}" -> "${fix}" ` +
-          `자동 수정 완료`
-                 );
-               }
-            }
+    quizFixHistory.set(idx, history);
+
+    console.log(
+        `[AUTO-FIX] 🔧 ` +
+        `[${idx + 1}번 문항] ` +
+        `"${target}" -> "${fix}" ` +
+        `자동 수정 완료`
+    );
+}
+}
 
             
             // ----------------------------------------------------
