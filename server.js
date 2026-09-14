@@ -55,7 +55,7 @@ app.use((req, res, next) => {
     }
     
     res.set({
-        'Cache-Control': 'public, no-store, s-maxage=3600, stale-while-revalidate=59',
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=59',
         'Vary': 'Accept-Encoding'
     });
     next();
@@ -2158,7 +2158,17 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/api/quiz', async (req, res) => {
-    await ensureDataFreshness();
+    const now = Date.now();
+    const isCacheExpired = (now - LAST_FETCH_TIME) > ONE_HOUR;
+
+    if (isCacheExpired) {
+        await ensureDataFreshness();
+        LAST_FETCH_TIME = now;
+        console.log('[API] 🔄 캐시 만료 → 데이터 새로고침');
+    } else {
+        console.log('[API] ✅ 1시간 동안 캐싱 유지');
+    }
+    
     if (MASTER_QUIZ_DATA.length === 0) {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
@@ -2175,7 +2185,7 @@ app.post('/api/quiz', async (req, res) => {
    let finalList = [...filtered];
 
     if (
-        filtered.length < MASTER_QUIZ_DATA.length
+        filtered.length < MASTER_QUIZ_DATA.length && isCacheExpired
     ) {
     const duplicateCount =
         MASTER_QUIZ_DATA.length - filtered.length;
@@ -2222,7 +2232,7 @@ app.post('/api/quiz', async (req, res) => {
         `${regeneratedQuizzes.length}개 신규 생성 = ` +
         `${MASTER_QUIZ_DATA.length}개`
     );
-    LAST_FETCH_TIME= Date.now();    
+        
     }
     
     const sanitized = finalList.map(({ correctAnswerIndex, ...q }) => ({
