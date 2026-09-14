@@ -19,7 +19,11 @@ const { createQuizPayload } = require('./prdPrompt');
 const app = express();
 
 app.get('/health', (req, res) => {
-    res.status(200).send('OK');
+    res.status(200).json({
+        status: 'OK',
+        historyCount: ANSWER_HISTORY.length,
+        quizCount: MASTER_QUIZ_DATA.length
+    });
 });
 
 const UPSTAGE_API_KEY = process.env.UPSTAGE_API_KEY;
