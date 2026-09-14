@@ -996,10 +996,17 @@ async function validateSingleQuiz(quiz) {
 
 예시:
 
-잘못된 출력:
+잘못된 출력 1 :
 {
   "targetSnippet": "저작권법 제39조",
   "suggestedFix": "저작권법 제39조의2로 정정해야 합니다. 제39조는 공동저작물..."
+}
+
+잘못된 출력 2 :
+{
+  "valld": false, 
+  "targetSnippet": null,
+  "reason": "저작권법 제38조는 문제 내 근거로 타당합니다. 제38조는 저작인격권에... 출처는 약간 애매하나 문제에는 오류가 없습니다."
 }
 
 올바른 출력:
