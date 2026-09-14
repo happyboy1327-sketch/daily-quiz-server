@@ -1081,47 +1081,53 @@ if (
     }
 
     // 2. AI 검증 reason 자체의 자기모순 검사
-    if (typeof result.reason === "string") {
-        const reason = result.reason;
+    /**
+ * AI 검증 결과의 reason 문자열을 정교하게 분석하여
+ * 실제 복수정답 오류가 발생한 경우에만 valid: false로 변환합니다.
+ */
+    // 1. 이미 AI가 false로 판단한 경우 그대로 유
 
-        const contradictionPatterns = [
-            /다른 선택지.*?(?:올바른|정답|타당)/,
-            /나머지 선택지.*?(?:올바른|정답|타당)/,
-            /다른 보기.*?(?:올바른|정답|타당)/,
-            /나머지 보기.*?(?:올바른|정답|타당)/,
-            /(?:보아|막아|쉬어|피어).*?(?:올바른|정답)/,
-            /복수정답.*?(?:있|가능)/,
-            /복수의 정답.*?(?:있|가능)/,
-            /정답이 여러 개/,
-            /여러.*?정답/
-        ];
+    const reason = result.reason || '';
 
-        const hasContradiction = contradictionPatterns.some(pattern =>
-            pattern.test(reason)
-        );
+    // 2. 단일 정답임을 확정짓는 예외 문맥 (정상 처리 대상)
+    // - 뒤에 '검토했으나', '아닙니다', '하나뿐' 등이 붙는 부정/해소 표현
+    const safeContextPatterns = [
+        /검토했(?:으나|지만)/,
+        /정답이\s*아닙니다/,
+        /(?:유일하게|단\s*하나|1개뿐)/,
+        /정답은\s*하나/
+    ];
 
-        if (hasContradiction) {
-            console.warn(
-                "[VALIDATOR GUARD] AI의 valid:true 자기모순 감지 → valid:false"
-            );
+    const hasSafeContext = safeContextPatterns.some(pattern => pattern.test(reason));
 
-            return {
-                ...result,
-                valid: false,
-                errorType: "MULTIPLE_CORRECT_ANSWERS",
-                reason: "검증 AI가 복수의 정답 가능성을 인정하면서 valid=true로 판정했습니다.",
-                targetSnippet: null,
-                suggestedFix: null
-            };
-        }
+    // 3. 실제 복수정답 문제를 나타내는 명시적 긍정 패턴
+    const multipleAnswerPatterns = [
+        /두\s*선택지.*?(?:모두|다)\s*정답/,
+        /다른\s*선택지도.*?(?:타당|정답)/,
+        /복수\s*정답.*?(?:문제|가능성|발생|해석)/,
+        /정답이\s*(?:여러|두)\s*개/
+    ];
+
+    const hasMultipleAnswerIssue = multipleAnswerPatterns.some(pattern => pattern.test(reason));
+
+    // 4. 복수정답 패턴이 검출되었더라도, 이를 해소하는 문맥(safeContext)이 존재하면 valid: true 유지
+    if (hasMultipleAnswerIssue && !hasSafeContext) {
+        return {
+            ...result,
+            valid: false,
+            errorType: 'MULTIPLE_CORRECT_ANSWERS'
+        };
     }
+}
+
+    return result;
+}
 }
 
 return result;
     } catch (err) {
         return { valid: false, reason: `단일 문항 검증 통신 오류: ${err.message}` };
     }
-}
     
 async function validateQuizAccuracy(quizzes) {
     const results = new Array(quizzes.length);
