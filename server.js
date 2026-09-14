@@ -2163,29 +2163,58 @@ app.post('/api/quiz', async (req, res) => {
     const seenQuestions = history.map(h => (h.question || '').trim()).filter(Boolean);
 
     const filtered = MASTER_QUIZ_DATA.filter(q =>
-        !seenQuestions.some(seen => isSimilarText(q.question, seen, 0.5))
+    !seenQuestions.some(seen =>
+        isSimilarText(q.question, seen, 0.5)
+    )
+);
+
+let finalList = [...filtered];
+
+if (filtered.length < MASTER_QUIZ_DATA.length) {
+    const duplicateCount =
+        MASTER_QUIZ_DATA.length - filtered.length;
+
+    console.log(
+        `[API] 🔄 중복 문제 ${duplicateCount}개 영구 제거 → ` +
+        `동일 개수만큼 새 문제 생성`
     );
-    let finalList = filtered;    
 
-if (filtered.length < 5) {
-    console.log("중복 문제 감지, 부족한 문제 수만큼 재생성  중");
-    const neededCount = 5 - filtered.length;
+    // 중복되지 않은 기존 문제는 보존한다.
+    const retainedQuizzes = [...filtered];
 
+    // 새 문제 생성 시 기존에 남겨둘 문제들을
+    // MASTER_QUIZ_DATA에 그대로 둬야 createQuizPayload()가
+    // 이 문제들을 중복 방지 대상으로 사용할 수 있다.
+    MASTER_QUIZ_DATA = [...retainedQuizzes];
+
+    // 중복으로 삭제된 개수만큼 정확히 생성한다.
     await fetchNewQuizData(
-        neededCount,
+        duplicateCount,
         seenQuestions
     );
 
-    const regenerated = MASTER_QUIZ_DATA.filter(q =>
+    // fetchNewQuizData()가 MASTER_QUIZ_DATA를 새 생성 결과로
+    // 덮어쓰므로, 기존 보존 문제와 새 문제를 다시 합친다.
+    const regeneratedQuizzes = [...MASTER_QUIZ_DATA];
+
+    MASTER_QUIZ_DATA = [
+        ...retainedQuizzes,
+        ...regeneratedQuizzes
+    ];
+
+    // 새로 생성된 문제까지 history와 중복되는 경우를 방지
+    finalList = MASTER_QUIZ_DATA.filter(q =>
         !seenQuestions.some(seen =>
             isSimilarText(q.question, seen, 0.5)
         )
-    );
+    ).slice(0, 5);
 
-    finalList = [
-        ...filtered,
-        ...regenerated
-    ].slice(0, 5);
+    console.log(
+        `[API] ✅ 중복 제거 및 재생성 완료: ` +
+        `${retainedQuizzes.length}개 기존 유지 + ` +
+        `${regeneratedQuizzes.length}개 신규 생성 = ` +
+        `${MASTER_QUIZ_DATA.length}개`
+    );
 }
 
     const sanitized = finalList.map(({ correctAnswerIndex, ...q }) => ({
