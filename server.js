@@ -1502,7 +1502,7 @@ async function fetchNewQuizData() {
                 // ----------------------------------------------------
                 // 7. 중복 정답/개념 검증
                 // ----------------------------------------------------
-                if (isDuplicateQuiz(quiz, ANSWER_HISTORY)) {
+                if (!isDuplicateQuiz(quiz, ANSWER_HISTORY)) {
                     throw new Error(
                         `중복된 정답/개념 감지: ${quiz.correctAnswerText}`
                     );
