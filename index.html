@@ -307,7 +307,7 @@
             loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중...";
 
             try {
-                const quizRes = await fetch(`${QUIZ_API_URL}?t=${Date.now()}`);
+                const quizRes = await fetch(`${QUIZ_API_URL}?v=${crypto.randomUUID()}`);
 
                 if (quizRes.status === 503 && retryCount < 2) {
                     setTimeout(() => {
