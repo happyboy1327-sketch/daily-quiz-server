@@ -535,7 +535,7 @@ ${topic}
 ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반복하지 마십시오. 또한, systemPrompt와 FEW_SHOT_DATABASE에서 다뤄지지 않은 새로운 소재를 사용하십시오.
 
 출제 식별값: ${randomOID}-${randomDirective}
-이전 문제 목록: ${ANSWER_HISTORY}
+이전 문제 목록: ${JSON.stringify(ANSWER_HISTORY)}
 `
 }
     ],
