@@ -2147,7 +2147,7 @@ async function ensureDataFreshness() {
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/quiz', async (req, res) => {
+app.post('/api/quiz', async (req, res) => {
     await ensureDataFreshness();
     if (MASTER_QUIZ_DATA.length === 0) {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
