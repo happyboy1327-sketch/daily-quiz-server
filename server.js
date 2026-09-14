@@ -2165,9 +2165,10 @@ app.post('/api/quiz', async (req, res) => {
     const filtered = MASTER_QUIZ_DATA.filter(q =>
         !seenQuestions.some(seen => isSimilarText(q.question, seen, 0.5))
     );
-    let finalList = filtered;
+    let finalList = filtered;    
 
 if (filtered.length < 5) {
+    console.log("중복 문제 감지, 부족한 문제 수만큼 재생성  중");
     const neededCount = 5 - filtered.length;
 
     await fetchNewQuizData(
