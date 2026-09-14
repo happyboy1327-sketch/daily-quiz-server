@@ -2174,7 +2174,10 @@ app.post('/api/quiz', async (req, res) => {
 
 let finalList = [...filtered];
 
-if (filtered.length < MASTER_QUIZ_DATA.length) {
+    if (
+        filtered.length < MASTER_QUIZ_DATA.length &&
+        (Date.now() - LAST_FETCH_TIME) > ONE_HOUR
+    ) {
     const duplicateCount =
         MASTER_QUIZ_DATA.length - filtered.length;
 
@@ -2197,7 +2200,6 @@ if (filtered.length < MASTER_QUIZ_DATA.length) {
         seenQuestions
     );
 
-    LAST_FETCH_TIME = Date.now();
 
     // fetchNewQuizData()가 MASTER_QUIZ_DATA를 새 생성 결과로
     // 덮어쓰므로, 기존 보존 문제와 새 문제를 다시 합친다.
