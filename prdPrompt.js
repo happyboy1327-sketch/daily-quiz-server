@@ -489,7 +489,7 @@ ${referenceBlock}`;
     "correctAnswerText"
   ];
   const presencePenalty =
-    Number((Math.floor(Math.random() * 16) + 75) / 100);
+    Number((Math.floor(Math.random() * 16) + 80) / 100);
   
   const matchedFewShot = FEW_SHOT_DATABASE[topic] || [];
 
