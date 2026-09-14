@@ -1095,7 +1095,8 @@ if (
         /검토했(?:으나|지만)/,
         /정답이\s*아닙니다/,
         /(?:유일하게|단\s*하나|1개뿐)/,
-        /정답은\s*하나/
+        /정답은\s*하나/,
+        /가능성이\s*없(?:습니다|으며|고)/     
     ];
 
     const hasSafeContext = safeContextPatterns.some(pattern => pattern.test(reason));
