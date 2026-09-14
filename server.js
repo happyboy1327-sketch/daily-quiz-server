@@ -2159,6 +2159,7 @@ app.use(express.json());
 
 app.post('/api/quiz', async (req, res) => {
     await ensureDataFreshness();
+    
     if (MASTER_QUIZ_DATA.length === 0) {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
@@ -2175,8 +2176,7 @@ app.post('/api/quiz', async (req, res) => {
 let finalList = [...filtered];
 
     if (
-        filtered.length < MASTER_QUIZ_DATA.length &&
-        (Date.now() - LAST_FETCH_TIME) > ONE_HOUR
+        filtered.length < MASTER_QUIZ_DATA.length
     ) {
     const duplicateCount =
         MASTER_QUIZ_DATA.length - filtered.length;
@@ -2223,14 +2223,16 @@ let finalList = [...filtered];
         `${regeneratedQuizzes.length}개 신규 생성 = ` +
         `${MASTER_QUIZ_DATA.length}개`
     );
-}
 
+    }
+
+    return finalList;
     const sanitized = finalList.map(({ correctAnswerIndex, ...q }) => ({
         ...q,
         token: encrypt(JSON.stringify({ id: q.id, correctAnswerIndex }))
     }));
     return res.status(200).json(sanitized);
-});
+    });
 
 app.get('/api/answer-key', async (req, res) => {
     const tokenInput = req.query.tokens || req.query.token || req.headers['x-quiz-token'];
