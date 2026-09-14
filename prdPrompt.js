@@ -437,7 +437,7 @@ function createQuizPayload(topic, spellingData = null, ANSWER_HISTORY) {
 
   let systemPrompt = PRD_SYSTEM_PROMPT;
 
-  const randomSeed = crypto.randomUUID();
+  const randomOID = crypto.randomUUID();
   const randomDirective = Math.random().toString(36).slice(2, 10);
 
 
@@ -509,7 +509,6 @@ ${referenceBlock}`;
   
   return {
     model: MODEL_ID,
-    seed: randomSeed,
     response_format: {
       type: "json_schema",
       json_schema: {
@@ -535,8 +534,8 @@ ${topic}
 이미 출제된 목록과 동일하거나 유사한 문제는 절대 출제하지 말고, 다양한 세부 주제와 사실을 선택하십시오.
 ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반복하지 마십시오. 또한, systemPrompt와 FEW_SHOT_DATABASE에서 다뤄지지 않은 새로운 소재를 사용하십시오.
 
-출제 식별값: ${randomSeed}-${randomDirective}
-이전 문제 목록: ANSWER_HISTORY
+출제 식별값: ${randomOID}-${randomDirective}
+이전 문제 목록: ${ANSWER_HISTORY}
 `
 }
     ],
