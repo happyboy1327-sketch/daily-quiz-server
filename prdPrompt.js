@@ -1,4 +1,4 @@
-const MODEL_ID = "solar-pro4";//추후 Exa 검색기반 퀴즈로 바꿀 예정.
+const MODEL_ID = "solar-pro3";//추후 Exa 검색기반 퀴즈로 바꿀 예정.
 
 const PRD_SYSTEM_PROMPT = `
 You MUST generate 100% fact-checked, diverse Korean general knowledge quizzes across a wide range of completely non-overlapping domains based on South Korean context, 
@@ -236,7 +236,7 @@ const FEW_SHOT_DATABASE = {
       content: JSON.stringify({
         topic: "한글 맞춤법",
         concept_summary: "한글 맞춤법 제N항에 따라 '정답단어'가 올바른 표준어 표기입니다.",
-        explanation: "정답은 정답 단어입니다. [출처/ 근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제N항] [조항 내용 없이 간단 설명].",
+        explanation: "정답은 정답 단어입니다. [출처/ 근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?regltn_code=0001#a)/ 한글 맞춤법 제N항] [조항 내용 없이 간단 설명].",
         question: "올바른 표기로 적절한 것은 무엇입니까?",
         choices: ["정답 단어", "오답 단어 1", "오답 단어 2", "오답 단어 3"],
         correctAnswerIndex: 0,
