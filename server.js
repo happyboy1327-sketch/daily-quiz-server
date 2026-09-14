@@ -2153,7 +2153,15 @@ app.get('/api/quiz', async (req, res) => {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
     
-    const sanitized = MASTER_QUIZ_DATA.map(({ correctAnswerIndex, ...q }) => ({
+    const history = Array.isArray(req.body?.history) ? req.body.history : [];
+    const seenQuestions = history.map(h => (h.question || '').trim()).filter(Boolean);
+
+    const filtered = MASTER_QUIZ_DATA.filter(q =>
+        !seenQuestions.some(seen => isSimilarText(q.question, seen, 0.5))
+    );
+    const finalList = filtered.length > 0 ? filtered : MASTER_QUIZ_DATA;
+
+    const sanitized = finalList.map(({ correctAnswerIndex, ...q }) => ({
         ...q,
         token: encrypt(JSON.stringify({ id: q.id, correctAnswerIndex }))
     }));
