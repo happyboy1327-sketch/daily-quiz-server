@@ -187,7 +187,7 @@ const FEW_SHOT_DATABASE = {
     }
   ],
   "역사": [
-    { role: "user", content: "선택된 분야:\n역사\n\n다양한 공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n역사\n\n다양한 공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요. 한국사 내 모든 시기를 소재로 출제하시오." },
     {
       role: "assistant",
       content: JSON.stringify({
@@ -200,7 +200,7 @@ const FEW_SHOT_DATABASE = {
         correctAnswerText: "정중부"
       })
     },
-    { role: "user", content: "선택된 분야:\n역사\n\n다양한 공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요." },
+    { role: "user", content: "선택된 분야:\n역사\n\n다양한 공식 자료와 문헌을 바탕으로 위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요. 세계사 내 모든 시기를 소재로 출제하시오." },
     {
       role: "assistant",
       content: JSON.stringify({
