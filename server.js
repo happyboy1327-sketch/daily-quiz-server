@@ -963,11 +963,11 @@ async function validateSingleQuiz(quiz) {
 
 4. 비판적 심문(Red Teaming)
    - 출제자의 의도와 관계없이 문제·보기·정답·해설·출처를 공격적으로 검토하여 반례와 허점을 찾습니다.
+   - 한글 맞춤법의 경우, 기본형은 절대 중요하지 않고, 조항의 논리와 일치만 한다면 무조건 True 처리합니다.
    - [논점 일탈(Goalpost Shifting) 검증] 해설(조항 포함)이 문제의 정확한 전제를 직접 증명하고 있는지 확인하십시오. 논점 일탈 주의: 문제에서 "X는 언제 시작되었는가?"를 묻는데 해설이 "X는 언제 감소했는가?"를 설명하는 등, 질문의 본질과 다른 내용을 증명하고 있다면 즉시 false 처리하십시오.
 
-5. 실제로 올바른 문항(필수 검증 절차의 1.~4.를 모두 통과)인데 억지로 틀렸다고 검증하는 것을 금지한다. 
 
-6. 문제 및 선택지 중복 확인
+5. 문제 및 선택지 중복 확인
    - 문장 표현이 달라도 정답 단어가 동일하거나 묻고자 하는 핵심 팩트와 보기 구성이 같은 경우 중복(false)으로 처리한다.
    - The choices must represent genuinely different candidates, not merely different spellings of the same candidate. you must apply this example. If not, REJECT(valid: false).
    - 규정상 허용되는 다른 표기나 변형을 같은 대상의 선택지로 포함하여 복수 정답이 될 수 있는 경우 REJECT(valid: false).
