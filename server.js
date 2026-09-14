@@ -1143,7 +1143,7 @@ function validateSpellingAnswer(quiz) {
 
 function fetchJinaSpellingData() {
     return new Promise((resolve) => {
-        const url = 'https://r.jina.ai/https://korean.go.kr/kornorms/m/m_regltn.do?';
+        const url = 'https://r.jina.ai/https://korean.go.kr/kornorms/m/m_regltn.do?regltn_code=0001#a';
         const options = {
             headers: {
                 'Authorization': `Bearer ${process.env.JINA_API_KEY}`,
