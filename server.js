@@ -1143,53 +1143,26 @@ function validateSpellingAnswer(quiz) {
 
 function fetchJinaSpellingData() {
     return new Promise((resolve) => {
-        const url = 'https://r.jina.ai/https://korean.go.kr/kornorms/m/m_regltn.do?regltn_code=0001#a';
+        // Jina 프록시(https://r.jina.ai/) 제거하고 원본 URL로 직접 요청
+        const url = 'https://korean.go.kr/kornorms/m/m_regltn.do?regltn_code=0001';
         const options = {
             headers: {
-                'Authorization': `Bearer ${process.env.JINA_API_KEY}`,
-                'Accept': 'text/html',
-                'X-Return-Format': 'html'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
             }
         };
 
         https.get(url, options, (res) => {
-            if (res.statusCode === 429) {
-                let errorData = '';
-                res.on('data', chunk => errorData += chunk);
-                res.on('end', () => {
-                    console.error('[Jina 429]', { statusCode: res.statusCode, headers: res.headers, body: errorData });
-                    resolve(null);
-                });
-                return;
-            }
-
             let data = '';
             res.on('data', chunk => { data += chunk; });
-
             res.on('end', () => {
                 if (!data) return resolve(null);
 
                 const $ = cheerio.load(data);
                 const ruleElements = $('h6').filter((_, el) => $(el).text().trim().match(/^제\s*\d+\s*항/));
 
-                console.log(
-    '[Jina 맞춤법] 발견된 항목:',
-    ruleElements
-        .map((_, el) =>
-            $(el).text().replace(/\s+/g, ' ').trim()
-        )
-        .get()
-);
-
-console.log(
-    '[Jina 맞춤법] 항목 개수:',
-    ruleElements.length
-);
                 if (ruleElements.length === 0) return resolve(null);
 
-                // 무작위 1개가 아니라 전체 규정을 배열로 수집
                 const allRules = [];
-
                 ruleElements.each((_, el) => {
                     const rule = $(el);
                     const ruleText = rule.text().replace(/\s+/g, ' ').trim();
@@ -1211,10 +1184,10 @@ console.log(
                     allRules.push(`[${ruleText}]\n\n[예시]\n${exampleText.trim() || '예시 없음'}`);
                 });
 
-                resolve(allRules); // 이제 길이가 ruleElements.length 만큼 됨
+                resolve(allRules);
             });
         }).on('error', (err) => {
-            console.error('[Jina] 수집 실패:', err.message);
+            console.error('[수집 실패]', err.message);
             resolve(null);
         });
     });
