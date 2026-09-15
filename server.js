@@ -1299,13 +1299,17 @@ console.log(
 
 // Node.js 실행 테스트
 
-async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], excludedAnswers = []) {
+async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], excludedAnswers = [], isSupplement = false) {
     if (!UPSTAGE_API_KEY) {
         console.error("[ERROR] UPSTAGE_API_KEY 환경변수가 설정되지 않았습니다.");
         return false;
     }
 
     const selectedTopics = getSelectedTopics().slice(0, requiredCount);
+
+    if (!isSupplement) {
+    LAST_FETCH_TIME = Date.now();
+}
 
     console.log(
         `[API] 퀴즈 생성 요청 중... (분야: ${selectedTopics.join(', ')})`
@@ -2132,10 +2136,6 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
     // 👇 추가: 히스토리에는 누적만, 절대 덮어쓰지 않음
           
 
-    LAST_FETCH_TIME = Date.now();
-    console.log(
-    `[CACHE DEBUG] LAST_FETCH_TIME 갱신: ${new Date(LAST_FETCH_TIME).toISOString()}`
-);
     LAST_TOPICS = [...selectedTopics];
 
     console.log(
@@ -2216,7 +2216,7 @@ const filtered = MASTER_QUIZ_DATA.filter(q =>
 if (!isCacheExpired) {
     // 1시간 캐시 중: 기존 문제를 그대로 프론트에 보여줌
     finalList = [...MASTER_QUIZ_DATA];
-    console.log('[API] ✅ 1시간 동안 캐싱 유지됩니다만..');
+    console.log('[API] ✅ 1시간 동안 캐싱 유지될지 과연..?');
 } else {
     // 1시간 만료: history 중복 제거 결과를 사용
     finalList = [...filtered];
@@ -2245,7 +2245,8 @@ if (!isCacheExpired) {
     await fetchNewQuizData(
         duplicateCount,
         seenQuestions,
-        seenAnswers
+        seenAnswers,
+        true
     );
 
 
