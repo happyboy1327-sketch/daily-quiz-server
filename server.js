@@ -2186,6 +2186,7 @@ app.post('/api/quiz', async (req, res) => {
             isSimilarText(q.question, seen, 0.5)
         )
     );
+    }
         
    let finalList = [...filtered];
 
