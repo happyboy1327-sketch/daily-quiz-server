@@ -322,7 +322,7 @@ function autoFixQuiz(quiz) {
 }
 
 // 두 텍스트 간 부분 포함 관계 및 Bigram 유사도(Jaccard Index) 검사
-function isSimilarText(str1, str2, threshold = 0.33) {
+function isSimilarText(str1, str2, threshold = 0.36) {
     if (!str1 || !str2) return false;
     const s1 = str1.trim();
     const s2 = str2.trim();
@@ -2188,7 +2188,7 @@ app.post('/api/quiz', async (req, res) => {
 
     const filtered = MASTER_QUIZ_DATA.filter(q =>
         !seenQuestions.some(seen =>
-            isSimilarText(q.question, seen, 0.5)
+            isSimilarText(q.question, seen, 0.32)
         )
     );
 
@@ -2246,7 +2246,7 @@ if (!isCacheExpired) {
     // 새로 생성된 문제까지 history와 중복되는 경우를 방지
     finalList = MASTER_QUIZ_DATA.filter(q =>
         !seenQuestions.some(seen =>
-            isSimilarText(q.question, seen, 0.5)
+            isSimilarText(q.question, seen, 0.40)
         )
     ).slice(0, 5);
 
