@@ -2238,6 +2238,11 @@ if (!isCacheExpired) {
         ...regeneratedQuizzes
     ];
 
+    MASTER_QUIZ_DATA = MASTER_QUIZ_DATA.map((q, idx) => ({
+    ...q,
+    id: idx + 1
+}));
+
     // 새로 생성된 문제까지 history와 중복되는 경우를 방지
     finalList = MASTER_QUIZ_DATA.filter(q =>
         !seenQuestions.some(seen =>
