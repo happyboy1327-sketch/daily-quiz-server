@@ -1891,6 +1891,41 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                 }
 
                 if (itemFixed) {
+                    // ★ 추가
+    const answerMatch = quiz.explanation.match(
+        /(?:^|\n|\s)정답은\s+(.+?)입니다\./
+    );
+
+    if (answerMatch) {
+        const fixedAnswer = answerMatch[1].trim();
+
+        const answerIndex = quiz.choices.findIndex(
+            choice =>
+                typeof choice === "string" &&
+                choice.trim() === fixedAnswer
+        );
+
+        if (answerIndex !== -1) {
+            quiz.correctAnswerIndex = answerIndex;
+            quiz.correctAnswerText = quiz.choices[answerIndex];
+        } else {
+            const oldAnswerIndex = Number.isInteger(quiz.correctAnswerIndex)
+                ? quiz.correctAnswerIndex
+                : quiz.choices.findIndex(
+                    choice =>
+                        typeof choice === "string" &&
+                        choice.trim() === String(
+                            quiz.correctAnswerText || ""
+                        ).trim()
+                );
+
+            if (oldAnswerIndex !== -1) {
+                quiz.choices[oldAnswerIndex] = fixedAnswer;
+                quiz.correctAnswerIndex = oldAnswerIndex;
+                quiz.correctAnswerText = fixedAnswer;
+            }
+        }
+    }
     // 자동수정된 내용이 보기에도 존재하면 보기 자체를 수정
     quiz.choices = quiz.choices.map(choice => {
         if (typeof choice === "string" && choice.includes(target)) {
