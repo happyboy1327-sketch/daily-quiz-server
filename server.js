@@ -55,7 +55,7 @@ app.use((req, res, next) => {
     }
     
     res.set({
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=59',
+        'Cache-Control': 'public, no-store, s-maxage=3600, stale-while-revalidate=59',
         'Vary': 'Accept-Encoding'
     });
     next();
@@ -2173,12 +2173,10 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/api/quiz', async (req, res) => {
-    const now = Date.now();
-    const isCacheExpired = (now - LAST_FETCH_TIME) > ONE_HOUR;
+    const isCacheExpired = (Date.now() - LAST_FETCH_TIME) > ONE_HOUR;
 
     if (isCacheExpired) {
         await ensureDataFreshness();
-        LAST_FETCH_TIME = now;
         console.log('[API] 🔄 캐시 만료 → 데이터 새로고침');
     } else {
         console.log('[API] ✅ 1시간 동안 캐싱 유지');
