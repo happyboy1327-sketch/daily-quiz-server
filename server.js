@@ -2179,7 +2179,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
 }
 
 async function ensureDataFreshness() {
-    if (MASTER_QUIZ_DATA.length > 0) {
+    if (MASTER_QUIZ_DATA.length > 0 && 0 < (Date.now() - LAST_FETCH_TIME) <= ONE_HOUR)) {
         return;
     }
 
