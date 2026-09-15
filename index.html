@@ -327,51 +327,48 @@
             loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중...";
 
             try {
-                const history = getQuizHistory();
-                const historyParam = encodeURIComponent(JSON.stringify(history));
-                const quizRes = await fetch(QUIZ_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ history: getQuizHistory() })
-});
+    const history = getQuizHistory();
+    // 경량화: {question, correctAnswerText} 객체 → [q, a] 튜플로 축소 (키 이름 제거)
+    const compactHistory = history.map(h => [h.question, h.correctAnswerText]);
+    const historyParam = encodeURIComponent(JSON.stringify(compactHistory));
 
-                if (quizRes.status === 503 && retryCount < 2) {
-                    setTimeout(() => {
-                        isQuizLoading = false;
-                        loadQuizData(retryCount + 1);
-                    }, 3000);
-                    return;
-                }
+    const quizRes = await fetch(`${QUIZ_API_URL}?h=${historyParam}`);
 
-                if (!quizRes.ok) throw new Error(`퀴즈 데이터 로드 실패 (${quizRes.status})`);
-                const quizData = await quizRes.json();
+    if (quizRes.status === 503 && retryCount < 2) {
+        setTimeout(() => {
+            isQuizLoading = false;
+            loadQuizData(retryCount + 1);
+        }, 3000);
+        return;
+    }
 
-                // 💡 전달받은 암호화 토큰들을 추출하여 정답 요청 URL 쿼리로 전달
-                const tokens = quizData.map(q => q.token).filter(Boolean).join(',');
-                const answerRes = await fetch(`${ANSWER_KEY_API_URL}?tokens=${encodeURIComponent(tokens)}`);
-                
-                if (!answerRes.ok) throw new Error(`정답 키 로드 실패 (${answerRes.status})`);
-                const answerMap = await answerRes.json();
+    if (!quizRes.ok) throw new Error(`퀴즈 데이터 로드 실패 (${quizRes.status})`);
+    const quizData = await quizRes.json();
 
-                currentQuizData = quizData.map(q => ({
-                    ...q,
-                    correctAnswerIndex: answerMap[q.id] ?? q.correctAnswerIndex
-                }));
-                saveToQuizHistory(currentQuizData.map(q => ({ question: q.question, correctAnswerText: q.choices?.[q.correctAnswerIndex] })));
-                
-                loadingDiv.style.display = 'none';
-                currentQuestionIndex = 0;
-                score = 0;
-                displayQuestion();
+    const tokens = quizData.map(q => q.token).filter(Boolean).join(',');
+    const answerRes = await fetch(`${ANSWER_KEY_API_URL}?tokens=${encodeURIComponent(tokens)}`);
+    
+    if (!answerRes.ok) throw new Error(`정답 키 로드 실패 (${answerRes.status})`);
+    const answerMap = await answerRes.json();
 
-            } catch (error) {
-                console.error(error);
-                loadingDiv.style.display = 'none';
-                quizContainer.innerHTML = `<p style="color: #dc3545; text-align: center;">로딩 실패: ${escapeHtml(error.message)}<br>잠시 후 다시 시도해 주세요.</p>`;
-                showHomeButtons();
-            } finally {
-                isQuizLoading = false;
-            }
+    currentQuizData = quizData.map(q => ({
+        ...q,
+        correctAnswerIndex: answerMap[q.id] ?? q.correctAnswerIndex
+    }));
+    saveToQuizHistory(currentQuizData.map(q => ({ question: q.question, correctAnswerText: q.choices?.[q.correctAnswerIndex] })));
+    
+    loadingDiv.style.display = 'none';
+    currentQuestionIndex = 0;
+    score = 0;
+    displayQuestion();
+
+} catch (error) {
+    console.error(error);
+    loadingDiv.style.display = 'none';
+    quizContainer.innerHTML = `<p style="color: #dc3545; text-align: center;">로딩 실패: ${escapeHtml(error.message)}<br>잠시 후 다시 시도해 주세요.</p>`;
+} finally {
+    isQuizLoading = false;
+}
         }
 
         function displayQuestion() {
