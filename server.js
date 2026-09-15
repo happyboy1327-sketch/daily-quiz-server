@@ -2173,14 +2173,9 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/api/quiz', async (req, res) => {
-    const isCacheExpired = (Date.now() - LAST_FETCH_TIME) > 3600000;
-
-    if (isCacheExpired) {
-        await ensureDataFreshness();
-        console.log('[API] 🔄 캐시 만료 → 데이터 새로고침');
-    } else {
-        console.log('[API] ✅ 1시간 동안 캐싱 유지');
-    }
+    await ensureDataFreshness();
+    
+    const isCacheExpired = (Date.now() - LAST_FETCH_TIME) > ONE_HOUR;
     
     if (MASTER_QUIZ_DATA.length === 0) {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
