@@ -2210,8 +2210,6 @@ app.use(express.json());
 app.post('/api/quiz', async (req, res) => {
     await ensureDataFreshness();
     
-    const isCacheExpired = (Date.now() - LAST_FETCH_TIME) > ONE_HOUR;
-    
     if (MASTER_QUIZ_DATA.length === 0) {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
@@ -2237,26 +2235,10 @@ const filtered = MASTER_QUIZ_DATA.filter(q =>
 
     let finalList;
 
-if (!isCacheExpired) {
-    // 1시간 캐시 중: 기존 문제를 그대로 프론트에 보여줌
-    finalList = [...MASTER_QUIZ_DATA];
-    console.log('[API] ✅ 1시간 동안 캐싱 유지됩니다만..');
-} else {
-    // 1시간 만료: history 중복 제거 결과를 사용
     finalList = [...filtered];
-}
-    console.log(
-    '[API DEBUG I]',
-    'isCacheExpired:', isCacheExpired,
-    'LAST_FETCH_TIME:', LAST_FETCH_TIME,
-    'age:', Date.now() - LAST_FETCH_TIME,
-    'MASTER:', MASTER_QUIZ_DATA.length,
-    'filtered:', filtered.length,
-    'history:', history.length
-);
 
     if (
-        filtered.length < MASTER_QUIZ_DATA.length && isCacheExpired
+        0 < filtered.length < MASTER_QUIZ_DATA.length
     ) {
     const duplicateCount =
         MASTER_QUIZ_DATA.length - filtered.length;
@@ -2312,16 +2294,6 @@ if (!isCacheExpired) {
         `${regeneratedQuizzes.length}개 신규 생성 = ` +
         `${MASTER_QUIZ_DATA.length}개`
     );
-
-    console.log(
-    '[API DEBUG II]',
-    'isCacheExpired:', isCacheExpired,
-    'LAST_FETCH_TIME:', LAST_FETCH_TIME,
-    'age:', Date.now() - LAST_FETCH_TIME,
-    'MASTER:', MASTER_QUIZ_DATA.length,
-    'filtered:', filtered.length,
-    'history:', history.length
-);
         
     }
     
