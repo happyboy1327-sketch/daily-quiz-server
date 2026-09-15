@@ -2247,7 +2247,7 @@ app.post('/api/quiz', async (req, res) => {
     }));
         
     return res.status(200).json(sanitized);
-    }});
+    });
 
 app.get('/api/answer-key', async (req, res) => {
     const tokenInput = req.query.tokens || req.query.token || req.headers['x-quiz-token'];
