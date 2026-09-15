@@ -1299,7 +1299,7 @@ console.log(
 
 // Node.js 실행 테스트
 
-async function fetchNewQuizData(requiredCount = 5, excludedQuestions = []) {
+async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], excludedAnswers = []) {
     if (!UPSTAGE_API_KEY) {
         console.error("[ERROR] UPSTAGE_API_KEY 환경변수가 설정되지 않았습니다.");
         return false;
@@ -1347,12 +1347,16 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = []) {
     spellingParam,
     [
         ...MASTER_QUIZ_DATA.map(q => ({
+            topic: q.topic,
             question: q.question,
-            choices: q.choices
+            choices: q.choices,
+            correctAnswerText: q.correctAnswerText
         })),
-        ...excludedQuestions.map(question => ({
+        ...excludedQuestions.map((question, index) => ({
+            topic,
             question,
-            choices: []
+            choices: [],
+            correctAnswerText: excludedAnswers[index] || ""
         }))
     ]
 );
@@ -2185,13 +2189,23 @@ app.post('/api/quiz', async (req, res) => {
     }
     
     const history = Array.isArray(req.body?.history) ? req.body.history : [];
-    const seenQuestions = history.map(h => (h.question || '').trim()).filter(Boolean);
 
-    const filtered = MASTER_QUIZ_DATA.filter(q =>
-        !seenQuestions.some(seen =>
-            isSimilarText(q.question, seen, 0.32)
-        )
-    );
+const seenQuestions = history
+    .map(h => (h.question || '').trim())
+    .filter(Boolean);
+
+const seenAnswers = history.map(h =>
+    (h.correctAnswerText || '').trim()
+);
+    
+const filtered = MASTER_QUIZ_DATA.filter(q =>
+    !seenQuestions.some(seen =>
+        isSimilarText(q.question, seen, 0.32)
+    ) &&
+    !seenAnswers.some(answer =>
+        (q.correctAnswerText || '').trim() === answer
+    )
+);
 
     let finalList;
 
@@ -2226,7 +2240,8 @@ if (!isCacheExpired) {
     // 중복으로 삭제된 개수만큼 정확히 생성한다.
     await fetchNewQuizData(
         duplicateCount,
-        seenQuestions
+        seenQuestions,
+        seenAnswers
     );
 
 
@@ -2246,9 +2261,12 @@ if (!isCacheExpired) {
 
     // 새로 생성된 문제까지 history와 중복되는 경우를 방지
     finalList = MASTER_QUIZ_DATA.filter(q =>
-        !seenQuestions.some(seen =>
-            isSimilarText(q.question, seen, 0.40)
-        )
+    !seenQuestions.some(seen =>
+        isSimilarText(q.question, seen, 0.40)
+    ) &&
+    !seenAnswers.some(answer =>
+        (q.correctAnswerText || '').trim() === answer
+    )
     ).slice(0, 5);
 
     console.log(
