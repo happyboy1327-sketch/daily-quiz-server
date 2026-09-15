@@ -2173,7 +2173,7 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/api/quiz', async (req, res) => {
-    const isCacheExpired = (Date.now() - LAST_FETCH_TIME) > ONE_HOUR;
+    const isCacheExpired = (Date.now() - LAST_FETCH_TIME) > 3600000;
 
     if (isCacheExpired) {
         await ensureDataFreshness();
