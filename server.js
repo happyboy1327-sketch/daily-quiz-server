@@ -2208,13 +2208,8 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/api/quiz', async (req, res) => {
-    await ensureDataFreshness();
     
-    if (MASTER_QUIZ_DATA.length === 0) {
-        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
-    }
-    
-    const history = Array.isArray(req.body?.history) ? req.body.history : [];
+ const history = Array.isArray(req.body?.history) ? req.body.history : [];
 
 const seenQuestions = history
     .map(h => (h.question || '').trim())
@@ -2293,8 +2288,12 @@ const filtered = MASTER_QUIZ_DATA.filter(q =>
         `${retainedQuizzes.length}개 기존 유지 + ` +
         `${regeneratedQuizzes.length}개 신규 생성 = ` +
         `${MASTER_QUIZ_DATA.length}개`
-    );
-        
+    );   
+    }
+    
+    await ensureDataFreshness();
+    if (MASTER_QUIZ_DATA.length === 0) {
+        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
     
     const sanitized = finalList.map(({ correctAnswerIndex, ...q }) => ({
