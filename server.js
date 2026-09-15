@@ -1092,11 +1092,15 @@ if (
     // 2. 단일 정답임을 확정짓는 예외 문맥 (정상 처리 대상)
     // - 뒤에 '검토했으나', '아닙니다', '하나뿐' 등이 붙는 부정/해소 표현
     const safeContextPatterns = [
+        /오류가\s*없고\s*복수\s*정답\s*가능성(?:도|이|은)\s*없(?:다|습니다)/,
+        /오류가\s*없고\s*중복이나\s*복수\s*정답\s*가능성(?:도|이|은)\s*없(?:다|습니다)/,
         /검토했(?:으나|지만)/,
         /정답이\s*아닙니다/,
         /(?:유일하게|단\s*하나|1개뿐)/,
         /정답은\s*하나/,
-        /가능성이\s*없(?:습니다|으며|고)/     
+        /모두.*?유일합니다/,
+        /가능성이\s*없(?:습니다|으며|고)/,
+        /이상이\s*없(?:다|습니다)
     ];
 
     const hasSafeContext = safeContextPatterns.some(pattern => pattern.test(reason));
@@ -2187,6 +2191,7 @@ app.post('/api/quiz', async (req, res) => {
 if (!isCacheExpired) {
     // 1시간 캐시 중: 기존 문제를 그대로 프론트에 보여줌
     finalList = [...MASTER_QUIZ_DATA];
+    console.log('[API] ✅ 1시간 동안 캐싱 유지됩니다만..');
 } else {
     // 1시간 만료: history 중복 제거 결과를 사용
     finalList = [...filtered];
