@@ -2178,7 +2178,15 @@ app.use(express.json());
 app.post('/api/quiz', async (req, res) => {
     await ensureDataFreshness();
     
-    const isCacheExpired = (Date.now() - LAST_FETCH_TIME) > ONE_HOUR;
+    const cacheAge = Date.now() - LAST_FETCH_TIME;
+    const isCacheExpired = cacheAge > ONE_HOUR;
+
+    console.log(
+        `[CACHE DEBUG] age=${Math.floor(cacheAge / 1000)}초 / ` +
+        `limit=${Math.floor(ONE_HOUR / 1000)}초 / ` +
+        `expired=${isCacheExpired} / ` +
+        `lastFetch=${new Date(LAST_FETCH_TIME).toISOString()}`
+    );
     
     if (MASTER_QUIZ_DATA.length === 0) {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
