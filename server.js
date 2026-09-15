@@ -2182,12 +2182,15 @@ app.post('/api/quiz', async (req, res) => {
         )
     );
 
-    if (!isCacheExpired) {
+    let finalList;
+
+if (!isCacheExpired) {
     // 1시간 캐시 중: 기존 문제를 그대로 프론트에 보여줌
     finalList = [...MASTER_QUIZ_DATA];
-    }
-        
-   let finalList = [...filtered];
+} else {
+    // 1시간 만료: history 중복 제거 결과를 사용
+    finalList = [...filtered];
+}
 
     if (
         filtered.length < MASTER_QUIZ_DATA.length && isCacheExpired
