@@ -2245,6 +2245,15 @@ if (!isCacheExpired) {
     // 1시간 만료: history 중복 제거 결과를 사용
     finalList = [...filtered];
 }
+    console.log(
+    '[API DEBUG I]',
+    'isCacheExpired:', isCacheExpired,
+    'LAST_FETCH_TIME:', LAST_FETCH_TIME,
+    'age:', Date.now() - LAST_FETCH_TIME,
+    'MASTER:', MASTER_QUIZ_DATA.length,
+    'filtered:', filtered.length,
+    'history:', history.length
+);
 
     if (
         filtered.length < MASTER_QUIZ_DATA.length && isCacheExpired
@@ -2303,6 +2312,16 @@ if (!isCacheExpired) {
         `${regeneratedQuizzes.length}개 신규 생성 = ` +
         `${MASTER_QUIZ_DATA.length}개`
     );
+
+    console.log(
+    '[API DEBUG II]',
+    'isCacheExpired:', isCacheExpired,
+    'LAST_FETCH_TIME:', LAST_FETCH_TIME,
+    'age:', Date.now() - LAST_FETCH_TIME,
+    'MASTER:', MASTER_QUIZ_DATA.length,
+    'filtered:', filtered.length,
+    'history:', history.length
+);
         
     }
     
