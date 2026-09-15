@@ -136,7 +136,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 
 {
   "topic": "분야명",
-  "concept_summary": "[출제할 조문, 조항, 팩트 및 핵심 개념을 2문장으로 먼저 요약]",
+  "concept_summary": "[출제할때마다 다른 조문, 조항, 팩트 및 핵심 개념을 2문장으로 먼저 요약]",
   "explanation": "정답은 {correctAnswerText}입니다. [정답 이유 및 모든 오답의 명확한 근거 설명]",
   "question": "[전제와 조건이 명확하고 논리가 완벽한 질문]",
   "choices": ["보기1", "보기2", "보기3", "보기4"],
@@ -467,7 +467,7 @@ ${referenceBlock}`;
     topic: { type: "string" },
     concept_summary: {
       type: "string",
-      description: "출제할 팩트 및 핵심 개념을 2문장으로 먼저 요약"
+      description: "출제할때마다 다른 팩트 및 핵심 개념을 2문장으로 먼저 요약"
     },
     explanation: { type: "string" },
     question: { type: "string" },
@@ -538,7 +538,11 @@ ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반�
 
 출제 식별값: ${randomOID}-${randomDirective}
 이전 문제 목록: 
-${previousQuestions.slice(-10).join("\n")}
+${previousQuestions.slice(-14).map(q =>
+    typeof q === "string"
+        ? q
+        : `문제: ${q.question}\n보기: ${q.choices.join(" / ")}`
+).join("\n")}
 `
 }
     ],
