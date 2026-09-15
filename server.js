@@ -2303,6 +2303,7 @@ app.post('/api/quiz', async (req, res) => {
         id: idx + 1
     }));
 
+    LAST_FETCH_TIME = Date.now();
 
     console.log(
         `[API] ✅ 새 문제 5개 확정 → 1시간 캐시 시작`
