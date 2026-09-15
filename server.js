@@ -2172,7 +2172,7 @@ async function ensureDataFreshness() {
 app.use(cors());
 app.use(express.json());
 
-app.post('/api/quiz', async (req, res) => {
+app.get('/api/quiz', async (req, res) => {
     await ensureDataFreshness();
     
     const isCacheExpired = (Date.now() - LAST_FETCH_TIME) > ONE_HOUR;
@@ -2180,95 +2180,77 @@ app.post('/api/quiz', async (req, res) => {
     if (MASTER_QUIZ_DATA.length === 0) {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
-    
-    const history = Array.isArray(req.body?.history) ? req.body.history : [];
 
-const seenQuestions = history
-    .map(h => (h.question || '').trim())
-    .filter(Boolean);
+    // GET은 body가 없으므로 쿼리에서 history를 읽어 기존 형태로 복원
+    let history = [];
+    try {
+        const raw = req.query.h;
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            history = Array.isArray(parsed)
+                ? parsed.map(([q, a]) => ({ question: q, correctAnswerText: a }))
+                : [];
+        }
+    } catch (e) {
+        history = [];
+    }
 
-const seenAnswers = history.map(h =>
-    (h.correctAnswerText || '').trim()
-);
-    
-const filtered = MASTER_QUIZ_DATA.filter(q =>
-    !seenQuestions.some(seen =>
-        isSimilarText(q.question, seen, 0.32)
-    ) &&
-    !seenAnswers.some(answer =>
-        (q.correctAnswerText || '').trim() === answer
-    )
-);
+    // ↓↓↓ 여기부터 기존 로직 그대로, 한 글자도 안 바꿈 ↓↓↓
+    const seenQuestions = history
+        .map(h => (h.question || '').trim())
+        .filter(Boolean);
+
+    const seenAnswers = history.map(h =>
+        (h.correctAnswerText || '').trim()
+    );
+
+    const filtered = MASTER_QUIZ_DATA.filter(q =>
+        !seenQuestions.some(seen =>
+            isSimilarText(q.question, seen, 0.32)
+        ) &&
+        !seenAnswers.some(answer =>
+            (q.correctAnswerText || '').trim() === answer
+        )
+    );
 
     let finalList;
 
-if (!isCacheExpired) {
-    // 1시간 캐시 중: 기존 문제를 그대로 프론트에 보여줌
-    finalList = [...MASTER_QUIZ_DATA];
-    console.log('[API] ✅ 1시간 동안 캐싱 유지됩니다만..');
-} else {
-    // 1시간 만료: history 중복 제거 결과를 사용
-    finalList = [...filtered];
-}
+    if (!isCacheExpired) {
+        finalList = [...MASTER_QUIZ_DATA];
+        console.log('[API] ✅ 1시간 동안 캐싱 유지됩니다만..');
+    } else {
+        finalList = [...filtered];
+    }
 
-    if (
-        filtered.length < MASTER_QUIZ_DATA.length && isCacheExpired
-    ) {
-    const duplicateCount =
-        MASTER_QUIZ_DATA.length - filtered.length;
+    if (filtered.length < MASTER_QUIZ_DATA.length && isCacheExpired) {
+        const duplicateCount = MASTER_QUIZ_DATA.length - filtered.length;
 
-    console.log(
-        `[API] 🔄 중복 문제 ${duplicateCount}개 영구 제거 → ` +
-        `동일 개수만큼 새 문제 생성`
-    );
+        console.log(
+            `[API] 🔄 중복 문제 ${duplicateCount}개 영구 제거 → ` +
+            `동일 개수만큼 새 문제 생성`
+        );
 
-    // 중복되지 않은 기존 문제는 보존한다.
-    const retainedQuizzes = [...filtered];
+        const retainedQuizzes = [...filtered];
+        MASTER_QUIZ_DATA = [...retainedQuizzes];
 
-    // 새 문제 생성 시 기존에 남겨둘 문제들을
-    // MASTER_QUIZ_DATA에 그대로 둬야 createQuizPayload()가
-    // 이 문제들을 중복 방지 대상으로 사용할 수 있다.
-    MASTER_QUIZ_DATA = [...retainedQuizzes];
+        await fetchNewQuizData(duplicateCount, seenQuestions, seenAnswers);
 
-    // 중복으로 삭제된 개수만큼 정확히 생성한다.
-    await fetchNewQuizData(
-        duplicateCount,
-        seenQuestions,
-        seenAnswers
-    );
+        const regeneratedQuizzes = [...MASTER_QUIZ_DATA];
 
+        MASTER_QUIZ_DATA = [...retainedQuizzes, ...regeneratedQuizzes];
+        MASTER_QUIZ_DATA = MASTER_QUIZ_DATA.map((q, idx) => ({ ...q, id: idx + 1 }));
 
-    // fetchNewQuizData()가 MASTER_QUIZ_DATA를 새 생성 결과로
-    // 덮어쓰므로, 기존 보존 문제와 새 문제를 다시 합친다.
-    const regeneratedQuizzes = [...MASTER_QUIZ_DATA];
+        finalList = MASTER_QUIZ_DATA.filter(q =>
+            !seenQuestions.some(seen => isSimilarText(q.question, seen, 0.40)) &&
+            !seenAnswers.some(answer => (q.correctAnswerText || '').trim() === answer)
+        ).slice(0, 5);
 
-    MASTER_QUIZ_DATA = [
-        ...retainedQuizzes,
-        ...regeneratedQuizzes
-    ];
-
-    MASTER_QUIZ_DATA = MASTER_QUIZ_DATA.map((q, idx) => ({
-    ...q,
-    id: idx + 1
-}));
-
-    // 새로 생성된 문제까지 history와 중복되는 경우를 방지
-    finalList = MASTER_QUIZ_DATA.filter(q =>
-    !seenQuestions.some(seen =>
-        isSimilarText(q.question, seen, 0.40)
-    ) &&
-    !seenAnswers.some(answer =>
-        (q.correctAnswerText || '').trim() === answer
-    )
-    ).slice(0, 5);
-
-    console.log(
-        `[API] ✅ 중복 제거 및 재생성 완료: ` +
-        `${retainedQuizzes.length}개 기존 유지 + ` +
-        `${regeneratedQuizzes.length}개 신규 생성 = ` +
-        `${MASTER_QUIZ_DATA.length}개`
-    );
-        
+        console.log(
+            `[API] ✅ 중복 제거 및 재생성 완료: ` +
+            `${retainedQuizzes.length}개 기존 유지 + ` +
+            `${regeneratedQuizzes.length}개 신규 생성 = ` +
+            `${MASTER_QUIZ_DATA.length}개`
+        );
     }
     
     const sanitized = finalList.map(({ correctAnswerIndex, ...q }) => ({
@@ -2277,7 +2259,7 @@ if (!isCacheExpired) {
     }));
         
     return res.status(200).json(sanitized);
-    });
+});
 
 app.get('/api/answer-key', async (req, res) => {
     const tokenInput = req.query.tokens || req.query.token || req.headers['x-quiz-token'];
