@@ -322,7 +322,7 @@ function autoFixQuiz(quiz) {
 }
 
 // 두 텍스트 간 부분 포함 관계 및 Bigram 유사도(Jaccard Index) 검사
-function isSimilarText(str1, str2, threshold = 0.40) {
+function isSimilarText(str1, str2, threshold = 0.33) {
     if (!str1 || !str2) return false;
     const s1 = str1.trim();
     const s2 = str2.trim();
@@ -395,7 +395,7 @@ async function harnessSyncArticleNumber(quiz) {
 
     // 1단계/2단계 판정 기준 일치율 (19%/45%)
     const MATCH_THRESHOLD = 0.52;
-    const REPLACEMENT_THRESHOLD = 0.72;
+    const REPLACEMENT_THRESHOLD = 0.63;
 
 
     const cleanJosa = (word) => {
