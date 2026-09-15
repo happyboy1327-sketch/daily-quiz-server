@@ -2133,6 +2133,9 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
           
 
     LAST_FETCH_TIME = Date.now();
+    console.log(
+    `[CACHE DEBUG] LAST_FETCH_TIME 갱신: ${new Date(LAST_FETCH_TIME).toISOString()}`
+);
     LAST_TOPICS = [...selectedTopics];
 
     console.log(
