@@ -11,7 +11,7 @@
       "src": "/api/(.*)",
       "dest": "server.js",
       "headers": {
-        "Cache-Control": "public, max-age=3600, s-maxage=3600"
+        "Cache-Control": "public, s-maxage=3600"
       }
     },
     {
