@@ -316,64 +316,83 @@
         // ==========================================================
         let isQuizLoading = false;
 
-        async function loadQuizData(retryCount = 0) {
-            if (isQuizLoading && retryCount === 0) return;
-            isQuizLoading = true;
+        const ONE_HOUR = 3600000;
 
-            pageTitle.textContent = '오늘의 상식 퀴즈';
-            quizContainer.innerHTML = '';
-            navButtons.innerHTML = '';
-            loadingDiv.style.display = 'block';
-            loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중...";
+async function loadQuizData(retryCount = 0) {
+    if (isQuizLoading && retryCount === 0) return;
+    isQuizLoading = true;
 
-            try {
-                const history = getQuizHistory();
-                const historyParam = encodeURIComponent(JSON.stringify(history));
-                const quizRes = await fetch(QUIZ_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ history: getQuizHistory() })
-});
+    pageTitle.textContent = '오늘의 상식 퀴즈';
+    quizContainer.innerHTML = '';
+    navButtons.innerHTML = '';
+    loadingDiv.style.display = 'block';
+    loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중...";
 
-                if (quizRes.status === 503 && retryCount < 2) {
-                    setTimeout(() => {
-                        isQuizLoading = false;
-                        loadQuizData(retryCount + 1);
-                    }, 3000);
-                    return;
-                }
+    try {
+        // 1. 로컬스토리지에서 저장된 시간과 데이터 확인
+        const cachedData = localStorage.getItem('MASTER_QUIZ_DATA');
+        const lastFetchTime = Number(localStorage.getItem('LAST_FETCH_TIME')) || 0;
+        const now = Date.now();
 
-                if (!quizRes.ok) throw new Error(`퀴즈 데이터 로드 실패 (${quizRes.status})`);
-                const quizData = await quizRes.json();
-
-                // 💡 전달받은 암호화 토큰들을 추출하여 정답 요청 URL 쿼리로 전달
-                const tokens = quizData.map(q => q.token).filter(Boolean).join(',');
-                const answerRes = await fetch(`${ANSWER_KEY_API_URL}?tokens=${encodeURIComponent(tokens)}`);
-                
-                if (!answerRes.ok) throw new Error(`정답 키 로드 실패 (${answerRes.status})`);
-                const answerMap = await answerRes.json();
-
-                currentQuizData = quizData.map(q => ({
-                    ...q,
-                    correctAnswerIndex: answerMap[q.id] ?? q.correctAnswerIndex
-                }));
-                saveToQuizHistory(currentQuizData.map(q => ({ question: q.question, correctAnswerText: q.choices?.[q.correctAnswerIndex] })));
-                
-                loadingDiv.style.display = 'none';
-                currentQuestionIndex = 0;
-                score = 0;
-                displayQuestion();
-
-            } catch (error) {
-                console.error(error);
-                loadingDiv.style.display = 'none';
-                quizContainer.innerHTML = `<p style="color: #dc3545; text-align: center;">로딩 실패: ${escapeHtml(error.message)}<br>잠시 후 다시 시도해 주세요.</p>`;
-                showHomeButtons();
-            } finally {
-                isQuizLoading = false;
-            }
+        // 2. 1시간(3,600,000ms)이 안 지났으면 캐시 데이터 즉시 반환 (서버 요청 안 함)
+        if (cachedData && (now - lastFetchTime < ONE_HOUR)) {
+            currentQuizData = JSON.parse(cachedData);
+            loadingDiv.style.display = 'none';
+            currentQuestionIndex = 0;
+            score = 0;
+            displayQuestion();
+            return;
         }
 
+        // 3. 1시간이 지났거나 데이터가 없으면 서버에 새로 요청
+        const quizRes = await fetch(QUIZ_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ history: getQuizHistory() })
+        });
+
+        if (quizRes.status === 503 && retryCount < 2) {
+            setTimeout(() => {
+                isQuizLoading = false;
+                loadQuizData(retryCount + 1);
+            }, 3000);
+            return;
+        }
+
+        if (!quizRes.ok) throw new Error(`퀴즈 데이터 로드 실패 (${quizRes.status})`);
+        const quizData = await quizRes.json();
+
+        const tokens = quizData.map(q => q.token).filter(Boolean).join(',');
+        const answerRes = await fetch(`${ANSWER_KEY_API_URL}?tokens=${encodeURIComponent(tokens)}`);
+        
+        if (!answerRes.ok) throw new Error(`정답 키 로드 실패 (${answerRes.status})`);
+        const answerMap = await answerRes.json();
+
+        currentQuizData = quizData.map(q => ({
+            ...q,
+            correctAnswerIndex: answerMap[q.id] ?? q.correctAnswerIndex
+        }));
+
+        // 4. 새로 받아온 데이터와 현재 Date.now()를 로컬스토리지에 저장
+        localStorage.setItem('MASTER_QUIZ_DATA', JSON.stringify(currentQuizData));
+        localStorage.setItem('LAST_FETCH_TIME', Date.now().toString());
+
+        saveToQuizHistory(currentQuizData.map(q => ({ question: q.question, correctAnswerText: q.choices?.[q.correctAnswerIndex] })));
+        
+        loadingDiv.style.display = 'none';
+        currentQuestionIndex = 0;
+        score = 0;
+        displayQuestion();
+
+    } catch (error) {
+        console.error(error);
+        loadingDiv.style.display = 'none';
+        quizContainer.innerHTML = `<p style="color: #dc3545; text-align: center;">로딩 실패: ${escapeHtml(error.message)}<br>잠시 후 다시 시도해 주세요.</p>`;
+        showHomeButtons();
+    } finally {
+        isQuizLoading = false;
+    }
+}
         function displayQuestion() {
             if (currentQuestionIndex >= currentQuizData.length) {
                 showResults();
