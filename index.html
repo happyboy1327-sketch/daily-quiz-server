@@ -333,9 +333,18 @@ async function loadQuizData(retryCount = 0) {
         const cachedData = localStorage.getItem('MASTER_QUIZ_DATA');
         const lastFetchTime = Number(localStorage.getItem('LAST_FETCH_TIME')) || 0;
         const now = Date.now();
+        const elapsedTime = now - lastFetchTime;
+
+        const remainingMs = Math.max(0, ONE_HOUR - elapsedTime);
+        const remainingMin = Math.floor(remainingMs / (1000 * 60));
+        const remainingSec = Math.floor((remainingMs % (1000 * 60)) / 1000);
+
+        console.log(`[Cache Debug] 마지막 갱신 시각: ${lastFetchTime ? new Date(lastFetchTime).toLocaleTimeString('ko-KR') : '기록 없음'}`);
+        console.log(`[Cache Debug] 남은 캐시 유효 시간: ${remainingMin}분 ${remainingSec}초`);
 
         // 2. 1시간(3,600,000ms)이 안 지났으면 캐시 데이터 즉시 반환 (서버 요청 안 함)
-        if (cachedData && (now - lastFetchTime < ONE_HOUR)) {
+        if (cachedData && (elapsedTime < ONE_HOUR)) {
+            console.log('✅ [Cache Hit] 1시간 이내 재접속 -> localStorage 데이터 사용 (서버 요청 안 함)');
             currentQuizData = JSON.parse(cachedData);
             loadingDiv.style.display = 'none';
             currentQuestionIndex = 0;
@@ -343,6 +352,8 @@ async function loadQuizData(retryCount = 0) {
             displayQuestion();
             return;
         }
+
+        console.log('🔄 [Cache Miss] 1시간 경과 또는 데이터 없음 -> 서버(/api/quiz)에 새로 요청');
 
         // 3. 1시간이 지났거나 데이터가 없으면 서버에 새로 요청
         const quizRes = await fetch(QUIZ_API_URL, {
