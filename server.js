@@ -582,7 +582,7 @@ async function harnessSyncArticleNumber(quiz) {
                       Authorization: `Bearer ${RESERP_API_KEY}`,
                      'Content-Type': 'application/json'
                   },
-                 timeout: 15500
+                 timeout: 18500
                }
               );
              console.log('🐛 [디버그] RESERP 전체 응답:', JSON.stringify(res1.data, null, 2));
@@ -666,7 +666,7 @@ await sleep(1300);
                       Authorization: `Bearer ${RESERP_API_KEY}`,
                      'Content-Type': 'application/json'
                   },
-                 timeout: 15500
+                 timeout: 18500
                }
               );
                 console.log('🐛 [디버그] RESERP 전체 응답:', JSON.stringify(res2.data, null, 2));
