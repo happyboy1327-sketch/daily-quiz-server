@@ -488,8 +488,8 @@ ${referenceBlock}`;
     "correctAnswerIndex",
     "correctAnswerText"
   ];
-  const presencePenalty =
-    Number((Math.floor(Math.random() * 16) + 80) / 100);
+  //const presencePenalty =
+    //Number((Math.floor(Math.random() * 16) + 80) / 100);
   
   const matchedFewShot = FEW_SHOT_DATABASE[topic] || [];
 
@@ -547,7 +547,7 @@ ${previousQuestions.slice(-14).map(q =>
 }
     ],
     temperature: 0.185, 
-    presence_penalty: presencePenalty,
+    presence_penalty: 0.82,
     frequency_penalty: 0.7,
     max_tokens: 2550
   };
