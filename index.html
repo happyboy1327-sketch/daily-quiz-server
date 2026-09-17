@@ -119,6 +119,16 @@
             font-size: 0.95em;
             transition: opacity 0.2s;
         }
+        @media (max-width: 600px) {
+    #nav-buttons .btn-primary,
+    #nav-buttons .btn-secondary,
+    #nav-buttons .btn-warning {
+        display: block;
+        width: 90%;
+        max-width: 320px;
+        margin: 8px auto;
+    }
+}
         #nav-buttons button:hover {
             opacity: 0.9;
         }
