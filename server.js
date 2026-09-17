@@ -561,7 +561,7 @@ async function harnessSyncArticleNumber(quiz) {
             const topKeywords = [...queryCandidates].sort((a, b) => b.length - a.length).slice(0, 3);
             if (topKeywords.length === 0) continue;
 
-            await sleep(1300);
+            await sleep(1500);
 
             // ===== 1단계: 법률명 + 제몇조 제몇항 전체를 한 쿼리로 검색 후, 해설 키워드와 매트릭스 대조 =====
             const citation = target.standaloneParagraphNum
@@ -576,7 +576,7 @@ async function harnessSyncArticleNumber(quiz) {
               'https://api.reserp.ai/v2/serp/search',
               {
                 url: `https://www.google.com/search?q=${encodeURIComponent(`"${verifyQuery}" -site:namu.wiki`
-)}&gl=kr&hl=ko&tbs=li:1`
+)}&gl=kr&hl=ko`
                },
               {
                   headers: {
@@ -651,7 +651,7 @@ console.warn(
     `→ 조항 존재 여부 또는 키워드 일치율 조건 미충족 → 2단계 진행`
 );
 
-await sleep(1300);
+await sleep(1600);
 
             // ===== 2단계: 해설 속 키워드로 재검색, 검색결과 내 후보(법률명+조항)들을 매트릭스 대조하여 최적 후보 선정 =====
             const searchQuery = topKeywords.join(' ');
@@ -661,7 +661,7 @@ await sleep(1300);
               'https://api.reserp.ai/v2/serp/search',
               {
                 url: `https://www.google.com/search?q=${encodeURIComponent(`"${searchQuery}" -site:namu.wiki`
-)}&gl=kr&hl=ko&tbs=li:1`
+)}&gl=kr&hl=ko`
                },
               {
                   headers: {
