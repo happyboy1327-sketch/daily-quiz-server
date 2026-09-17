@@ -571,6 +571,7 @@ const genericQueryStop = new Set([
     '출처',
     '근거',
     '국가법령정보센터',
+    '한글 맞춤법',
 
     '정답',
     '선택지',
@@ -589,7 +590,6 @@ const genericQueryStop = new Set([
     '원칙',
     '기준',
     '사실',
-
     '있다',
     '없다',
     '이다',
@@ -608,7 +608,7 @@ const genericQueryStop = new Set([
 
 // 법률명 / 조항번호 제거용
 const lawAndArticleRegex =
-    /^(?:대한민국|한국어|한국|한글)?(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시)$/;
+    /^(?:대한민국|한국어|한국|한글)?(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시|세계\s*인권\s*선언)$/;
 
 const articleNumberRegex =
     /^제\s*\d+\s*(?:조(?:\s*제\s*\d+\s*항)?|항)$/;
