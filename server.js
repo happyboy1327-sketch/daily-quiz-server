@@ -400,7 +400,7 @@ async function harnessSyncArticleNumber(quiz) {
 
     const cleanJosa = (word) => {
         if (!word) return '';
-        let cleaned = word.replace(/(에서는|으로부터|에서|으로|하므로|입니다|한다|얻어|하여)+$/g, '');
+        let cleaned = word.replace(/(에서는|으로부터|에서|으로|하므로|이므로|입니다|한다|얻어|하여|해서)+$/g, '');
         if (cleaned.length >= 3) {
             cleaned = cleaned.replace(/(은|는|이|가|을|를|의|에|로|와|과|도|만)+$/g, '');
         }
@@ -448,7 +448,7 @@ async function harnessSyncArticleNumber(quiz) {
     };
 
     try {
-        const lawSuffix = '(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시|세계인권선언)';
+        const lawSuffix = '(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시|세계\*s인권\*s선언)';
         const lawPrefix = '(?:(?:대한민국|한국어|한글)\\s+)?'; // "대한민국" 정도만 앞에 허용, 그 외엔 안 붙임
         const initialLawRegex = new RegExp(`(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})`);
         const initialLawMatch = quiz.explanation.match(initialLawRegex);
@@ -498,12 +498,15 @@ async function harnessSyncArticleNumber(quiz) {
                 const fullText = quiz.explanation;
                 const rawSnippet = extractClauseAroundMatch(fullText, matchIndex, match[0].length).replace(match[0], '');
 
-                const keywords = rawSnippet
-                    .replace(/[^가-힣0-9\s]/g, ' ')
-                    .split(/\s+/)
-                    .filter(w => !stopWords.has(w))
-                    .map(w => cleanJosa(w))
-                    .filter(w => w.length >= 2 && !stopWords.has(w));
+                const cleanedSnippet = rawSnippet
+    .replace(/\[출처\s*\/\s*근거\s*:[\s\S]*?\]/g, '');
+
+const keywords = cleanedSnippet
+    .replace(/[^가-힣0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => !stopWords.has(w))
+    .map(w => cleanJosa(w))
+    .filter(w => w.length >= 2 && !stopWords.has(w));
 
                 if (keywords.length > 0) {
                     targets.push({
@@ -705,7 +708,7 @@ console.log(
                       Authorization: `Bearer ${RESERP_API_KEY}`,
                      'Content-Type': 'application/json'
                   },
-                 timeout: 18500
+                 timeout: 28500
                }
               );
              console.log('🐛 [디버그] RESERP 전체 응답:', JSON.stringify(res1.data, null, 2));
