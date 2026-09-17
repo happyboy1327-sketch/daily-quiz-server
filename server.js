@@ -385,6 +385,15 @@ function extractClauseAroundMatch(text, matchIndex, matchLength) {
 
 async function harnessSyncArticleNumber(quiz) {
     console.log("🔍 [시작] 조항 번호 동기화 로직 실행");
+
+    if (
+        !quiz ||
+        !['한글 맞춤법', '정치', '인권 리터러시'].includes(quiz.topic)
+    ) {
+        console.log(`⚠️ [중단] 하네스 대상 주제가 아닙니다: ${quiz?.topic}`);
+        return quiz;
+    }
+    
     if (!quiz || typeof quiz.explanation !== 'string') {
         console.log("⚠️ [중단] quiz 객체가 없거나 explanation이 문자열이 아닙니다.");
         return quiz;
@@ -2307,12 +2316,35 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
         `하네스(조항 번호 외부 동기화) 수행 중...`
     );
 
-    successfulQuizzes =
-        await Promise.all(
-            successfulQuizzes.map(quiz =>
-                harnessSyncArticleNumber(quiz)
-            )
-        );
+    const worker = async (quizzes) => {
+    const results = [];
+
+    for (const quiz of quizzes) {
+        results.push(await harnessSyncArticleNumber(quiz));
+    }
+
+    return results;
+};
+
+const mid = Math.ceil(successfulQuizzes.length / 2);
+
+const worker1AQuizzes = successfulQuizzes.slice(0, mid);
+const worker2AQuizzes = successfulQuizzes.slice(mid);
+
+const [worker1Results, worker2Results] = await Promise.all([
+    worker(worker1AQuizzes),
+
+    new Promise(resolve =>
+        setTimeout(() => {
+            resolve(worker(worker2AQuizzes));
+        }, 400)
+    )
+]);
+
+successfulQuizzes = [
+    ...worker1Results,
+    ...worker2Results
+];
 
     const harnessFailedQuizzes =
     successfulQuizzes.filter(
