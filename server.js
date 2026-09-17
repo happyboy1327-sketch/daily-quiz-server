@@ -705,13 +705,13 @@ console.log(
                 : target.articleNum && target.paragraphNum
                     ? `제${target.articleNum}조 제${target.paragraphNum}항`
                     : `제${target.articleNum}조`;
-            const verifyQuery = `${lawContext} "${citation}" ${topKeywords.join(' ')}`;
+            const verifyQuery = `${lawContext} "${citation}"`;
             let text1 = '';
            try {
              const res1 = await axios.post(
               'https://api.reserp.ai/v2/serp/search',
               {
-                url: `https://www.google.com/search?q=${encodeURIComponent(`"${verifyQuery}" -site:namu.wiki`
+                url: `https://www.google.com/search?q=${encodeURIComponent(`"${verifyQuery}" -site:namu.wiki -site:youtube.com`
 )}&gl=kr&hl=ko`
                },
               {
@@ -796,7 +796,7 @@ await sleep(1600);
                 const res2 = await axios.post(
               'https://api.reserp.ai/v2/serp/search',
               {
-                url: `https://www.google.com/search?q=${encodeURIComponent(`"${searchQuery}" -site:namu.wiki`
+                url: `https://www.google.com/search?q=${encodeURIComponent(`"${searchQuery}" -site:namu.wiki -site:youtube.com`
 )}&gl=kr&hl=ko`
                },
               {
