@@ -511,6 +511,7 @@ const keywords = cleanedSnippet
     .split(/\s+/)
     .filter(Boolean)
     .filter(w => !stopWords.has(w))
+    .filter(w => !/^\d+$/.test(w))
     .map(w => cleanJosa(w))
     .filter(w => w.length >= 2 && !stopWords.has(w));
                 
@@ -660,9 +661,9 @@ const scoredKeywords = [...new Set(queryCandidates)]
         }
 
         // 숫자를 포함한 표현
-        if (/\d/.test(word)) {
-            score += 4;
-        }
+        if (/^\d+$/.test(word)) {
+        score -= 14;
+       }
 
         if (/(은|는|이|가|을|를|에|로|와|과|도|만)$/.test(word)) { score -= 2; }
 
