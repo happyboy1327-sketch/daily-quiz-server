@@ -323,6 +323,10 @@
 
         const data = await response.json();
 
+        localStorage.removeItem('MASTER_QUIZ_DATA');
+        localStorage.removeItem('LAST_FETCH_TIME');
+
+
         if (!response.ok || !data.success) {
             throw new Error(data.message || '초기화 실패');
         }
