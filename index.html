@@ -315,15 +315,24 @@
             }
         }
 
-        function clearcurrentquiz() {
-    MASTER_QUIZ_DATA = [];
-    LAST_FETCH_TIME = 0;
+        async function clearcurrentquiz() {
+    try {
+        const response = await fetch('/api/reset-quiz', {
+            method: 'POST'
+        });
 
-    res.json({
-        success: true,
-        message: 'MASTER_QUIZ_DATA 초기화 완료'
-    });
-};
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || '초기화 실패');
+        }
+
+        alert('현재 문제를 초기화했습니다.');
+    } catch (error) {
+        console.error('현재 문제 초기화 오류:', error);
+        alert('현재 문제 초기화에 실패했습니다.');
+    }
+        }
 
         // ==========================================================
         // 퀴즈 데이터 순차 로딩 (암호화 토큰 기반 복호화 지원)
