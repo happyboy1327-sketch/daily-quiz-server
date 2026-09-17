@@ -576,7 +576,7 @@ async function harnessSyncArticleNumber(quiz) {
               'https://api.reserp.ai/v2/serp/search',
               {
                 url: `https://www.google.com/search?q=${encodeURIComponent(`"${verifyQuery}" -site:namu.wiki`
-)}&gl=kr&hl=ko&tbs=li:1&num=30`
+)}&gl=kr&hl=ko&tbs=li:1`
                },
               {
                   headers: {
@@ -661,7 +661,7 @@ await sleep(1300);
               'https://api.reserp.ai/v2/serp/search',
               {
                 url: `https://www.google.com/search?q=${encodeURIComponent(`"${searchQuery}" -site:namu.wiki`
-)}&gl=kr&hl=ko&tbs=li:1&num=30`
+)}&gl=kr&hl=ko&tbs=li:1`
                },
               {
                   headers: {
