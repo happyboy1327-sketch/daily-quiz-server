@@ -2303,6 +2303,16 @@ app.get('/api/answer-key', async (req, res) => {
     return res.status(200).json(answerKey);
 });
 
+app.post('/api/reset-quiz', (req, res) => {
+    MASTER_QUIZ_DATA = [];
+    LAST_FETCH_TIME = 0;
+
+    res.json({
+        success: true,
+        message: 'MASTER_QUIZ_DATA 초기화 완료'
+    });
+});
+
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 if (require.main === module) {
