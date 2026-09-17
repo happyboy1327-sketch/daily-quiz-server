@@ -400,7 +400,7 @@ async function harnessSyncArticleNumber(quiz) {
 
     const cleanJosa = (word) => {
         if (!word) return '';
-        let cleaned = word.replace(/(에서는|으로부터|에서|으로|하므로|이므로|입니다|한다|얻어|하여|해서)+$/g, '');
+        let cleaned = word.replace(/(에서는|으로부터|에서|으로|으므로|하므로|이므로|입니다|한다|얻어|하여|해서)+$/g, '');
         if (cleaned.length >= 3) {
             cleaned = cleaned.replace(/(은|는|이|가|을|를|의|에|로|와|과|도|만)+$/g, '');
         }
@@ -575,7 +575,7 @@ const genericQueryStop = new Set([
     '근거',
     '국가법령정보센터',
     '한글 맞춤법',
-
+    '서로', 
     '정답',
     '선택지',
     '내용',
@@ -618,7 +618,7 @@ const articleNumberRegex =
 
 // 숫자와 단위를 포함한 핵심 표현 보존
 const meaningfulNumberRegex =
-    /^\d+(?:년|개월|일|시간|명|개|회|%|원|세)?$/;
+    /^\d+(?:년|개월|일|시간|명|인|개|회|%|원|세)?$/;
 
 // 후보 생성
 const queryCandidates = target.keywords.filter(word => {
@@ -632,13 +632,13 @@ const queryCandidates = target.keywords.filter(word => {
     // 조항번호 제거
     if (articleNumberRegex.test(w)) return false;
 
-    // 범용어 제거
-    if (genericQueryStop.has(w)) return false;
-
     // 단독 조사/기호성 토큰 제거
     if (/^[은는이가을를의에로와과도만]$/.test(w)) {
         return false;
     }
+
+    // 범용어 제거
+    if (genericQueryStop.has(w)) return false;
 
     return true;
 });
@@ -650,13 +650,15 @@ const scoredKeywords = [...new Set(queryCandidates)]
 
         // 숫자 자체 또는 숫자+단위는 매우 강한 단서
         if (meaningfulNumberRegex.test(word)) {
-            score += 5;
+            score += 6;
         }
 
         // 숫자를 포함한 표현
         if (/\d/.test(word)) {
             score += 4;
         }
+
+        if (/(은|는|이|가|을|를|에|로|와|과|도|만)$/.test(word)) { score -= 2; }
 
         // 3글자 이상인 구체 명사/용어
         if (word.length >= 4) {
