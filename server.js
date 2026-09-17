@@ -554,12 +554,77 @@ async function harnessSyncArticleNumber(quiz) {
             // 검색 쿼리 후보 선정: (1) "~다고/~하고/~받지"처럼 활용형 어미로 끝나는 동사성 표현 제외
             //                      (2) "모든/국민"처럼 헌법 조항 전반에 범용적으로 쓰이는 명사 제외
             //                      (3) 남은 단어 중 글자 수가 많아 변별력 있는 명사 위주로 우선 사용
-            const verbEndingRegex = /(다고|하고|받지|한다|았다|었다|니다|되어|이며|므로|하며|하는|되는)$/;
-            const genericQueryStop = new Set(['모든', '각각', '관련', '대한', '경우', '사항', '규정', '국민']);
-            let queryCandidates = target.keywords.filter(w => !verbEndingRegex.test(w) && !genericQueryStop.has(w));
-            if (queryCandidates.length === 0) queryCandidates = target.keywords; // 전부 걸러졌으면 원본으로 대체
-            const topKeywords = [...queryCandidates].sort((a, b) => b.length - a.length).slice(0, 3);
-            if (topKeywords.length === 0) continue;
+            // 검색용 키워드 선별
+// 목적:
+// 1. 활용형 동사 제거
+// 2. 법률 해설에서 흔하게 나오는 범용어 제거
+// 3. 너무 짧거나 의미가 약한 단어 제거
+// 4. 구체적인 용어를 우선하여 최대 4개 선정
+
+const verbEndingRegex =
+    /(다고|하고|받지|한다|했다|하였다|한다면|된다|되며|되어|이며|므로|하며|하는|되는|었다|있다|없다|이다|입니다|합니다)$/;
+
+const genericQueryStop = new Set([
+    '모든', '각각', '관련', '대한', '경우',
+    '사항', '규정', '국민', '사람', '내용',
+    '방법', '부분', '원칙', '기준', '사실',
+    '경우에는', '때에는', '것', '수', '등'
+]);
+
+const weakKeywordRegex =
+    /^(것|수|등|때|경우|내용|방법|부분|사항|규정|원칙|기준)$/;
+
+// 의미가 구체적인 후보만 남김
+let queryCandidates = target.keywords.filter(word => {
+    if (!word) return false;
+    if (word.length < 2) return false;
+    if (verbEndingRegex.test(word)) return false;
+    if (genericQueryStop.has(word)) return false;
+    if (weakKeywordRegex.test(word)) return false;
+
+    return true;
+});
+
+// 후보가 너무 적으면 기존 키워드에서 부족한 수만 보충
+if (queryCandidates.length < 4) {
+    for (const word of target.keywords) {
+        if (
+            word.length >= 2 &&
+            !queryCandidates.includes(word) &&
+            !genericQueryStop.has(word) &&
+            !verbEndingRegex.test(word)
+        ) {
+            queryCandidates.push(word);
+        }
+
+        if (queryCandidates.length >= 4) break;
+    }
+}
+
+// 구체적인 키워드 우선
+// - 4글자 이상: 조항 특정에 유리
+// - 3글자: 중간
+// - 2글자: 상대적으로 낮게 평가
+const topKeywords = [...new Set(queryCandidates)]
+    .sort((a, b) => {
+        const specificityA =
+            a.length >= 4 ? 3 :
+            a.length === 3 ? 2 : 1;
+
+        const specificityB =
+            b.length >= 4 ? 3 :
+            b.length === 3 ? 2 : 1;
+
+        return specificityB - specificityA;
+    })
+    .slice(0, 4);
+
+if (topKeywords.length === 0) continue;
+
+console.log(
+    `🔑 [검색 키워드] ${lawContext} ${target.targetName} →`,
+    topKeywords
+);
 
             await sleep(1500);
 
