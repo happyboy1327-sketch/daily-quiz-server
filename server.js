@@ -555,69 +555,126 @@ async function harnessSyncArticleNumber(quiz) {
             //                      (2) "모든/국민"처럼 헌법 조항 전반에 범용적으로 쓰이는 명사 제외
             //                      (3) 남은 단어 중 글자 수가 많아 변별력 있는 명사 위주로 우선 사용
             // 검색용 키워드 선별
-// 목적:
-// 1. 활용형 동사 제거
-// 2. 법률 해설에서 흔하게 나오는 범용어 제거
-// 3. 너무 짧거나 의미가 약한 단어 제거
-// 4. 구체적인 용어를 우선하여 최대 4개 선정
-
-const verbEndingRegex =
-    /(다고|하고|받지|한다|했다|하였다|한다면|된다|되며|되어|이며|므로|하며|하는|되는|었다|있다|없다|이다|입니다|합니다)$/;
+// ===== 2단계 검색용 핵심 키워드 추출 =====
+// 법률명/조항번호 자체가 아니라,
+// 해설 내용에서 해당 조항을 특정할 수 있는 핵심 의미어를 추출한다.
 
 const genericQueryStop = new Set([
-    '모든', '각각', '관련', '대한', '경우',
-    '사항', '규정', '국민', '사람', '내용',
-    '방법', '부분', '원칙', '기준', '사실',
-    '경우에는', '때에는', '것', '수', '등'
+    '대한민국',
+    '한국',
+    '헌법',
+    '법률',
+    '법',
+    '규정',
+    '조항',
+    '조문',
+    '출처',
+    '근거',
+    '국가법령정보센터',
+
+    '정답',
+    '선택지',
+    '내용',
+    '사항',
+    '경우',
+    '관련',
+    '대한',
+    '따라',
+    '따르면',
+    '통해',
+    '위해',
+    '대해',
+    '부분',
+    '방법',
+    '원칙',
+    '기준',
+    '사실',
+
+    '있다',
+    '없다',
+    '이다',
+    '입니다',
+    '있습니다',
+    '없습니다',
+    '합니다',
+    '됩니다',
+    '정하고',
+    '정합니다',
+    '말합니다',
+    '설명합니다',
+    '의미합니다',
+    '규정합니다'
 ]);
 
-const weakKeywordRegex =
-    /^(것|수|등|때|경우|내용|방법|부분|사항|규정|원칙|기준)$/;
+// 법률명 / 조항번호 제거용
+const lawAndArticleRegex =
+    /^(?:대한민국|한국어|한국|한글)?(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시)$/;
 
-// 의미가 구체적인 후보만 남김
-let queryCandidates = target.keywords.filter(word => {
-    if (!word) return false;
-    if (word.length < 2) return false;
-    if (verbEndingRegex.test(word)) return false;
-    if (genericQueryStop.has(word)) return false;
-    if (weakKeywordRegex.test(word)) return false;
+const articleNumberRegex =
+    /^제\s*\d+\s*(?:조(?:\s*제\s*\d+\s*항)?|항)$/;
+
+// 숫자와 단위를 포함한 핵심 표현 보존
+const meaningfulNumberRegex =
+    /^\d+(?:년|개월|일|시간|명|개|회|%|원|세)?$/;
+
+// 후보 생성
+const queryCandidates = target.keywords.filter(word => {
+    const w = word.trim();
+
+    if (!w || w.length < 2) return false;
+
+    // 법률명/법률 일반명 제거
+    if (lawAndArticleRegex.test(w)) return false;
+
+    // 조항번호 제거
+    if (articleNumberRegex.test(w)) return false;
+
+    // 범용어 제거
+    if (genericQueryStop.has(w)) return false;
+
+    // 단독 조사/기호성 토큰 제거
+    if (/^[은는이가을를의에로와과도만]$/.test(w)) {
+        return false;
+    }
 
     return true;
 });
 
-// 후보가 너무 적으면 기존 키워드에서 부족한 수만 보충
-if (queryCandidates.length < 4) {
-    for (const word of target.keywords) {
-        if (
-            word.length >= 2 &&
-            !queryCandidates.includes(word) &&
-            !genericQueryStop.has(word) &&
-            !verbEndingRegex.test(word)
-        ) {
-            queryCandidates.push(word);
+// 의미어의 구체성 평가
+const scoredKeywords = [...new Set(queryCandidates)]
+    .map(word => {
+        let score = 0;
+
+        // 숫자 자체 또는 숫자+단위는 매우 강한 단서
+        if (meaningfulNumberRegex.test(word)) {
+            score += 5;
         }
 
-        if (queryCandidates.length >= 4) break;
-    }
-}
+        // 숫자를 포함한 표현
+        if (/\d/.test(word)) {
+            score += 4;
+        }
 
-// 구체적인 키워드 우선
-// - 4글자 이상: 조항 특정에 유리
-// - 3글자: 중간
-// - 2글자: 상대적으로 낮게 평가
-const topKeywords = [...new Set(queryCandidates)]
-    .sort((a, b) => {
-        const specificityA =
-            a.length >= 4 ? 3 :
-            a.length === 3 ? 2 : 1;
+        // 3글자 이상인 구체 명사/용어
+        if (word.length >= 4) {
+            score += 3;
+        } else if (word.length === 3) {
+            score += 2;
+        } else {
+            score += 1;
+        }
 
-        const specificityB =
-            b.length >= 4 ? 3 :
-            b.length === 3 ? 2 : 1;
-
-        return specificityB - specificityA;
+        return {
+            word,
+            score
+        };
     })
-    .slice(0, 4);
+    .sort((a, b) => b.score - a.score);
+
+// 최대 4개
+const topKeywords = scoredKeywords
+    .slice(0, 4)
+    .map(item => item.word);
 
 if (topKeywords.length === 0) continue;
 
