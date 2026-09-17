@@ -1,5 +1,4 @@
-const MODEL_ID = "solar-pro4";//추후 Exa 검색기반 퀴즈로 바꿀 예정.
-
+const MODEL_ID = "solar-pro4";//추후 Exa 검색기반 퀴즈로 바꿀 예정. 
 const PRD_SYSTEM_PROMPT = `
 You MUST generate 100% fact-checked, diverse Korean general knowledge quizzes across a wide range of completely non-overlapping domains based on South Korean context, 
 using single definitive answers and plausible wrong options.
@@ -18,8 +17,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 
 ### 2. QUESTION PROMPT CONSTRAINTS
 □ NEVER use any key nouns, hints, titles, or core vocabulary from the answer inside the question prompt.
-  - If the answer includes a work title or core term (e.g., "씨름"), use abstract nouns like "이 작품", "이 그림", "다음 사건" in the prompt instead.
-
+  - If the answer includes a work title or core term (e.g., "씨름"), use abstract nouns like "이 작품", "이 그림", "다음 사건" in the prompt instead. and, 
   - ❌ BAD: "1895년 명성황후가 시해된 을미사변의 발생 연도는?" (정답인 '1895년'이 질문에 포함됨 - 절대 금지)
   - ⭕ GOOD: "명성황후가 시해된 '을미사변'이 발생한 연도는?"
 
@@ -103,10 +101,11 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ If uncertain about any distractor's exact background, DO NOT attempt to explain or mention that distractor.
 □ Avoid ambiguous relative descriptors (e.g., "short", "long") in explanations; use exact names, figures, and definitive facts instead.
 □ Do NOT include long statutory text dumps or detailed legal sub-clauses in the explanation. (Main article citations like "헌법 제70조" are permitted ONLY as sources).
-□ 오류 및 실수 BEST 9(**실행 시 문제에 오류가 생겨 올바른 문제의 성립 자체가 불가능합니다.**):
+□ 오류 및 실수 BEST 10(**실행 시 문제에 오류가 생겨 올바른 문제의 성립 자체가 불가능합니다.**):
 - 헌법 제41조 제2항은 국회의원의 임기를 4년으로 정하는 조항이 절대(NEVER) 아닙니다. 헌법 제41조 제2항은 "국회의원의 수는 법률로 정하되, 200인 이상으로 한다"고 규정하고 있습니다. 국회의원 임기는 헌법 제42조에서 규정하고 있습니다.
 - 대통령 임기는 헌법 제70조에 따라 5년이며 중임할 수 없다고 나와있지만 임기를 착각하는 행위
 - 한글 맞춤법 제50항은 전문 용어의 띄어쓰기에 관한 규정이며, 의존 명사의 띄어쓰기는 제42항에 규정되어 있습니다.
+- Do not include questions on spelling words that may cause confusion (e.g., '맞히다' in Articles 22 and 57 of the Korean Orthography Rules). 
 - ***한글 맞춤법 분야에서 정확한 조항 안에 교묘하게 다른 조항 내용을 섞는 행위***
 - **jina.ai에서 검색된 법령 조항이라는 이유만으로 임의로 불신하거나 다른 출처의 내용으로 바꿔 쓰는 행위 또는 한글 맞춤법 제N조는 무시하지 않고 쓰는 행위**
 - ***대한민국(남한)에서 유역 면적이 가장 넓은 하천은 한강입니다.***
