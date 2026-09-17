@@ -1032,8 +1032,8 @@ for (const cand of candidateMatches) {
     `❌ [2단계 실패] 신뢰할 만한 대체 조항 ` +
     `(일치율 ${(currentReplacementThreshold * 100)}% 이상)을 찾지 못해 기존 조항을 유지합니다. ` +
     `(최고 일치율 ${(bestScore * 100).toFixed(1)}%)`
-    quiz.harnessReplacementFailed = true;
 );
+            quiz.harnessReplacementFailed = true;
             }
         }
         console.log(`🎉 [완료] 총 ${replacedCount}개 조항 치환 반영 완료`);
