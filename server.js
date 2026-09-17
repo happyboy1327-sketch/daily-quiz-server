@@ -590,8 +590,15 @@ async function harnessSyncArticleNumber(quiz) {
                       .map(r => r.text || '')
                       .join(' ');
             } catch (e) {
-                console.warn(`⚠️ [1단계 요청 실패] ${lawContext} ${target.targetName} 검색 오류 → 2단계로 진행`);
-            }
+    console.warn(
+        `⚠️ [1단계 요청 실패] ${lawContext} ${target.targetName} 검색 오류 → 2단계로 진행`
+    );
+    console.warn(
+        `🔴 [1단계 RESERP 오류 상세]`,
+        e.response?.status,
+        e.response?.data || e.message
+    );
+}
 
             const score1 = calculateMatchScore(target.keywords, text1);
 console.log(
