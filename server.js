@@ -613,7 +613,9 @@ const genericQueryStop = new Set([
     '말합니다',
     '설명합니다',
     '의미합니다',
-    '규정합니다'
+    '규정합니다',
+    '규정하며',
+    '규정하고'
 ]);
 
 // 법률명 / 조항번호 제거용
@@ -626,6 +628,10 @@ const articleNumberRegex =
 // 숫자와 단위를 포함한 핵심 표현 보존
 const meaningfulNumberRegex =
     /^\d+(?:년|개월|일|시간|명|인|개|회|%|원|세)?$/;
+
+// 문장형 용언/형용사 활용어 제거용
+const queryPredicateEndingRegex =
+    /(?:거나|으며|으며|면서|지만|는데|다고|라고|라고는|어서|아서|여서|되어|돼서|해서|하며|하므로|므로|으므로|기에|길래|도록|든지|든가|는지|인지|어진|되는|하는|한|된|될|된다|된다며|한다고|한다고는|한다|한다며|했다|했다가|했으며|했지만|있으며|없으며)$/;
 
 // 후보 생성
 const queryCandidates = target.keywords.filter(word => {
@@ -646,6 +652,10 @@ const queryCandidates = target.keywords.filter(word => {
 
     // 범용어 제거
     if (genericQueryStop.has(w)) return false;
+    
+    if (queryPredicateEndingRegex.test(w)) {
+        return false;
+    }
 
     return true;
 });
@@ -667,11 +677,15 @@ const scoredKeywords = [...new Set(queryCandidates)]
 
         if (/(은|는|이|가|을|를|에|로|와|과|도|만)$/.test(word)) { score -= 2; }
 
+        if (queryPredicateEndingRegex.test(word)) {
+    score -= 6;
+        }
+
         // 3글자 이상인 구체 명사/용어
         if (word.length >= 4) {
             score += 3;
         } else if (word.length === 3) {
-            score += 2;
+            score += 1.5;
         } else {
             score += 1;
         }
@@ -804,7 +818,7 @@ await sleep(1600);
                       Authorization: `Bearer ${RESERP_API_KEY}`,
                      'Content-Type': 'application/json'
                   },
-                 timeout: 18500
+                 timeout: 28500
                }
               );
                 console.log('🐛 [디버그] RESERP 전체 응답:', JSON.stringify(res2.data, null, 2));
