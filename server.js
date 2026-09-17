@@ -813,6 +813,7 @@ await sleep(1600);
                              .join(' ');
             } catch (e) {
                 console.warn(`⚠️ [2단계 추적 실패] 검색 요청 오류로 기존 조항 유지`);
+                quiz.harnessReplacementFailed = true;
                 continue;
             }
 
@@ -823,7 +824,8 @@ await sleep(1600);
             const candidateMatches = [...text2.matchAll(candidateRegex)];
 
             if (candidateMatches.length === 0) {
-                console.log(`❌ [2단계 실패] 후보 조항을 찾지 못해 기존 조항을 유지합니다.`);
+                console.log(`❌ [2단계 실패] 후보 조항을 찾지 못해 새 문제를 생성합니다.`);
+                quiz.harnessReplacementFailed = true;
                 continue;
             }
 
@@ -1030,6 +1032,7 @@ for (const cand of candidateMatches) {
     `❌ [2단계 실패] 신뢰할 만한 대체 조항 ` +
     `(일치율 ${(currentReplacementThreshold * 100)}% 이상)을 찾지 못해 기존 조항을 유지합니다. ` +
     `(최고 일치율 ${(bestScore * 100).toFixed(1)}%)`
+    quiz.harnessReplacementFailed = true;
 );
             }
         }
@@ -2296,6 +2299,65 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                 harnessSyncArticleNumber(quiz)
             )
         );
+
+    const harnessFailedQuizzes =
+    successfulQuizzes.filter(
+        quiz => quiz.harnessReplacementFailed === true
+    );
+
+if (harnessFailedQuizzes.length > 0) {
+    console.log(
+        `[API] 🔄 하네스 2단계 실패 ${harnessFailedQuizzes.length}개 문항 재생성`
+    );
+
+    let harnessRegenIndex = 0;
+
+    async function harnessRegenerationWorker(workerId) {
+        while (true) {
+            const position = harnessRegenIndex++;
+
+            if (position >= harnessFailedQuizzes.length) {
+                break;
+            }
+
+            const oldQuiz = harnessFailedQuizzes[position];
+            const originalIndex = successfulQuizzes.indexOf(oldQuiz);
+
+            const regenerated = await generateOneQuiz(
+                oldQuiz.topic,
+                `HARNESS REGEN ${workerId}`
+            );
+
+            if (regenerated) {
+                successfulQuizzes[originalIndex] =
+                    shuffleQuizChoices(
+                        regenerated,
+                        originalIndex
+                    );
+
+                console.log(
+                    `[API] ✅ 하네스 실패 문항 재생성 성공 ` +
+                    `(${oldQuiz.topic})`
+                );
+            }
+        }
+    }
+
+    const harnessWorker1 =
+        harnessRegenerationWorker(1);
+
+    await new Promise(resolve =>
+        setTimeout(resolve, 1000)
+    );
+
+    const harnessWorker2 =
+        harnessRegenerationWorker(2);
+
+    await Promise.all([
+        harnessWorker1,
+        harnessWorker2
+    ]);
+}
 
     // ============================================================
     // 14. 최종 MASTER_QUIZ_DATA 반영
