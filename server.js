@@ -403,21 +403,21 @@ async function harnessSyncArticleNumber(quiz) {
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     // 1단계/2단계 판정 기준 일치율 (19%/45%)
-    const MATCH_THRESHOLD = 0.52;
-    const REPLACEMENT_THRESHOLD = 0.63;
+    const MATCH_THRESHOLD = 0.42;
+    const REPLACEMENT_THRESHOLD = 0.61;
 
 
     const cleanJosa = (word) => {
         if (!word) return '';
         let cleaned = word.replace(/(에서는|으로부터|에서|으로|으므로|하므로|이므로|입니다|한다|얻어|하여|해서)+$/g, '');
         if (cleaned.length >= 3) {
-            cleaned = cleaned.replace(/(은|는|이|가|을|를|의|에|로|와|과|도|만)+$/g, '');
+            cleaned = cleaned.replace(/(은|는|이|가|을|를|의|에|로|와|과|도|만|고|지)+$/g, '');
         }
         return cleaned;
     };
 
     const stopWords = new Set([
-        '따라', '원칙이며', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여', '각각', '등은', '등등', 
+        '따라', '원칙이며', '원칙이지', '원칙이고', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여', '각각', '등은', '등등', 
         '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로', '정답', '정답은', 
         '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당', '는', '선택지인', '규정한다',
         '출처', '근거', '국가법령정보센터', '입니다', '이다'
@@ -684,7 +684,7 @@ const scoredKeywords = [...new Set(queryCandidates)]
         score -= 14;
        }
 
-        if (/(은|는|이|가|을|를|에|로|와|과|도|만)$/.test(word)) { score -= 2; }
+        if (/(은|는|이|가|을|를|에|로|와|과|도|만)$/.test(word)) { score -= 6; }
 
         if (queryPredicateEndingRegex.test(word)) {
     score -= 6;
@@ -710,7 +710,7 @@ const scoredKeywords = [...new Set(queryCandidates)]
 
 // 최대 4개
 const topKeywords = scoredKeywords
-    .slice(0, 4)
+    .slice(0, 5)
     .map(item => item.word);
 
 if (topKeywords.length === 0) continue;
