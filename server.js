@@ -528,10 +528,13 @@ let anchorLaw = initialLawMatch
     // 마크다운 링크 제거
     .replace(/\[[^\]]*\]\([^)]+\)/g, '')
     
-const specialOrthographyKeywords = [
-    ...(cleanedSnippet.match(/[ㄱ-ㅎ](?:\s*,\s*[ㄱ-ㅎ])+/g) || []),
-    ...(cleanedSnippet.match(/-\s*[가-힣]+/g) || [])
-].map(w => w.replace(/\s+/g, '').trim());
+const specialOrthographyKeywords =
+    quiz.topic === '한글 맞춤법'
+        ? [
+            ...(cleanedSnippet.match(/[ㄱ-ㅎ](?:\s*,\s*[ㄱ-ㅎ])+/g) || []),
+            ...(cleanedSnippet.match(/-\s*[가-힣]+/g) || [])
+          ].map(w => w.replace(/\s+/g, '').trim())
+        : [];
 
 const normalKeywords = cleanedSnippet
     .replace(/[ㄱ-ㅎ]/g, ' ')
