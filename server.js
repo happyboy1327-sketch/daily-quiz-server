@@ -1113,14 +1113,29 @@ function extractJsonFromText(rawText) {
     if (typeof rawText !== "string") throw new Error("응답이 문자열이 아닙니다.");
 
     const start = rawText.indexOf("{");
-    const end = rawText.lastIndexOf("}");
 
-    if (start === -1 || end === -1 || end < start) {
+    if (start === -1) {
         console.error("❌ [JSON 추출 실패] rawText:", JSON.stringify(rawText));
         throw new Error("JSON 객체를 찾지 못했습니다.");
     }
 
-    return rawText.slice(start, end + 1).trim();
+    let jsonText = rawText.slice(start).trim();
+
+    // 정상적으로 닫힌 JSON이면 기존과 동일하게 처리
+    if (jsonText.endsWith("}")) {
+        return jsonText;
+    }
+
+    // 마지막 } 하나만 누락된 경우 보정
+    jsonText += "}";
+
+    try {
+        JSON.parse(jsonText);
+        return jsonText;
+    } catch (e) {
+        console.error("❌ [JSON 추출 실패] 마지막 } 보정 후에도 JSON 파싱 실패");
+        throw new Error("유효한 JSON 객체를 찾지 못했습니다.");
+    }
 }
 /**
  * 단일 문항 팩트체크 (postWithRetry 적용)
