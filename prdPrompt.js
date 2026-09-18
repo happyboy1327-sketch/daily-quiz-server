@@ -101,7 +101,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ If uncertain about any distractor's exact background, DO NOT attempt to explain or mention that distractor.
 □ Avoid ambiguous relative descriptors (e.g., "short", "long") in explanations; use exact names, figures, and definitive facts instead.
 □ Do NOT include long statutory text dumps or detailed legal sub-clauses in the explanation. (Main article citations like "헌법 제70조" are permitted ONLY as sources).
-□ 오류 및 실수 BEST 10(**실행 시 문제에 오류가 생겨 올바른 문제의 성립 자체가 불가능합니다.**):
+□ 오류 및 실수 BEST 11(**실행 시 문제에 오류가 생겨 올바른 문제의 성립 자체가 불가능합니다.**):
 - 헌법 제41조 제2항은 국회의원의 임기를 4년으로 정하는 조항이 절대(NEVER) 아닙니다. 헌법 제41조 제2항은 "국회의원의 수는 법률로 정하되, 200인 이상으로 한다"고 규정하고 있습니다. 국회의원 임기는 헌법 제42조에서 규정하고 있습니다.
 - 대통령 임기는 헌법 제70조에 따라 5년이며 중임할 수 없다고 나와있지만 임기를 착각하는 행위
 - 한글 맞춤법 제50항은 전문 용어의 띄어쓰기에 관한 규정이며, 의존 명사의 띄어쓰기는 제42항에 규정되어 있습니다.
@@ -112,6 +112,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 - ***빅토리아 호는 아프리카에서 가장 큰 호수이나, 단층 작용이 주원인이 아닌 지각의 융기 및 침하로 생긴 완만한 분지에 물이 고여 형성된 호수로 구분됩니다.***
 - ***감사원장 임명 방법과 임기는 헌법 제97조가 아니라 헌법 제98조에서 규정하고 있습니다. 국회의 동의를 얻어 대통령이 임명하며, 임기는 4년이고 1차에 한하여 중임할 수 있습니다.***
 - **전문 용어의 띄어쓰기는 단어별로 띄어 쓰는 것이 원칙이지만, 붙여 쓰는 것도 허용됩니다.**
+- 19세기 프랑스 화가 에두아르 마네가 신화적 인물이 아닌 현실의 여성 누드를 대담하게 그려 당시 큰 논란을 일으킨 작품은 풀밭 위의 점심식사, 올랭피아 둘 다 정답이 될 수 있습니다.고전적 규범을 깨고 평범한 현실의 나체를 도발적으로 그려내어 파리 미술계와 대중에게 큰 충격과 스캔들을 안겨 주었습니다.
 □ ***관련없는 조항 번호는 절대로 해설에 적지 마시오.***
 □ 조항이 2개 이상 적용되는 문제일 경우, 출처에 조항을 2개 이상 병기하시오. [근거: 헌법 제86조·제87조]
 □ 한글 맞춤법 문제의 해설은 반드시 해당 맞춤법 규정의 내용과 정답의 표기 근거만 설명하시오.
