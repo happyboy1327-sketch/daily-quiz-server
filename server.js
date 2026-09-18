@@ -417,7 +417,7 @@ async function harnessSyncArticleNumber(quiz) {
     };
 
     const stopWords = new Set([
-        '따라', '원칙이며', '원칙이지', '원칙이고', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여', '각각', '등은', '등등', 
+        '따라', '적는다', '적던', '맞춤법', '해당한다', '한글', '해당', '원칙이며', '원칙이지', '원칙이고', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여', '각각', '등은', '등등', 
         '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로', '정답', '정답은', 
         '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당', '는', '선택지인', '규정한다',
         '출처', '근거', '국가법령정보센터', '입니다', '이다'
@@ -457,12 +457,25 @@ async function harnessSyncArticleNumber(quiz) {
     };
 
     try {
-        const lawSuffix = '(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시|세계\*s인권\*s선언)';
-        const lawPrefix = '(?:(?:대한민국|한국어|한글)\\s+)?'; // "대한민국" 정도만 앞에 허용, 그 외엔 안 붙임
-        const initialLawRegex = new RegExp(`(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})`);
-        const initialLawMatch = quiz.explanation.match(initialLawRegex);
-        let anchorLaw = initialLawMatch ? initialLawMatch[1].replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '').trim() : (quiz.domain || '헌법');
+        const lawSuffix = '(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시|세계\s*인권\s*선언)';
+const lawPrefix = '(?:(?:대한민국|한국어|한글)\\s+)?';
 
+const initialLawRegex = new RegExp(
+    `(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})`
+);
+
+const initialLawMatches = [...quiz.explanation.matchAll(
+    new RegExp(initialLawRegex.source, 'g')
+)];
+
+const initialLawMatch = initialLawMatches.find(
+    match => !match[1].includes('입법')
+);
+
+let anchorLaw = initialLawMatch
+    ? initialLawMatch[1].replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '').trim()
+    : (quiz.domain || '헌법');
+        
         const articleRegex = new RegExp(`(?:(?:[^\\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})\\s*)?제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?|제\\s*(\\d+)\\s*항`,'g');
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) {
