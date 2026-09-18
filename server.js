@@ -528,7 +528,14 @@ let anchorLaw = initialLawMatch
     // 마크다운 링크 제거
     .replace(/\[[^\]]*\]\([^)]+\)/g, '')
     
-const keywords = cleanedSnippet
+const specialOrthographyKeywords = [
+    ...(cleanedSnippet.match(/[ㄱ-ㅎ](?:\s*,\s*[ㄱ-ㅎ])+/g) || []),
+    ...(cleanedSnippet.match(/-\s*[가-힣]+/g) || [])
+].map(w => w.replace(/\s+/g, '').trim());
+
+const normalKeywords = cleanedSnippet
+    .replace(/[ㄱ-ㅎ]/g, ' ')
+    .replace(/-\s*[가-힣]+/g, ' ')
     .replace(/[^가-힣0-9\s]/g, ' ')
     .split(/\s+/)
     .filter(Boolean)
@@ -536,6 +543,11 @@ const keywords = cleanedSnippet
     .filter(w => !/^\d+$/.test(w))
     .map(w => cleanJosa(w))
     .filter(w => w.length >= 2 && !stopWords.has(w));
+
+const keywords = [
+    ...normalKeywords,
+    ...specialOrthographyKeywords
+];
                 
                 if (keywords.length > 0) {
                     targets.push({
@@ -659,8 +671,14 @@ const queryPredicateEndingRegex =
 const queryCandidates = target.keywords.filter(word => {
     const w = word.trim();
 
-    if (!w || w.length < 2) return false;
+    if (!w) return false;
 
+if (
+    quiz.topic !== '한글 맞춤법' &&
+    w.length < 2
+) {
+    return false;
+}
     // 법률명/법률 일반명 제거
     if (lawAndArticleRegex.test(w)) return false;
 
@@ -697,7 +715,13 @@ const scoredKeywords = [...new Set(queryCandidates)]
         score -= 14;
        }
 
-        if (/(은|는|이|가|을|를|에|로|와|과|도|만)$/.test(word)) { score -= 6; }
+        const isOrthographyForm =
+    quiz.topic === '한글 맞춤법' &&
+    /^-[가-힣]+$/.test(word);
+
+        if (!isOrthographyForm && /(은|는|이|가|을|를|에|로|와|과|도|만)$/.test(word)) {
+    score -= 6;
+}
 
         if (queryPredicateEndingRegex.test(word)) {
     score -= 6;
