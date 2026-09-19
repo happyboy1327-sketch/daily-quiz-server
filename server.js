@@ -1220,6 +1220,7 @@ async function validateSingleQuiz(quiz) {
  ### reason, targetSnippet 및 suggestedFix 필수 규칙
 - reason은 230자 이내로 작성하시오.
 - targetSnippet은 실제 퀴즈 텍스트에 존재하는 오류 부분을 정확히 그대로 복사한다.
+- errorTypes가 ["MULTIPLE_CORRECT_ANSWERS"]인 경우 targetSnippet을 절대 사용하지 말고, "null" 처리하시오.
 - suggestedFix는 targetSnippet을 그대로 교체할 수 있는 최종 수정 문자열만 반환한다.
 - suggestedFix에는 절대로 설명, 이유, 지시문, 조항 설명, "정정해야 합니다", "수정하세요" 등의 문장을 포함하지 않는다.
 - targetSnippet과 suggestedFix는 동일한 문법적 위치와 역할을 가져야 하며, 조사와 문장 구조까지 100% 일치해야 한다.
