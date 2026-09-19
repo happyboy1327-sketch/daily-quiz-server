@@ -1349,7 +1349,7 @@ const errorTypes = Array.isArray(result.errorTypes)
     const multipleAnswerPatterns = [
         /두\s*선택지.*?(?:모두|다)\s*정답/,
         /두\s*선택지.*?모두[\s\S]*?아닙니다/,
-        /다른\s*선택지도.*?(?:타당|정답)/,
+        /다른\s*선택지도.*?정답/,
         /복수\s*정답.*?(?:문제|가능성|발생|해석)/,
         /정답이\s*(?:여러|두)\s*개/
     ];
