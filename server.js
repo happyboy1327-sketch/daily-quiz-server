@@ -1181,7 +1181,7 @@ async function validateSingleQuiz(quiz) {
 2번 규칙 준수를 하지 못한 잘못된 검증 예시:
 {"valid": true, 
 "reason": "빅토리아 호는 동아프리카 지구대의 단층 작용으로 형성된 구조호이며 나일 강 수계의 주요 수원이라는 설명이 지리적으로 정확합니다. 선택지들도 서로 다른 호수로서 중복되지 않으며, 정답과 오답의 구분도 명확합니다.", //빅토리아 호는 단층 작용이 아닌 동부 열곡과 서부 열곡이 양쪽에서 솟아오르면서 가운데 땅이 사발 모양으로 완만하게 내려앉은 지각 뒤틀림 분지입니다.
-"errorType": "NONE",  
+"errorTypes": "NONE",  
 "targetSnippet": null, 
 "suggestedFix": null}
 
@@ -1193,7 +1193,9 @@ async function validateSingleQuiz(quiz) {
 
 4. 비판적 심문(Red Teaming)
    - 출제자의 의도와 관계없이 문제·보기·정답·해설·출처를 공격적으로 검토하여 반례와 허점을 찾습니다.
-   - 한글 맞춤법의 경우, 기본형은 절대 중요하지 않고, 조항의 논리와 일치만 한다면 무조건 True 처리합니다.
+   - 한글 맞춤법의 경우, 조항의 논리와 일치만 한다면 무조건 True 처리합니다.
+   - 한글 맞춤법의 경우, 2개 이상의 선택지가 조항의 조건 및 전제에 부합하며 조항 내의 모든 예시와 일치하다면 이는 복수 정답 오류이면서 맞춤법 오류이니, 
+   GRAMMAR_LOGIC_ERROR와 MULTIPLE_CORRECT_ANSWERS를 errorTypes 배열에 모두 포함하여 false 처리하시오.
    - [논점 일탈(Goalpost Shifting) 검증] 해설(조항 포함)이 문제의 정확한 전제를 직접 증명하고 있는지 확인하십시오. 논점 일탈 주의: 문제에서 "X는 언제 시작되었는가?"를 묻는데 해설이 "X는 언제 감소했는가?"를 설명하는 등, 질문의 본질과 다른 내용을 증명하고 있다면 즉시 false 처리하십시오.
 
 
@@ -1251,7 +1253,7 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
 {
   "valid": boolean, // 문제, 정답, 해설, 인용 조항이 완벽히 일치하면 true, 하나라도 틀리면 false
   "reason": string, // 검증 결과 및 오류 원인에 대한 설명
-  "errorType": string, // NONE | ARTICLE_MISMATCH | GRAMMAR_LOGIC_ERROR | SOURCE_ERROR | PREMISE_MISMATCH | MULTIPLE_CORRECT_ANSWERS | TYPO
+  "errorTypes": string[], // NONE | ARTICLE_MISMATCH | GRAMMAR_LOGIC_ERROR | SOURCE_ERROR | PREMISE_MISMATCH | MULTIPLE_CORRECT_ANSWERS | TYPO
   "targetSnippet": string | null, // 해설 내에서 문법적/사실적 오류가 발생한 정확한 문장/단어 (오류 없을 시 null)
   "suggestedFix": string | null // 정정되어야 할 올바른 표현 또는 조항 번호 (오류 없을 시 null),
   "correctAnswerCandidates": string[] // 실제로 정답이 될 수 있는 모든 선택지
@@ -1286,26 +1288,31 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
         const cleanJson = extractJsonFromText(rawText);
 const result = JSON.parse(cleanJson);
 
-if (
-    result.valid === true &&
-    result.errorType === "NONE"
-) {
-    // 1. 정답 후보 개수 강제 검사
-    if (
-        Array.isArray(result.correctAnswerCandidates) &&
-        result.correctAnswerCandidates.length !== 1
-    ) {
-        return {
-            ...result,
-            valid: false,
-            errorType: result.correctAnswerCandidates.length > 1
-                ? "MULTIPLE_CORRECT_ANSWERS"
-                : "PREMISE_MISMATCH",
-            reason: `정답 후보가 ${result.correctAnswerCandidates.length}개로 확인되어 단일 정답 조건을 만족하지 않습니다.`,
-            targetSnippet: null,
-            suggestedFix: null
-        };
-    }
+const errorTypes = Array.isArray(result.errorTypes) 
+            ? result.errorTypes 
+            : (result.errorTypes ? [result.errorTypes] : ["NONE"]);
+
+        const isNoneError = errorTypes.includes("NONE");
+
+        if (result.valid === true && isNoneError) {
+            // 1. 정답 후보 개수 강제 검사
+            if (
+                Array.isArray(result.correctAnswerCandidates) &&
+                result.correctAnswerCandidates.length !== 1
+            ) {
+                const detectedType = result.correctAnswerCandidates.length > 1
+                    ? "MULTIPLE_CORRECT_ANSWERS"
+                    : "PREMISE_MISMATCH";
+
+                return {
+                    ...result,
+                    valid: false,
+                    errorTypes: [detectedType], // 배열 형태로 할당
+                    reason: `정답 후보가 ${result.correctAnswerCandidates.length}개로 확인되어 단일 정답 조건을 만족하지 않습니다.`,
+                    targetSnippet: null,
+                    suggestedFix: null
+                };
+            }
 
     // 2. AI 검증 reason 자체의 자기모순 검사
     /**
@@ -1353,7 +1360,7 @@ if (
         return {
             ...result,
             valid: false,
-            errorType: 'MULTIPLE_CORRECT_ANSWERS'
+            errorTypes: ['MULTIPLE_CORRECT_ANSWERS']
         };
     }
     if (!hasMultipleAnswerIssue && !hasSafeContext) {
@@ -1394,6 +1401,8 @@ async function validateQuizAccuracy(quizzes) {
     }
 
     if (invalidIndices.length > 0) {
+        const firstInvalidErrorTypes = results[invalidIndices[0]].errorTypes;
+        
     return {
         valid: false,
         invalidIndices,
@@ -1402,7 +1411,7 @@ async function validateQuizAccuracy(quizzes) {
                 `[${i + 1}번 문항 (${quizzes[i].topic})] ${results[i].reason}`
             )
             .join(" / "),
-        errorType: results[invalidIndices[0]].errorType || "NONE",
+        errorTypes: Array.isArray(firstInvalidErrorTypes) ? firstInvalidErrorTypes : ["NONE"],
         targetSnippet: results[invalidIndices[0]].targetSnippet || null,
         suggestedFix: results[invalidIndices[0]].suggestedFix || null, 
 
@@ -1413,7 +1422,8 @@ async function validateQuizAccuracy(quizzes) {
 return {
     valid: true,
     invalidIndices: [],
-    reason: ""
+    reason: "", 
+    errorTypes: ["NONE"]
 };
 }
 
@@ -2049,8 +2059,8 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
             break;
         }
 
-        const errorType =
-            validation.errorType || "NONE";
+        const errorTypes =
+            validation.errorTypes || "NONE";
 
         const targetSnippet =
             validation.targetSnippet
@@ -2064,7 +2074,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
 
         console.warn(
             `[VALIDATION] round ${round}/${MAX_VALIDATION_ROUNDS} ` +
-            `검증 실패 [${errorType}]: ` +
+            `검증 실패 [${errorTypes}]: ` +
             `${validation.reason || ""}` +
             `${targetSnippet}` +
             `${suggestedFix}`
