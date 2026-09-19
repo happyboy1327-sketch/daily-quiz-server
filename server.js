@@ -2055,13 +2055,20 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
     for (let round = 1; round <= MAX_VALIDATION_ROUNDS; round++) {
         const validation = await validateQuizAccuracy(successfulQuizzes);
 
-        if (validation.valid) {
-            validationPassed = true;
-            break;
-        }
+        const errorTypes = Array.isArray(validation.errorTypes)
+        ? validation.errorTypes
+        : ["NONE"];
 
-        const errorTypes =
-            validation.errorTypes || "NONE";
+    if (validation.valid) {
+        validationPassed = true;
+        break;
+    }
+
+    // 2. .includes()를 사용하여 복수 에러 타입 배열 내 특정 에러 감지
+    if (errorTypes.includes("MULTIPLE_CORRECT_ANSWERS")) {
+        validationPassed = false;
+        break;
+    }
 
         const targetSnippet =
             validation.targetSnippet
@@ -2075,7 +2082,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
 
         console.warn(
             `[VALIDATION] round ${round}/${MAX_VALIDATION_ROUNDS} ` +
-            `검증 실패 [${errorTypes}]: ` +
+            `검증 실패 [${errorTypes.join(", ")}]: ` +
             `${validation.reason || ""}` +
             `${targetSnippet}` +
             `${suggestedFix}`
