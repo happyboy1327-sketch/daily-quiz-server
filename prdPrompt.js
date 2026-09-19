@@ -548,9 +548,9 @@ ${previousQuestions.slice(-14).map(q =>
 }
     ],
     temperature: 0.18, 
-    presence_penalty: 0.75,
-    frequency_penalty: 1.2,
-    max_tokens: 2950
+    presence_penalty: 0.74,
+    frequency_penalty: 0.88,
+    max_tokens: 3050
   };
 }
 
