@@ -880,9 +880,10 @@ await sleep(1600);
                 quiz.harnessReplacementFailed = true;
                 continue;
             }
+            `([가-힣]{1,10}${lawSuffix})`
 
             const candidateRegex = new RegExp(
-                `(?:(?:(?:([가-힣]{1,10}${lawSuffix})?\\s*제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?)|(?:(?:([가-힣]{1,10}${lawSuffix})?\\s*제\\s*(\\d+)\\s*항))))`,
+                `(?:(?:(?:(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})?\\s*제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?)|(?:(?:((?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})?\\s*제\\s*(\\d+)\\s*항))))`,
                 'g'
             );
             const candidateMatches = [...text2.matchAll(candidateRegex)];
@@ -1614,7 +1615,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                             'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
                             'Content-Type': 'application/json'
                         },
-                        timeout: 43000
+                        timeout: 40000
                     },
                     2,
                     2500
