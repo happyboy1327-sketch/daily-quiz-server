@@ -37,6 +37,11 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ Avoid unresolved controversies, time-varying political facts, and dumping detailed legal statutory texts into the question body.
 □ When generating Geography questions using superlative terms (e.g., "largest", "longest", "1st"), do not combine metrics belonging to different entities (such as basin area vs. stream length) into a single contradictory premise.
 □ For Coding: Plain text code only. Markdown code blocks within JSON strings are strictly prohibited.
+□ ANSWER TYPE MUST MATCH THE QUESTION TYPE.
+- If the question asks "무엇이라고 합니까?", "무엇입니까?", "어떤 용어입니까?", or otherwise asks for a name, term, title, concept, person, place, or entity, the correct answer MUST be the corresponding name, term, title, concept, person, place, or entity itself — NOT a definition or explanatory sentence.
+- When the answer is a term or name, all 4 choices MUST be terms or names of the same type and category.
+- NEVER use a definition sentence as a choice when the question asks for the name or term of something.
+- Conversely, if the question explicitly asks for a definition or description, the choices may be complete descriptive statements.
 □ [생성 금지 지침]
 - 단체/기관마다 기준 수치가 다른 문제(예: 적정 온도, 체온 수치, 권장 시간 등)는 절대로 출제하지 마십시오. 단 하나의 정답만 존재하는 배타적 팩트만 출제하십시오.
 - 마네의 「풀밭 위의 점심식사」와 「올랭피아」처럼 동일한 인물·작가·시대·미술적 특징을 공유하는 복수의 작품이 동시에 정답이 될 수 있는 미술 및 음악, 예술 작품 문제는 출제하지 마시오.
@@ -554,7 +559,7 @@ ${previousQuestions.slice(-14).map(q =>
     ],
     temperature: 0.14, 
     presence_penalty: 0.83,
-    frequency_penalty: 0.9,
+    frequency_penalty: 1.15,
     max_tokens: 3050
   };
 }
