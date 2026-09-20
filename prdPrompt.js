@@ -552,7 +552,7 @@ ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반�
 ${previousQuestions.slice(-14).map(q =>
     typeof q === "string"
         ? q
-        : `문제: ${q.question}\n보기: ${q.choices.join(" / ")}`
+        : `문제: ${q.question}\n보기: ${q.choices.join(" / ")}\n정답: ${q.correctAnswerText || ""}`
 ).join("\n")}
 `
 }
