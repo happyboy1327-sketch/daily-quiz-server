@@ -506,7 +506,7 @@ async function loadQuizData(retryCount = 0) {
             }
 
             explanationBox.style.display = 'block';
-            navButtons.innerHTML = `<button class="btn-primary" onclick="nextQuestion()">${
+            navButtons.innerHTML = `<button class="btn-secondary" onclick="nextQuestion()">${
     currentQuestionIndex + 2 === 6
         ? '퀴즈 끝내기'
         : `다음 문제(${currentQuestionIndex + 2}번) ▶`
