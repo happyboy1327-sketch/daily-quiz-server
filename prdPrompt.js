@@ -144,7 +144,8 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
   "choices": ["보기1", "보기2", "보기3", "보기4"],
   "correctAnswerIndex": 0,
   "correctAnswerText": "보기1"
-}`;
+}
+`;
 
 /**
 /**
