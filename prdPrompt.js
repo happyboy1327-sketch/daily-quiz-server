@@ -143,16 +143,16 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 
 ### 7. OUTPUT FORMAT
 □ Output ONLY a single valid JSON object. No surrounding conversational text.
+(** 절대로 임의로 필드 하나라도 빼지 마시오.**)
 
-{
-  "topic": "분야명",
+{ "topic": "분야명",
   "concept_summary": "[출제할때마다 다른 조문, 조항, 팩트 및 핵심 개념을 2문장으로 먼저 요약]",
   "explanation": "정답은 {correctAnswerText}입니다. [정답 이유 및 모든 오답의 명확한 근거 설명]",
   "question": "[전제와 조건이 명확하고 논리가 완벽한 질문]",
   "choices": ["보기1", "보기2", "보기3", "보기4"],
   "correctAnswerIndex": 0,
-  "correctAnswerText": "보기1"
-}
+  "correctAnswerText": "보기1" }
+
 `;
 
 /**
