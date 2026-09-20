@@ -67,9 +67,12 @@
             width: 100%;
             padding: 12px 15px;
             margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #fff;
+            border: 1px solid rgba(210, 210, 220, 0.65);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.58);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
             text-align: left;
             cursor: pointer;
             font-size: 1em;
@@ -90,6 +93,37 @@
             border-color: #dc3545;
             color: #721c24;
             font-weight: bold;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #111318;
+                color: #f1f3f5;
+            }
+            .container {
+                background: #1c1f26;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+            }
+            .choices button {
+                background: rgba(42, 46, 56, 0.62);
+                border-color: rgba(130, 138, 155, 0.42);
+                color: #f1f3f5;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.22);
+            }
+            .choices button:hover:not(:disabled) {
+                background: rgba(55, 62, 76, 0.72);
+                border-color: #6ea8fe;
+            }
+            .choices button.correct {
+                background: rgba(39, 125, 74, 0.72);
+                border-color: #4ade80;
+                color: #dcffe8;
+            }
+            .choices button.incorrect {
+                background: rgba(150, 45, 55, 0.72);
+                border-color: #ff6b7a;
+                color: #ffe1e5;
+            }
         }
         #explanation-box {
             margin-top: 20px;
