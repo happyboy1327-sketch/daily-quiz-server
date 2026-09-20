@@ -386,18 +386,21 @@ function extractClauseAroundMatch(text, matchIndex, matchLength) {
 async function harnessSyncArticleNumber(quiz) {
     console.log("🔍 [시작] 조항 번호 동기화 로직 실행");
 
-    if (
-        !quiz ||
-        !['한글 맞춤법', '정치', '인권 리터러시'].includes(quiz.topic)
-    ) {
-        console.log(`⚠️ [중단] 하네스 대상 주제가 아닙니다: ${quiz?.topic}`);
+    if (!quiz) {
+        console.log("⚠️ [중단] quiz 객체가 없습니다.")
         return quiz;
+       } else {
+        if (typeof quiz.explanation !== 'string') {
+            console.log("⚠️ [중단] explanation이 문자열이 아닙니다.");
+            return quiz;
     }
-    
-    if (!quiz || typeof quiz.explanation !== 'string') {
-        console.log("⚠️ [중단] quiz 객체가 없거나 explanation이 문자열이 아닙니다.");
-        return quiz;
     }
+
+    if (!['한글 맞춤법', '정치', '인권 리터러시'].includes(quiz.topic)) {
+           console.log(`⚠️ [중단] 하네스 대상 주제가 아닙니다: ${quiz?.topic}`);
+           return quiz;
+    }
+
 
     let replacedCount = 0;
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
