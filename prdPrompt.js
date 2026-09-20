@@ -30,7 +30,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ NEVER use subjective or relative terms like "대표적인" (representative), "가장 ~한" (most), or "주요한" (major) in the question prompt.
   - ❌ WRONG: 세종대왕의 대표적인 업적은?
   - ⭕ RIGHT: 조선 제4대 왕인 세종대왕 재위 기간에 창제된 한국어의 독자적 문자 체계는?
-□ Scope, assumptions, units, and criteria must be explicit when relevant.
+□ Scope, assumptions, units, and criteria must be explicit and very rigorous when relevant.
 □ Do not ask for obscure dates or numbers EXCEPT for verified fields like HISTORY, SCIENCE, MEDICINE, and PUBLIC GUIDELINES (e.g., food safety hours, intake intervals).
 □ 정치 분야에서, 헌법 조항 번호를 특정 몇 개에 편중하지 말고, 이미 사용된 조항과 다른 조항을 우선 선택하라. 정치 분야에서 가능한 경우 기본권, 국회, 정부, 대통령, 법원, 헌법재판소, 지방자치, 헌법기관 등 서로 다른 영역을 순환하여 출제하라.
 □ Avoid unresolved controversies, time-varying political facts, and dumping detailed legal statutory texts into the question body.
