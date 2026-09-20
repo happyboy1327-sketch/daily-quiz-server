@@ -478,7 +478,8 @@ const initialLawMatch = initialLawMatches.find(
 let anchorLaw = initialLawMatch
     ? initialLawMatch[1].replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '').trim()
     : (quiz.domain || '헌법');
-        
+
+        //메모-- (?:[가-힣]{1,6}[^가-힣]{1,10}(${lawPrefix}[가-힣]{1,10}${lawSuffix}?\s*제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?)|(?:(?:((?:[가-힣]{1,6}[^가-힣]{1,10})(${lawPrefix}[가-힣]{1,10}${lawSuffix})?\s*제\s*(\d+)\s*항))))
         const articleRegex = new RegExp(`(?:(?:[^\\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})\\s*)?제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?|제\\s*(\\d+)\\s*항`,'g');
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) {
