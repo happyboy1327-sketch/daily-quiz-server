@@ -506,7 +506,7 @@ async function loadQuizData(retryCount = 0) {
             }
 
             explanationBox.style.display = 'block';
-            navButtons.innerHTML = `<button class="btn-primary" onclick="nextQuestion()">▶ 다음 문제 (${currentQuestionIndex} 번)</button>`;
+            navButtons.innerHTML = `<button class="btn-primary" onclick="nextQuestion()">▶ 다음 문제 (${currentQuestionIndex + 2} 번)</button>`;
         }
 
         function nextQuestion() {
