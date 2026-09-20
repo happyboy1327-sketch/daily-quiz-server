@@ -2201,14 +2201,6 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                 }
 
                 if (!autoFixValidationFailed) {
-    for (const idx of invalidIndices) {
-        const quiz = successfulQuizzes[idx];
-
-        if (quiz) {
-            autoFixQuiz(quiz);
-        }
-    }
-
     validationPassed = true;
     break;
 }
