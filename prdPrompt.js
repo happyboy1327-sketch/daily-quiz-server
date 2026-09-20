@@ -7,6 +7,7 @@ using single definitive answers and plausible wrong options.
 Before outputting, you MUST satisfy EVERY single rule below (without missing a single one).
 
 ### 1. ABSOLUTE TRUTH AND FACTUALITY
+□ The question MUST use absolute and unambiguous conditions that allow exactly one correct answer.
 □ Do NOT distort, guess, speculate, or fabricate any statements under any circumstances.
 □ Every fact, date, historical alliance, scientific claim, medical guideline, numerical data, and definition MUST be 100% verified real-world truth.
 □ ***Never distort, guess or arbitrarily generate the clause numbers of laws, regulations, or orthography rules. Always cross-fact-check with the original text before outputting any clause numbers.***
@@ -30,7 +31,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ NEVER use subjective or relative terms like "대표적인" (representative), "가장 ~한" (most), or "주요한" (major) in the question prompt.
   - ❌ WRONG: 세종대왕의 대표적인 업적은?
   - ⭕ RIGHT: 조선 제4대 왕인 세종대왕 재위 기간에 창제된 한국어의 독자적 문자 체계는?
-□ Scope, assumptions, units, and criteria must be explicit and very rigorous when relevant.
+□ Scope, assumptions, units, and conditions must be explicit and very rigorous when relevant.
 □ Do not ask for obscure dates or numbers EXCEPT for verified fields like HISTORY, SCIENCE, MEDICINE, and PUBLIC GUIDELINES (e.g., food safety hours, intake intervals).
 □ 정치 분야에서, 헌법 조항 번호를 특정 몇 개에 편중하지 말고, 이미 사용된 조항과 다른 조항을 우선 선택하라. 정치 분야에서 가능한 경우 기본권, 국회, 정부, 대통령, 법원, 헌법재판소, 지방자치, 헌법기관 등 서로 다른 영역을 순환하여 출제하라.
 □ Avoid unresolved controversies, time-varying political facts, and dumping detailed legal statutory texts into the question body.
@@ -38,6 +39,9 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ For Coding: Plain text code only. Markdown code blocks within JSON strings are strictly prohibited.
 □ [생성 금지 지침]
 - 단체/기관마다 기준 수치가 다른 문제(예: 적정 온도, 체온 수치, 권장 시간 등)는 절대로 출제하지 마십시오. 단 하나의 정답만 존재하는 배타적 팩트만 출제하십시오.
+- 마네의 「풀밭 위의 점심식사」와 「올랭피아」처럼 동일한 인물·작가·시대·미술적 특징을 공유하는 복수의 작품이 동시에 정답이 될 수 있는 미술 및 음악, 예술 작품 문제는 출제하지 마시오.
+- 미술 작품을 물을 때에는 반드시 하나의 작품만 고유하게 특정할 수 있는 구별 조건을 사용하시오.
+- 두 개 이상의 선택지가 질문의 조건을 동시에 만족하면 해당 문제를 폐기하고 완전히 다른 문제를 생성하시오.
 
 ### 3. CHOICES AND CHARACTER SET CONSTRAINTS
 □ Exactly 4 choices, exactly 1 objectively correct answer.
@@ -101,7 +105,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ If uncertain about any distractor's exact background, DO NOT attempt to explain or mention that distractor.
 □ Avoid ambiguous relative descriptors (e.g., "short", "long") in explanations; use exact names, figures, and definitive facts instead.
 □ Do NOT include long statutory text dumps or detailed legal sub-clauses in the explanation. (Main article citations like "헌법 제70조" are permitted ONLY as sources).
-□ 오류 및 실수 BEST 12(**실행 시 문제에 오류가 생겨 올바른 문제의 성립 자체가 불가능합니다.**):
+□ 오류 및 실수 BEST 11(**실행 시 문제에 오류가 생겨 올바른 문제의 성립 자체가 불가능합니다.**):
 - 헌법 제41조 제2항은 국회의원의 임기를 4년으로 정하는 조항이 절대(NEVER) 아닙니다. 헌법 제41조 제2항은 "국회의원의 수는 법률로 정하되, 200인 이상으로 한다"고 규정하고 있습니다. 국회의원 임기는 헌법 제42조에서 규정하고 있습니다.
 - 대통령 임기는 헌법 제70조에 따라 5년이며 중임할 수 없다고 나와있지만 임기를 착각하는 행위
 - 한글 맞춤법 제50항은 전문 용어의 띄어쓰기에 관한 규정이며, 의존 명사의 띄어쓰기는 제42항에 규정되어 있습니다.
@@ -112,8 +116,6 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 - ***빅토리아 호는 아프리카에서 가장 큰 호수이나, 단층 작용이 주원인이 아닌 지각의 융기 및 침하로 생긴 완만한 분지에 물이 고여 형성된 호수로 구분됩니다.***
 - ***감사원장 임명 방법과 임기는 헌법 제97조가 아니라 헌법 제98조에서 규정하고 있습니다. 국회의 동의를 얻어 대통령이 임명하며, 임기는 4년이고 1차에 한하여 중임할 수 있습니다.***
 - **전문 용어의 띄어쓰기는 단어별로 띄어 쓰는 것이 원칙이지만, 붙여 쓰는 것도 허용됩니다.**
-- ❌️ --19세기 프랑스 화가 에두아르 마네가 신화적 인물이 아닌 현실의 여성 누드를 대담하게 그려 당시 큰 논란을 일으킨 작품은 풀밭 위의 점심식사, 올랭피아 둘 다 정답이 될 수 있습니다.고전적 규범을 깨고 평범한 현실의 나체를 도발적으로 그려내어 파리 미술계와 대중에게 큰 충격과 스캔들을 안겨 주었습니다.--
-(⚠️AI의 실수가 너무 많이 감지되었으니, 절대로 내지 마십시오.)
 - ***세계 여러 하천 가운데 일반적으로 인정되는 유역 면적 기준으로 가장 넓은 강은 무엇입니까? 콩고강이 아니라 아마존강입니다.*** 
 □ ***관련없는 조항 번호는 절대로 해설에 적지 마시오.***
 □ 조항이 2개 이상 적용되는 문제일 경우, 출처에 조항을 2개 이상 병기하시오. [근거: 헌법 제86조·제87조]
