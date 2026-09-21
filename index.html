@@ -418,7 +418,7 @@ async function loadQuizData(retryCount = 0) {
     quizContainer.innerHTML = '';
     navButtons.innerHTML = '';
     loadingDiv.style.display = 'block';
-    loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중... (평균 1분 이상 소요)";
+    loadingDiv.innerText = retryCount > 0 ? `서버 응답 기다리는 중... (재시도 ${retryCount}/2)` : "데이터 로딩 중... (평균 90초 이상 소요)";
 
     try {
         // 1. 로컬스토리지에서 저장된 시간과 데이터 확인
