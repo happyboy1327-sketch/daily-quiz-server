@@ -5,7 +5,6 @@ const path = require('path');
 const seedrandom = require('seedrandom');
 const crypto = require('crypto');
 const https = require('https');
-
 //const SERPAPI_KEY = process.env.SERPAPI_KEY;
 const RESERP_API_KEY = process.env.RESERP_API_KEY;
 //import { HttpsProxyAgent } from 'https-proxy-agent';
@@ -1111,7 +1110,6 @@ function extractJsonFromText(rawText) {
 async function validateSingleQuiz(quiz) {
     const payload = {
         model: "solar-pro4",
-        prompt_cache_key: "validate-single-quiz-v1",
         response_format: { type: "json_object" },
         messages: [
             {
@@ -1798,7 +1796,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                 );
 
                 await new Promise(resolve =>
-                    setTimeout(resolve, 700)
+                    setTimeout(resolve, 1000)
                 );
 
                 return quiz;
@@ -1929,7 +1927,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
 
     // 1초 뒤 워커 2 시작
     await new Promise(resolve =>
-        setTimeout(resolve, 900)
+        setTimeout(resolve, 1000)
     );
 
     const worker2 = fetchWorker(2);
@@ -2314,7 +2312,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
             regenerationWorker(1);
 
         await new Promise(resolve =>
-            setTimeout(resolve, 900)
+            setTimeout(resolve, 1000)
         );
 
         const regenWorker2 =
@@ -2435,7 +2433,7 @@ if (harnessFailedQuizzes.length > 0) {
         harnessRegenerationWorker(1);
 
     await new Promise(resolve =>
-        setTimeout(resolve, 800)
+        setTimeout(resolve, 1000)
     );
 
     const harnessWorker2 =
