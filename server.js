@@ -8,7 +8,7 @@ const https = require('https');
 // 파일이 로드될 때 딱 한 번만 생성 (함수 안에 넣으면 안 됨!)
 const keepAliveAgent = new https.Agent({
     keepAlive: true,
-    maxSockets: 50
+    maxSockets: Infinity
 });
 //const SERPAPI_KEY = process.env.SERPAPI_KEY;
 const RESERP_API_KEY = process.env.RESERP_API_KEY;
