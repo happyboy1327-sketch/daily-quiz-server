@@ -560,7 +560,7 @@ ${previousQuestions.slice(-14).map(q =>
     temperature: 0.14, 
     presence_penalty: 0.83,
     frequency_penalty: 1.15,
-    max_tokens: 3050
+    max_tokens: 2150
   };
 }
 
