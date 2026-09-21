@@ -2027,8 +2027,15 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
     const MAX_VALIDATION_ROUNDS = 3;
     let validationPassed = false;
 
-    for (let round = 1; round <= MAX_VALIDATION_ROUNDS; round++) {
-        const validation = await validateQuizAccuracy(successfulQuizzes);
+    let validationTargets = successfulQuizzes.map((_, index) => index);
+
+for (let round = 1; round <= MAX_VALIDATION_ROUNDS; round++) {
+
+    const quizzesToValidate =
+        validationTargets.map(index => successfulQuizzes[index]);
+
+    const validation =
+        await validateQuizAccuracy(quizzesToValidate);
 
         const errorTypes = Array.isArray(validation.errorTypes)
         ? validation.errorTypes
@@ -2063,15 +2070,20 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
             `${suggestedFix}`
         );
 
-        const invalidIndices =
-            Array.isArray(validation.invalidIndices)
-                ? validation.invalidIndices
-                    .filter(idx =>
-                        Number.isInteger(idx) &&
-                        idx >= 0 &&
-                        idx < successfulQuizzes.length
-                    )
-                : [];
+        const invalidPositions =
+    Array.isArray(validation.invalidIndices)
+        ? validation.invalidIndices
+            .filter(idx =>
+                Number.isInteger(idx) &&
+                idx >= 0 &&
+                idx < quizzesToValidate.length
+            )
+        : [];
+
+const invalidIndices =
+    invalidPositions.map(
+        position => validationTargets[position]
+    );
 
         let autoFixed = false;
 
@@ -2324,22 +2336,22 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
             regenWorker2
         ]);
 
-        // null 제거
-        successfulQuizzes =
-            successfulQuizzes.filter(Boolean);
+        // 다음 라운드에서는 방금 재생성한 문항만 검증
+if (invalidIndices.some(idx => !successfulQuizzes[idx])) {
+    console.error(
+        "[VALIDATION] 재생성 실패 문항이 있어 검증을 중단합니다."
+    );
+    return false;
+}
 
-        console.log(
-            `[VALIDATION] 재생성 라운드 완료: ` +
-            `${successfulQuizzes.length}개 문항 유지`
-        );
+validationTargets = invalidIndices;
 
-        if (successfulQuizzes.length === 0) {
-            console.error(
-                "[VALIDATION] 재생성 후 남은 문제가 없습니다."
-            );
+console.log(
+    `[VALIDATION] 재생성 라운드 완료: ` +
+    `${validationTargets.length}개 문항만 다음 라운드에서 재검증`
+);
 
-            return false;
-        }
+        
     }
 
     // ============================================================
