@@ -1797,7 +1797,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                 );
 
                 await new Promise(resolve =>
-                    setTimeout(resolve, 1000)
+                    setTimeout(resolve, 700)
                 );
 
                 return quiz;
@@ -1928,7 +1928,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
 
     // 1초 뒤 워커 2 시작
     await new Promise(resolve =>
-        setTimeout(resolve, 1000)
+        setTimeout(resolve, 500)
     );
 
     const worker2 = fetchWorker(2);
@@ -2313,7 +2313,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
             regenerationWorker(1);
 
         await new Promise(resolve =>
-            setTimeout(resolve, 1000)
+            setTimeout(resolve, 500)
         );
 
         const regenWorker2 =
@@ -2434,7 +2434,7 @@ if (harnessFailedQuizzes.length > 0) {
         harnessRegenerationWorker(1);
 
     await new Promise(resolve =>
-        setTimeout(resolve, 1000)
+        setTimeout(resolve, 800)
     );
 
     const harnessWorker2 =
