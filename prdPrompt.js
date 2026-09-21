@@ -557,9 +557,9 @@ ${previousQuestions.slice(-14).map(q =>
 `
 }
     ],
-    temperature: 0.14, 
+    temperature: 0.2, 
     presence_penalty: 0.83,
-    frequency_penalty: 1.15,
+    frequency_penalty: 0.95,
     max_tokens: 2150
   };
 }
