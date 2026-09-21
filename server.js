@@ -78,7 +78,7 @@ async function postWithRetry(
     payload,
     options = {},
     maxRetries = 2,
-    baseDelayMs = 2500
+    baseDelayMs = 1000
 ) {
     // options에 timeout이 없으면 기본 120초(120000ms) 강제 적용
     const requestOptions = {
