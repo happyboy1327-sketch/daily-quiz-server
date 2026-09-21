@@ -1111,6 +1111,7 @@ function extractJsonFromText(rawText) {
 async function validateSingleQuiz(quiz) {
     const payload = {
         model: "solar-pro4",
+        prompt_cache_key: "validate-single-quiz-v1",
         response_format: { type: "json_object" },
         messages: [
             {
