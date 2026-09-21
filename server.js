@@ -5,6 +5,11 @@ const path = require('path');
 const seedrandom = require('seedrandom');
 const crypto = require('crypto');
 const https = require('https');
+// 파일이 로드될 때 딱 한 번만 생성 (함수 안에 넣으면 안 됨!)
+const keepAliveAgent = new https.Agent({
+    keepAlive: true,
+    maxSockets: 50
+});
 //const SERPAPI_KEY = process.env.SERPAPI_KEY;
 const RESERP_API_KEY = process.env.RESERP_API_KEY;
 //import { HttpsProxyAgent } from 'https-proxy-agent';
@@ -1258,7 +1263,8 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
                 'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            timeout: 100000
+            timeout: 100000,
+            httpsAgent: keepAliveAgent
         });
 
         const rawText = response.data?.choices?.[0]?.message?.content;
@@ -1593,7 +1599,8 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                             'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
                             'Content-Type': 'application/json'
                         },
-                        timeout: 40000
+                        timeout: 40000,
+                        httpsAgent: keepAliveAgent
                     },
                     2,
                     2500
