@@ -1929,7 +1929,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
 
     // 1초 뒤 워커 2 시작
     await new Promise(resolve =>
-        setTimeout(resolve, 500)
+        setTimeout(resolve, 900)
     );
 
     const worker2 = fetchWorker(2);
@@ -2314,7 +2314,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
             regenerationWorker(1);
 
         await new Promise(resolve =>
-            setTimeout(resolve, 500)
+            setTimeout(resolve, 900)
         );
 
         const regenWorker2 =
