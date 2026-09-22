@@ -406,7 +406,7 @@ async function harnessSyncArticleNumber(quiz) {
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     // 1단계/2단계 판정 기준 일치율 (19%/45%)
-    const MATCH_THRESHOLD = 0.42;
+    const MATCH_THRESHOLD = 0.402;
     const REPLACEMENT_THRESHOLD = 0.55;
 
 
