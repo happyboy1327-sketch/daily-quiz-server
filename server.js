@@ -461,7 +461,7 @@ async function harnessSyncArticleNumber(quiz) {
 
     try {
         const lawSuffix = '(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시|세계\\s*인권\\s*선언|\\s*협약)';
-const lawPrefix = '(?:(?:대한민국|한국어|한글|아동\\s*권리)\\s+)?';
+const lawPrefix = '(?:(?:대한민국|한국어|한글|아동|권리)\\s+)?';
 
 const initialLawRegex = new RegExp(
     `(?:[^\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})`
@@ -849,7 +849,7 @@ await sleep(1600);
             `([가-힣]{1,10}${lawSuffix})`
 
             const candidateRegex = new RegExp(
-                `(?:(?:[^가-힣0-9a-zA-Z\s]|^|\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix}?\s*제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?)|(?:(?:((?:[^가-힣0-9a-zA-Z\s]|^|\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})?\s*제\s*(\d+)\s*항))))`,
+                `(?:[가-힣]{1,6}[^가-힣]{1,10}(${lawPrefix}[가-힣]{1,10}${lawSuffix}?\s*제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?)|(?:(?:((?:[가-힣]{1,6}[^가-힣]{1,10})(${lawPrefix}[가-힣]{1,10}${lawSuffix})?\s*제\s*(\d+)\s*항))))`,
                 'g'
             );
             const candidateMatches = [...text2.matchAll(candidateRegex)];
