@@ -1165,7 +1165,7 @@ async function validateSingleQuiz(quiz) {
 
 4. 정답 및 오답지 역검증 I
    - 정답이 실제로 타당한지 검증합니다.
-   - 정답 가능성이 있고 질문의 전제 및 조건에 부합하는 선택지가 correctAnswerText 하나뿐인지 검증합니다.
+   - 정답 가능성이 있고 질문의 전제 및 조건에 부합하는 선택지가 correctAnswerText 하나뿐인지 검증합니다. 특히 문화예술의 경우, 시대적 배경이 완전히 다른 작품들을 choices에 배치해야 합니다.
    - 모든 오답지가 어떤 해석·조건에서도 정답이 될 수 없는지 개별 검증합니다.
    - 문제의 전제조건에서 correctAnswerText 하나 외에 복수정답 가능성이 조금이라도 있으면 valid=false 처리합니다.
 
