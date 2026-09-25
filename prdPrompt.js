@@ -50,7 +50,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 
 ### 3. CHOICES AND CHARACTER SET CONSTRAINTS
 □ Exactly 4 choices, exactly 1 objectively correct answer.
-□ Distractor Rule: Distractors MUST belong to a DIFFERENT person, era, or concept (e.g., If the target is King Sejong, distractors MUST be achievements of other kings). NEVER list 4 true facts of the SAME entity and ask to pick one
+□ Distractor Rule: Distractors MUST belong to a DIFFERENT person, historical background, era, or concept (e.g., If the target is King Sejong, distractors MUST be achievements of other kings). NEVER list 4 true facts of the SAME entity and ask to pick one
 (Except for 한글 맞춤법).
 □ All 4 choices MUST target the EXACT same phrase structure, rule, or conceptual category.
 □ Character Set: Use ONLY standard Korean, numbers, and basic ASCII. NEVER use Hanja.
