@@ -53,7 +53,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ Distractor Rule: Distractors MUST belong to a DIFFERENT person, historical background, era, or concept (e.g., If the target is King Sejong, distractors MUST be achievements of other kings). NEVER list 4 true facts of the SAME entity and ask to pick one
 (Except for 한글 맞춤법).
 □ All 4 choices MUST target the EXACT same phrase structure, rule, or conceptual category.
-□ Character Set: Use ONLY standard Korean, numbers, and basic ASCII. NEVER use Hanja.
+□ Character Set: Use ONLY standard Korean, numbers.
 □ ***FOR KOREAN GRAMMAR / SPELLING QUIZZES (CRITICAL RULE)***:
 
 * First determine whether the question asks about:
@@ -98,6 +98,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
   
 [CRITICAL]:
 ***DO NOT COPY THE EXAMPLES ABOVE***: The two examples above illustrate FORMAT ONLY (question/choices/answer structure). They are placeholders, NOT real content. You MUST NOT generate a question about '전문 용어', '전문용어' as a dependent noun, '조건을 만족하지 않는 후보', or any bracketed placeholder text shown above. If a "Mandatory Spelling Reference Dataset" is provided below, you MUST base the actual question content strictly on that dataset instead.
+* Even if you ask a question asking whether the intent of the clause has been correctly applied, Please refrain from including non-answer choices with correct korean spelling and grammer.
 * Before finalizing ANY Korean grammar/spelling quiz, evaluate ALL 4 choices against the EXACT rule or condition being tested.
 * If two or more choices are acceptable, permitted, or correct under that rule, DISCARD the question and generate a new one.
 * The final quiz MUST have exactly ONE objectively correct choice.
