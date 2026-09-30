@@ -547,7 +547,7 @@ ${topic}
 
 위 분야에 맞는 중급 난도 및 새로운 소재의 퀴즈 1개를 JSON 형식으로 출제해주세요.
 이미 출제된 목록과 동일하거나 유사한 문제, 어디에나 있을 법한 단골 소재 및 주제는 절대 출제하지 말고, 다양한 세부 주제와 사실을 선택하십시오.
-ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반복하지 마십시오. 또한, systemPrompt와 FEW_SHOT_DATABASE에서 다뤄지지 않은 새로운 소재를 사용하십시오.
+ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반복하면 안됩니다. 또한, systemPrompt와 FEW_SHOT_DATABASE에서 다뤄지지 않은 새로운 소재를 사용하십시오.
 
 출제 식별값: ${randomOID}-${randomDirective}
 이전 문제 목록: 
@@ -561,7 +561,7 @@ ${previousQuestions.slice(-14).map(q =>
     ],
     temperature: 0.15, 
     presence_penalty: 0.83,
-    frequency_penalty: 0.95,
+    frequency_penalty: 1.05,
     max_tokens: 3500
   };
 }
