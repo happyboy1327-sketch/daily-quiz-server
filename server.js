@@ -848,7 +848,6 @@ await sleep(1600);
                 quiz.harnessReplacementFailed = true;
                 continue;
             }
-            `([가-힣]{1,10}${lawSuffix})`
 
             const candidateRegex = new RegExp(
                 `(?:[가-힣]{1,6}[^가-힣]{1,10}(${escapeRegExp(lawPrefix)}[가-힣]{1,10}${escapeRegExp(lawSuffix)}?\s*제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?)|(?:(?:((?:[가-힣]{1,6}[^가-힣]{1,10})(${escapeRegExp(lawPrefix)}[가-힣]{1,10}${escapeRegExp(lawSuffix)})?\s*제\s*(\d+)\s*항))))`,
