@@ -42,9 +42,9 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 - When the answer is a term or name, all 4 choices MUST be terms or names of the same type and category.
 - NEVER use a definition sentence as a choice when the question asks for the name or term of something.
 - Conversely, if the question explicitly asks for a definition or description, the choices may be complete descriptive statements.
-□ [생성 금지 지침]
+[★생성 금지 지침★⚠️]
 - 단체/기관마다 기준 수치가 다른 문제(예: 적정 온도, 체온 수치, 권장 시간 등)는 절대로 출제하지 마십시오. 단 하나의 정답만 존재하는 배타적 팩트만 출제하십시오.
-- 마네의 「풀밭 위의 점심식사」와 「올랭피아」처럼 동일한 인물·작가·시대·미술적 특징을 공유하는 복수의 작품이 동시에 정답이 될 수 있는 미술 및 음악, 예술 작품 문제는 출제하지 마시오.
+- 마네의 「풀밭 위의 점심식사」와 「올랭피아」처럼 동일한 인물·작가·시대·미술적 특징을 공유하는 복수의 작품이 동시에 정답이 될 수 있는 미술 및 음악, 예술 작품 문제는 출제하지 마시오. 살롱이 들어간 문제는 걍 출제하지 마시오.
 - 미술 작품을 물을 때에는 반드시 하나의 작품만 고유하게 특정할 수 있는 구별 조건을 사용하시오.
 - 두 개 이상의 선택지가 질문의 조건을 동시에 만족하면 해당 문제를 폐기하고 완전히 다른 문제를 생성하시오.
 
@@ -124,7 +124,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 - **전문 용어의 띄어쓰기는 단어별로 띄어 쓰는 것이 원칙이지만, 붙여 쓰는 것도 허용됩니다.**
 - ***세계 여러 하천 가운데 일반적으로 인정되는 유역 면적 기준으로 가장 넓은 강은 무엇입니까? 콩고강이 아니라 아마존강입니다.***
 - ***클로드 모네가 같은 대상을 여러 시간대와 계절에 걸쳐 반복적으로 그려 빛의 변화를 탐구한 대표적인 연작은 인상 해돋이, 건초더미, 수련 모두 정답이 될 수 있습니다. (⚠️ 또한, 프롬프트에 금지 명시되어 있는데도, 대표적인이라는 단어가 질문 문장에 들어갔고 복수 정답으로 출제했으므로 오류입니다.)***
-- ***올랭피아는 마네가 1863년에 그린 유화가 아니라 1865년에 그린 유화입니다. 풀밭 위의 점심식사는 1863년 제작이 맞으며, 두 작품 모두 신화적 장식이 배제된 현실적 누드 묘사로 당대 살롱에서 큰 논쟁을 불러일으켰습니다. ⚠️두 작품을 모두 선택지에 넣지 마시오.***
+
 □ ***관련없는 조항 번호는 절대로 해설에 적지 마시오.***
 □ 조항이 2개 이상 적용되는 문제일 경우, 출처에 조항을 2개 이상 병기하시오. [근거: 헌법 제86조·제87조]
 □ 한글 맞춤법 문제의 해설은 반드시 해당 맞춤법 규정의 내용과 정답의 표기 근거만 설명하시오.
