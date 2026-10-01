@@ -463,10 +463,8 @@ async function harnessSyncArticleNumber(quiz) {
         const lawSuffix = '(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시|세계\\s*인권\\s*선언|\\s*협약)';
 const lawPrefix = '(?:(?:대한민국|한국어|한글|아동|권리)\\s+)?';
 
-const escapeRegExp = (str) => str ? str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
-
 const initialLawRegex = new RegExp(
-    `(?:[^\\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${escapeRegExp(lawPrefix)}[가-힣]{1,10}${escapeRegExp(lawSuffix)})`
+    `(?:[^\\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})`
 );
 
 const initialLawMatches = [...quiz.explanation.matchAll(
@@ -482,7 +480,7 @@ let anchorLaw = initialLawMatch
     : (quiz.domain || '헌법');
 
         //메모-- (?:[가-힣]{1,6}[^가-힣]{1,10}(${lawPrefix}[가-힣]{1,10}${lawSuffix}?\s*제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?)|(?:(?:((?:[가-힣]{1,6}[^가-힣]{1,10})(${lawPrefix}[가-힣]{1,10}${lawSuffix})?\s*제\s*(\d+)\s*항))))
-        const articleRegex = new RegExp(`(?:(?:[^\\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${escapeRegExp(lawPrefix)}[가-힣]{1,10}${escapeRegExp(lawSuffix)})\\s*)?제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?|제\\s*(\\d+)\\s*항`,'g');
+        const articleRegex = new RegExp(`(?:(?:[^\\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})\\s*)?제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?|제\\s*(\\d+)\\s*항`,'g');
         const matches = [...quiz.explanation.matchAll(articleRegex)];
         if (matches.length === 0) {
             console.log("ℹ️ [조항 없음] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
@@ -850,7 +848,7 @@ await sleep(1600);
             }
 
             const candidateRegex = new RegExp(
-                `(?:[가-힣]{1,6}[^가-힣]{1,10}(${escapeRegExp(lawPrefix)}[가-힣]{1,10}${escapeRegExp(lawSuffix)}?\s*제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?)|(?:(?:((?:[가-힣]{1,6}[^가-힣]{1,10})(${escapeRegExp(lawPrefix)}[가-힣]{1,10}${escapeRegExp(lawSuffix)})?\s*제\s*(\d+)\s*항))))`,
+                `(?:[가-힣]{1,6}[^가-힣]{1,10}(${lawPrefix}[가-힣]{1,10}${lawSuffix}?\s*제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?)|(?:(?:((?:[가-힣]{1,6}[^가-힣]{1,10})(${lawPrefix}[가-힣]{1,10}${lawSuffix})?\s*제\s*(\d+)\s*항))))`,
                 'g'
             );
             const candidateMatches = [...text2.matchAll(candidateRegex)];
