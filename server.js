@@ -1369,7 +1369,7 @@ async function validateQuizAccuracy(quizzes) {
             const currentIndex = index++;
             results[currentIndex] = await validateSingleQuiz(quizzes[currentIndex]);
             // 요청 간 300ms 미세 대기로 트래픽 폭주 방지
-            await new Promise(res => setTimeout(res, 300));
+            await new Promise(res => setTimeout(res, 400));
         }
     }
 
