@@ -20,8 +20,6 @@ const app = express();
 
 const UPSTAGE_API_KEY = process.env.UPSTAGE_API_KEY;
 
-const SERVER_START_TIME = Date.now();
-const TWO_WEEKS = 14 * 24 * 60 * 60 * 1000;
 
 
 const TOKEN_SECRET = process.env.TOKEN_SECRET || UPSTAGE_API_KEY || 'default-quiz-secret-key-32bytes';
@@ -49,11 +47,6 @@ function decrypt(token) {
 app.disable('x-powered-by');
 
 app.use((req, res, next) => {
-    if (Date.now() - SERVER_START_TIME > TWO_WEEKS) {
-        console.log("[Vercel] 인스턴스 2주 경과: 메모리 초기화를 위해 컨테이너 재생성을 수행합니다.");
-        process.exit(0);
-    }
-    
     res.set({
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=59',
         'Vary': 'Accept-Encoding'
@@ -82,7 +75,7 @@ async function postWithRetry(
 ) {
     // options에 timeout이 없으면 기본 120초(120000ms) 강제 적용
     const requestOptions = {
-        timeout: 100000,
+        timeout: 120000,
         ...options
     };
 
