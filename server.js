@@ -1634,6 +1634,8 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                     ? parsed.quizzes[0]
                     : parsed;
 
+                console.log(JSON.stringify(parsed, null, 2));
+
                 if (!quiz) {
                     throw new Error("퀴즈 데이터가 없습니다.");
                 }
