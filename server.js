@@ -1650,15 +1650,27 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                 // 1. 필수 필드 검증
                 // ----------------------------------------------------
                 if (
-                    !quiz.topic ||
-                    !quiz.question ||
-                    !Array.isArray(quiz.choices) ||
-                    !quiz.correctAnswerText ||
-                    quiz.correctAnswerIndex < 0 ||
-                    !quiz.explanation
-                ) {
-                    throw new Error("필수 필드 누락");
-                }
+    !quiz.topic ||
+    !quiz.question ||
+    !Array.isArray(quiz.choices) ||
+    !quiz.correctAnswerText ||
+    quiz.correctAnswerIndex < 0 ||
+    !quiz.explanation
+) {
+
+    console.log({
+        topic: quiz.topic,
+        question: !!quiz.question,
+        choices: Array.isArray(quiz.choices)
+            ? quiz.choices.length
+            : null,
+        correctAnswerText: !!quiz.correctAnswerText,
+        correctAnswerIndex: quiz.correctAnswerIndex,
+        explanation: !!quiz.explanation
+    });
+
+    throw new Error("필수 필드 누락");
+}
 
                 // correctAnswerIndex는 반드시 정수
                 if (!Number.isInteger(quiz.correctAnswerIndex)) {
