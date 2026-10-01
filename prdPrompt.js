@@ -47,6 +47,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 - 마네의 「풀밭 위의 점심식사」와 「올랭피아」처럼 동일한 인물·작가·시대·미술적 특징을 공유하는 복수의 작품이 동시에 정답이 될 수 있는 미술 및 음악, 예술 작품 문제는 출제하지 마시오. 살롱이 들어간 문제는 걍 출제하지 마시오.
 - 미술 작품을 물을 때에는 반드시 하나의 작품만 고유하게 특정할 수 있는 구별 조건을 사용하시오.
 - 두 개 이상의 선택지가 질문의 조건을 동시에 만족하면 해당 문제를 폐기하고 완전히 다른 문제를 생성하시오.
+- 이유, 목적을 묻는 문제가 아닌 경우, 정답의 문자열을 "~때문입니다"로 끝내어 서술하지 마시오.
 
 ### 3. CHOICES AND CHARACTER SET CONSTRAINTS
 □ Exactly 4 choices, exactly 1 objectively correct answer.
@@ -559,10 +560,10 @@ ${previousQuestions.slice(-15).map(q =>
 `
 }
     ],
-    temperature: 0.14, 
+    temperature: 0.11, 
     // 정답 텍스트를 choices에서 그대로 복사해야 하므로 반복 패널티는 낮게 유지
     presence_penalty: 0.3,
-    frequency_penalty: 0.2,
+    frequency_penalty: 0.4,
     max_tokens: 3500
   };
 }
