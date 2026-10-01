@@ -510,7 +510,7 @@ ${referenceBlock}`;
   if (topic === "한글 맞춤법") {
     properties.morpheme_check = {
       type: "string",
-      description: "표준국어대사전의 표준 발음에 맞게 발음, 받침 철자 논리를 엄격히 검증해서 어근 분석하고, 그리고 단어 분해만 18자 이내 작성 (예: 맏이=맏+이[마지]/ 맏형=맏+형[마텽] )"
+      description: "어근 분석 및 발음, 받침 철자 논리를 엄격히 검증해서 단어 분해만 18자 이내 작성 (예: 맏이=맏+이[마지]/ 맏형=맏+형[마텽] )"
     };
     required.push("morpheme_check");
   }
@@ -560,8 +560,9 @@ ${previousQuestions.slice(-14).map(q =>
 }
     ],
     temperature: 0.14, 
-    presence_penalty: 0.83,
-    frequency_penalty: 1.05,
+    // 정답 텍스트를 choices에서 그대로 복사해야 하므로 반복 패널티는 낮게 유지
+    presence_penalty: 0.3,
+    frequency_penalty: 0R2,
     max_tokens: 3500
   };
 }
