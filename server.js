@@ -1649,73 +1649,30 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                 quiz = fixHangulPhonicsLogic(quiz);
 
                 // ----------------------------------------------------
-                // 1. 필수 필드 검증 + 정답 텍스트 복구
-                //    모델이 choices를 정확히 복사하지 못하는 경우가 있어
-                //    index / correctAnswerText / 해설 접두사 3곳을 대조해 복구한다.
+                // 1. 필수 필드 검증
                 // ----------------------------------------------------
                 if (
-                    !quiz.topic ||
-                    !quiz.question ||
-                    !Array.isArray(quiz.choices) ||
-                    quiz.choices.length === 0 ||
-                    !quiz.explanation
-                ) {
-                    console.log("필수 필드 누락 상세:", JSON.stringify(quiz, null, 2));
-                    throw new Error("필수 필드 누락");
-                }
+    !quiz.topic ||
+    !quiz.question ||
+    !Array.isArray(quiz.choices) ||
+    !quiz.correctAnswerText ||
+    quiz.correctAnswerIndex < 0 ||
+    !quiz.explanation
+) {
 
-                {
-                    const squash = t => String(t || "").replace(/[\s.'"“”‘’]/g, "");
-                    const choices = quiz.choices;
-                    const rawText = typeof quiz.correctAnswerText === "string"
-                        ? quiz.correctAnswerText : "";
+    console.log({
+        topic: quiz.topic,
+        question: !!quiz.question,
+        choices: Array.isArray(quiz.choices)
+            ? quiz.choices.length
+            : null,
+        correctAnswerText: !!quiz.correctAnswerText,
+        correctAnswerIndex: quiz.correctAnswerIndex,
+        explanation: !!quiz.explanation
+    });
 
-                    const idxOk = Number.isInteger(quiz.correctAnswerIndex) &&
-                        quiz.correctAnswerIndex >= 0 &&
-                        quiz.correctAnswerIndex < choices.length;
-
-                    const byText = rawText
-                        ? choices.findIndex(c => squash(c) === squash(rawText))
-                        : -1;
-
-                    const expMatch = String(quiz.explanation)
-                        .match(/^\s*정답은\s*(.+?)\s*입니다\./);
-                    const byExp = expMatch
-                        ? choices.findIndex(c => squash(c) === squash(expMatch[1]))
-                        : -1;
-
-                    let resolved = -1;
-                    if (byText !== -1) resolved = byText;                 // 텍스트가 보기와 일치
-                    else if (byExp !== -1 && (!idxOk || byExp === quiz.correctAnswerIndex)) resolved = byExp;
-                    else if (idxOk) resolved = quiz.correctAnswerIndex;   // 텍스트가 깨졌으면 인덱스 신뢰
-
-                    if (resolved === -1) {
-                        console.log("정답 복구 실패 상세:", JSON.stringify(quiz, null, 2));
-                        throw new Error(
-                            `정답 복구 실패: correctAnswerText="${rawText}", index=${quiz.correctAnswerIndex}`
-                        );
-                    }
-
-                    if (squash(choices[resolved]) !== squash(rawText)) {
-                        console.warn(
-                            `[정답 텍스트 복구] "${rawText}" -> "${choices[resolved]}" (index ${resolved})`
-                        );
-                    }
-                    quiz.correctAnswerIndex = resolved;
-                    quiz.correctAnswerText = choices[resolved];
-                }
-
-                // 플레이스홀더 복사 방지
-                if (
-                    [quiz.correctAnswerText, ...quiz.choices].some(t =>
-                        typeof t === "string" &&
-                        (/^보기\s*\d+$/.test(t.trim()) ||
-                         /^(정답|오답)\s*단어\s*\d*$/.test(t.trim()) ||
-                         /\[[^\]]*\]/.test(t))
-                    )
-                ) {
-                    throw new Error(`플레이스홀더 검출: "${quiz.correctAnswerText}"`);
-                }
+    throw new Error("필수 필드 누락");
+}
 
                 // correctAnswerIndex는 반드시 정수
                 if (!Number.isInteger(quiz.correctAnswerIndex)) {
