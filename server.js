@@ -2556,7 +2556,7 @@ app.post('/api/quiz', async (req, res) => {
 
     // 새로 생성된 5개에서 history 중복 확인
     let filtered = MASTER_QUIZ_DATA.filter(q =>
-        !seenQuestions.some(seen => isSimilarText(q.question, seen, 0.32)) &&
+        !seenQuestions.some(seen => isSimilarText(q.question, seen, 0.16)) &&
         !seenAnswers.some(answer => (q.correctAnswerText || '').trim() === answer)
     );
 
