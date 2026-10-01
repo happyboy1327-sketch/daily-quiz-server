@@ -510,7 +510,7 @@ ${referenceBlock}`;
   if (topic === "한글 맞춤법") {
     properties.morpheme_check = {
       type: "string",
-      description: "어근 분석 및 발음, 받침 철자 논리를 엄격히 검증해서 단어 분해만 18자 이내 작성 (예: 맏이=맏+이[마지]/ 맏형=맏+형[마텽] )"
+      description: "어근 분석 및 표준국어대사전 내 공식 발음, 받침 철자 논리를 엄격히 검증해서 단어 분해만 19자 이내 작성 (예: 맏이=맏+이[마지]/ 맏형=맏+형[마텽] )"
     };
     required.push("morpheme_check");
   }
@@ -551,7 +551,7 @@ ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반�
 
 출제 식별값: ${randomOID}-${randomDirective}
 이전 문제 목록: 
-${previousQuestions.slice(-14).map(q =>
+${previousQuestions.slice(-15).map(q =>
     typeof q === "string"
         ? q
         : `문제: ${q.question}\n보기: ${q.choices.join(" / ")}\n정답: ${q.correctAnswerText || ""}`
