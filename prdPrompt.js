@@ -562,7 +562,7 @@ ${previousQuestions.slice(-14).map(q =>
     temperature: 0.14, 
     // 정답 텍스트를 choices에서 그대로 복사해야 하므로 반복 패널티는 낮게 유지
     presence_penalty: 0.3,
-    frequency_penalty: 0R2,
+    frequency_penalty: 0.2,
     max_tokens: 3500
   };
 }
