@@ -75,7 +75,7 @@ async function postWithRetry(
 ) {
     // options에 timeout이 없으면 기본 120초(120000ms) 강제 적용
     const requestOptions = {
-        timeout: 110000,
+        timeout: 115000,
         ...options
     };
 
@@ -720,7 +720,7 @@ console.log(
     topKeywords
 );
 
-            await sleep(1500);
+            await sleep(1600);
 
             // ===== 1단계: 법률명 + 제몇조 제몇항 전체를 한 쿼리로 검색 후, 해설 키워드와 매트릭스 대조 =====
             const citation = target.standaloneParagraphNum
@@ -810,7 +810,7 @@ console.warn(
     `→ 조항 존재 여부 또는 키워드 일치율 조건 미충족 → 2단계 진행`
 );
 
-await sleep(1600);
+await sleep(1700);
 
             // ===== 2단계: 해설 속 키워드로 재검색, 검색결과 내 후보(법률명+조항)들을 매트릭스 대조하여 최적 후보 선정 =====
             const searchQuery = topKeywords.join(' ');
@@ -1362,7 +1362,7 @@ async function validateQuizAccuracy(quizzes) {
             const currentIndex = index++;
             results[currentIndex] = await validateSingleQuiz(quizzes[currentIndex]);
             // 요청 간 300ms 미세 대기로 트래픽 폭주 방지
-            await new Promise(res => setTimeout(res, 400));
+            await new Promise(res => setTimeout(res, 480));
         }
     }
 
