@@ -474,7 +474,7 @@ function createQuizPayload(topic, spellingData = null, previousQuestions= []) {
 
     systemPrompt += `\n\n## Mandatory Spelling Reference Dataset
 When generating questions for "한글 맞춤법", you MUST use the following dataset:
-${referenceBlock} ## Your reasoning input does not insert in json content. `;
+${referenceBlock}`;
 }
 
   const properties = {
@@ -545,7 +545,7 @@ ${referenceBlock} ## Your reasoning input does not insert in json content. `;
         role: "user",
         content:`선택된 분야:
 ${topic}
-
+Reasoning(추론) 부분을 content에 넣지 마라.
 위 분야에 맞는 중급 난도 및 새로운 소재의 퀴즈 1개를 JSON 형식으로 출제해주세요. 오류 및 실수 BEST 11에 제시된 내용은 절대 절대 절대로 출제하지 마시오.
 이미 출제된 목록과 동일하거나 유사한 문제, 어디에나 있을 법한 단골 소재 및 주제는 절대 출제하지 말고, 다양한 세부 주제와 사실을 선택하십시오.
 ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반복하면 안됩니다. 또한, systemPrompt와 FEW_SHOT_DATABASE에서 다뤄지지 않은 새로운 소재를 사용하십시오.
