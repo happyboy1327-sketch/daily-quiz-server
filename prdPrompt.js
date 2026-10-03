@@ -474,7 +474,7 @@ function createQuizPayload(topic, spellingData = null, previousQuestions= []) {
 
     systemPrompt += `\n\n## Mandatory Spelling Reference Dataset
 When generating questions for "한글 맞춤법", you MUST use the following dataset:
-${referenceBlock}`;
+${referenceBlock} ## Your reasoning input does not insert in json content. `;
 }
 
   const properties = {
