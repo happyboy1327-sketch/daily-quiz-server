@@ -1590,11 +1590,13 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                             'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
                             'Content-Type': 'application/json'
                         },
-                        timeout: 50000
+                        timeout: 58000
                     },
                     2,
                     2500
                 );
+                const c = response.data.choices?.[0];
+console.log("[FINISH]", c?.finish_reason, "content길이:", (c?.message?.content || "").length, "reasoning길이:", (c?.message?.reasoning || "").length, JSON.stringify(response.data.usage));
 
                 const message = response.data?.choices?.[0]?.message;
 
