@@ -564,7 +564,8 @@ ${previousQuestions.slice(-15).map(q =>
     // 정답 텍스트를 choices에서 그대로 복사해야 하므로 반복 패널티는 낮게 유지
     presence_penalty: 0.3,
     frequency_penalty: 0.4,
-    max_tokens: 3500
+    max_tokens: 5000,
+    reasoning_effort: "medium"
   };
 }
 
