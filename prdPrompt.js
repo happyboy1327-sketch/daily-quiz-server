@@ -565,7 +565,7 @@ ${previousQuestions.slice(-15).map(q =>
     presence_penalty: 0.25,
     frequency_penalty: 0.3,
     max_tokens: 5900,
-    reasoning_effort: "medium"
+    reasoning_effort: "low"
   };
 }
 
