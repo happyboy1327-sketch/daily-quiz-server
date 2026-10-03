@@ -1590,19 +1590,26 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                             'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
                             'Content-Type': 'application/json'
                         },
-                        timeout: 58000
+                        timeout: 55000
                     },
                     2,
                     2500
                 );
-                const c = response.data.choices?.[0];
-console.log("[FINISH]", c?.finish_reason, "content길이:", (c?.message?.content || "").length, "reasoning길이:", (c?.message?.reasoning || "").length, JSON.stringify(response.data.usage));
+                
 
                 const message = response.data?.choices?.[0]?.message;
 
-                if (!message?.content) {
-                    throw new Error("API 응답이 비어있습니다.");
-                }
+                if (!message?.content && message?.reasoning) {
+    try {
+        const cand = extractJsonFromText(message.reasoning);
+        JSON.parse(cand);
+        message.content = cand;
+    } catch (_) {}
+}
+
+if (!message?.content) {
+    throw new Error("API 응답이 비어있습니다.");
+}
 
                 let rawText = message.content;
 
