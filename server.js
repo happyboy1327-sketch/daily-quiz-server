@@ -1930,8 +1930,19 @@ if (!message?.content) {
 
             if (idx >= items.length) break;
 
-            results[idx] =
-                await taskFn(items[idx], idx);
+            try {
+    results[idx] =
+        await taskFn(items[idx], idx);
+} catch (e) {
+
+    console.error(
+        `[POOL]`,
+        e.message
+    );
+
+    results[idx] = null;
+}
+
         }
     }
 
