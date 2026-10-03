@@ -560,11 +560,11 @@ ${previousQuestions.slice(-15).map(q =>
 `
 }
     ],
-    temperature: 0.15, 
+    temperature: 0.4, 
     // 정답 텍스트를 choices에서 그대로 복사해야 하므로 반복 패널티는 낮게 유지
     presence_penalty: 0.25,
     frequency_penalty: 0.3,
-    max_tokens: 5900,
+    max_tokens: 4900,
     reasoning_effort: "low"
   };
 }
