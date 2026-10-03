@@ -2009,7 +2009,6 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
         const fullText = [
             quiz.question,
             ...quiz.choices,
-            quiz.explanation,
             quiz.correctAnswerText
         ].join(" ");
 
