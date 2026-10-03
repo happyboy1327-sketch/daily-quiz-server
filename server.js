@@ -1947,7 +1947,7 @@ if (!message?.content) {
 
     // 1초 뒤 워커 2 시작
     await new Promise(resolve =>
-        setTimeout(resolve, 1000)
+        setTimeout(resolve, 3000)
     );
 
     const worker2 = fetchWorker(2);
