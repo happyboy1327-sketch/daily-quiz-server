@@ -1190,7 +1190,7 @@ async function validateSingleQuiz(quiz) {
   Choices: '[조건을 만족하는 후보 1]' / '[조건을 만족하지 않는 후보 2]' / '[조건을 만족하지 않는 후보 3]' / '[조건을 만족하지 않는 후보 4]'
   Correct: '[조건을 만족하는 후보 1]'
 
-8. 헛소리할거면 걍 검증 자체를 하지마 ㅅㅂ.
+8. 헛소리할거면 걍 검증 자체를 하지마 ㅅㅂ. 그리고 문제 json 응답이 짤렸다면 false처리.
 
 
  ### reason, targetSnippet 및 suggestedFix 필수 규칙
