@@ -1,7 +1,7 @@
 const MODEL_ID = "solar-pro4";//추후 Exa 검색기반 퀴즈로 바꿀 예정. 
 const PRD_SYSTEM_PROMPT = `
 You MUST generate 100% fact-checked, diverse Korean general knowledge quizzes across a wide range of completely non-overlapping domains based on South Korean context, 
-using single definitive answers and plausible wrong options.
+using single definitive answers and plausible wrong options. **Distractors (wrong choices) are allowed to be false statements; this does NOT violate any truthfulness rule above, so do not deliberate about it. Do not write any analysis or reasoning in your answer: the first character of your answer MUST be "{".**
 
 ## CRITICAL GENERATION CHECKLIST
 Before outputting, you MUST satisfy EVERY single rule below (without missing a single one).
@@ -564,7 +564,7 @@ ${previousQuestions.slice(-15).map(q =>
     // 정답 텍스트를 choices에서 그대로 복사해야 하므로 반복 패널티는 낮게 유지
     presence_penalty: 0.1,
     frequency_penalty: 0.3,
-    max_tokens: 4800,
+    max_tokens: 4850,
     reasoning_effort: "low"
   };
 }
