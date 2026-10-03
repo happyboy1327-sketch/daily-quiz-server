@@ -486,8 +486,8 @@ let anchorLaw = initialLawMatch
 
         for (const match of matches) {
             let rawLaw = match[1] ? match[1].replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '').trim() : '';
-            if (rawLaw) anchorLaw = rawLaw;
-
+              if (rawLaw) anchorLaw = rawLaw.replace(/^대한민국\s*(?=헌법)/, '');
+            
             const articleNum = match[2] || '';
             const paragraphNum = match[3] || '';
             const standaloneParagraphNum = match[4] || '';
