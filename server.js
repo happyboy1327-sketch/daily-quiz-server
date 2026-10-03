@@ -1916,47 +1916,59 @@ if (!message?.content) {
         return quiz;
     }
 
+    async function runPool(items, concurrency, taskFn) {
+
+    const results = new Array(items.length);
+
+    let cursor = 0;
+
+    async function worker() {
+
+        while (true) {
+
+            const idx = cursor++;
+
+            if (idx >= items.length) break;
+
+            results[idx] =
+                await taskFn(items[idx], idx);
+        }
+    }
+
+    await Promise.all(
+        Array.from(
+            {
+                length: Math.min(
+                    concurrency,
+                    items.length
+                )
+            },
+            () => worker()
+        )
+    );
+
+    return results;
+}
+
     // ============================================================
     // 3. 생성 워커
     // ============================================================
-    const rawQuizzes = new Array(selectedTopics.length);
-    let topicIndex = 0;
+const rawQuizzes =
+    await runPool(
 
-    async function fetchWorker(workerId) {
-        while (true) {
-            const currentIndex = topicIndex++;
+        selectedTopics,
 
-            if (currentIndex >= selectedTopics.length) {
-                break;
-            }
+        3,
 
-            const topic = selectedTopics[currentIndex];
+        async (topic, idx) => {
 
-            rawQuizzes[currentIndex] =
-                await generateOneQuiz(
-                    topic,
-                    `WORKER ${workerId}`
-                );
+            return await generateOneQuiz(
+                topic,
+                `WORKER-${idx+1}`
+            );
+
         }
-
-        return rawQuizzes;
-    }
-
-    // 워커 1 먼저 시작
-    const worker1 = fetchWorker(1);
-
-    // 1초 뒤 워커 2 시작
-    await new Promise(resolve =>
-        setTimeout(resolve, 3000)
     );
-
-    const worker2 = fetchWorker(2);
-
-    await Promise.all([
-        worker1,
-        worker2
-    ]);
-
     // ============================================================
     // 4. 1차 생성 결과
     // ============================================================
