@@ -75,7 +75,7 @@ async function postWithRetry(
 ) {
     // options에 timeout이 없으면 기본 120초(120000ms) 강제 적용
     const requestOptions = {
-        timeout: 120000,
+        timeout: 110000,
         ...options
     };
 
@@ -1592,7 +1592,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                         },
                         timeout: 55000
                     },
-                    2,
+                    1,
                     2500
                 );
                 
