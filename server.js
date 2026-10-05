@@ -2587,7 +2587,7 @@ app.post('/api/quiz', async (req, res) => {
 
 let filtered = MASTER_QUIZ_DATA.filter(q => {
     const isSpelling = q.topic === '한글 맞춤법';
-    const threshold = isSpelling ? SPELLING_THRESHOLD : 0.6;
+    const threshold = isSpelling ? SPELLING_THRESHOLD : 0.3;
 
     const hitQ = seenQuestions.find(s => isSimilarText(q.question, s, threshold));
     const hitA = seenAnswers.find(a => (q.correctAnswerText || '').trim() === a);
