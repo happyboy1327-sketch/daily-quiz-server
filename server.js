@@ -2583,10 +2583,21 @@ app.post('/api/quiz', async (req, res) => {
     }
 
     // 새로 생성된 5개에서 history 중복 확인
-    let filtered = MASTER_QUIZ_DATA.filter(q =>
-        !seenQuestions.some(seen => isSimilarText(q.question, seen, 0.16)) &&
-        !seenAnswers.some(answer => (q.correctAnswerText || '').trim() === answer)
-    );
+    const SPELLING_THRESHOLD = 0.45;
+
+let filtered = MASTER_QUIZ_DATA.filter(q => {
+    const isSpelling = q.topic === '한글 맞춤법';
+    const threshold = isSpelling ? SPELLING_THRESHOLD : 0.2;
+
+    const hitQ = seenQuestions.find(s => isSimilarText(q.question, s, threshold));
+    const hitA = seenAnswers.find(a => (q.correctAnswerText || '').trim() === a);
+
+    if (isSpelling && (hitQ || hitA)) {
+        console.log(`[DEDUP-맞춤법] 제외 "${q.question.slice(0, 40)}"\n   ← 질문유사: "${(hitQ || '').slice(0, 40)}" / 정답일치: "${hitA || ''}"`);
+    }
+
+    return !hitQ && !hitA;
+});
 
     const duplicateCount = MASTER_QUIZ_DATA.length - filtered.length;
 
