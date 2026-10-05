@@ -396,6 +396,7 @@ async function harnessSyncArticleNumber(quiz) {
 
 
     let replacedCount = 0;
+    const choiceCache = new Map(); // 원문 → 치환문
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     // 1단계/2단계 판정 기준 일치율 (19%/45%)
@@ -1049,6 +1050,8 @@ for (const cand of candidateMatches) {
                         }
                     }
                 });
+                choiceCache.set(target.targetName, newTargetName);
+if (bestCandidate.candLaw !== lawContext) choiceCache.set(lawContext, bestCandidate.candLaw);
                 replacedCount++;
             } else {
                 console.log(
@@ -1059,6 +1062,23 @@ for (const cand of candidateMatches) {
             quiz.harnessReplacementFailed = true;
             }
         }
+        if (choiceCache.size && Array.isArray(quiz.choices)) {
+    const re = new RegExp(
+        [...choiceCache.keys()]
+            .sort((a, b) => b.length - a.length)
+            .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+            .join('|'),
+        'g'
+    );
+    const next = quiz.choices.map(c => c.replace(re, m => choiceCache.get(m)));
+
+    if (new Set(next).size === next.length) {
+        quiz.choices = next;
+        quiz.correctAnswerText = next[quiz.correctAnswerIndex] ?? quiz.correctAnswerText;
+    } else {
+        quiz.harnessReplacementFailed = true; // 중복 선택지 → 기존 재생성 흐름으로
+    }
+}
         console.log(`🎉 [완료] 총 ${replacedCount}개 조항 치환 반영 완료`);
     } catch (e) {
         console.error("🔥 [최상위 에러] API 요청 실패, serverErrorFlag 설정", e.message);
