@@ -1457,7 +1457,9 @@ function fetchJinaSpellingData() {
         };
 
         https.get(url, options, (res) => {
+            res.setEncoding('utf8');
             let data = '';
+            
             res.on('data', chunk => { data += chunk; });
             res.on('end', () => {
                 if (!data) return resolve(null);
@@ -1539,19 +1541,19 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                 let spellingParam = SPELLING_DATA;
 
                 if (topic === "한글 맞춤법") {
-                    const fetchedData = await fetchJinaSpellingData();
-
-                    let normalized = fetchedData;
-                if (typeof normalized === 'string') {
                 try {
-                    normalized = JSON.parse(normalized);
-               } catch {
-                 normalized = normalized
-                .split('\n')
-                .map(line => line.trim())
-                .filter(Boolean);
-        }
-    }
+                    const fetchedData = await fetchJinaSpellingData();
+                    let normalized = typeof fetchedData === 'string' ? JSON.parse(fetchedData) : fetchedData;
+
+                    // 문자열 배열이 아니라 객체 배열 구조일 때만 교체
+                    if (Array.isArray(normalized) && normalized.length > 0 && typeof normalized[0] === 'object') {
+                        spellingParam = normalized;
+                    }
+                } catch {
+                    // JSON 파싱 실패 시 안전하게 기본 SPELLING_DATA 사용
+                    spellingParam = SPELLING_DATA;
+                }
+            }
 
           spellingParam = (Array.isArray(normalized) && normalized.length > 0)
         ? normalized
