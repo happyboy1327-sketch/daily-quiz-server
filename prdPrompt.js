@@ -560,7 +560,7 @@ ${previousQuestions.slice(-15).map(q =>
 `
 }
     ],
-    temperature: 0.45, 
+    temperature: 0.35, 
     max_tokens: 4900,
     reasoning_effort: "low"
   };
