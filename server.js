@@ -1552,7 +1552,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                     // JSON 파싱 실패 시 안전하게 기본 SPELLING_DATA 사용
                     spellingParam = SPELLING_DATA;
                 }
-            }
+            
 
           spellingParam = (Array.isArray(normalized) && normalized.length > 0)
         ? normalized
