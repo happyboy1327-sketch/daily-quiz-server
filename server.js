@@ -1537,7 +1537,6 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
         const MAX_TOPIC_RETRIES = 3;
 
         for (let attempt = 1; attempt <= MAX_TOPIC_RETRIES; attempt++) {
-            try {
                 let spellingParam = SPELLING_DATA;
 
                 if (topic === "한글 맞춤법") {
