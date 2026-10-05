@@ -1540,11 +1540,12 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
         for (let attempt = 1; attempt <= MAX_TOPIC_RETRIES; attempt++) {
             try {
                 let spellingParam = SPELLING_DATA;
+                let normalized;
 
                 if (topic === "한글 맞춤법") {
                 try {
                     const fetchedData = await fetchJinaSpellingData();
-                    let normalized = typeof fetchedData === 'string' ? JSON.parse(fetchedData) : fetchedData;
+                    normalized = typeof fetchedData === 'string' ? JSON.parse(fetchedData) : fetchedData;
 
                     // 문자열 배열이 아니라 객체 배열 구조일 때만 교체
                     if (Array.isArray(normalized) && normalized.length > 0 && typeof normalized[0] === 'object') {
