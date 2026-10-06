@@ -377,12 +377,48 @@ function extractClauseAroundMatch(text, matchIndex, matchLength) {
 }
 
 
-    '통해', '위해', '대해', '부분', '방법', '원칙',
-    '기준', '사실', '있다', '없다', '이다', '입니다',
-    '있습니다', '없습니다', '합니다', '됩니다', '정하고', '정합니다',
-    '말합니다', '설명합니다', '의미합니다', '규정합니다', '규정하며',
-    '규정하고', '원칙'
-]);
+  async function harnessSyncArticleNumber(quiz) {
+    console.log("🔍 [시작] 조항 번호 동기화 로직 실행");
+
+    if (!quiz) {
+        console.log("⚠️ [중단] quiz 객체가 없습니다.")
+        return quiz;
+       } else {
+        if (typeof quiz.explanation !== 'string') {
+            console.log("⚠️ [중단] explanation이 문자열이 아닙니다.");
+            return quiz;
+    }
+    }
+
+    if (!['한글 맞춤법', '정치', '인권 리터러시'].includes(quiz.topic)) {
+           console.log(`⚠️ [중단] 하네스 대상 주제가 아닙니다: ${quiz?.topic}`);
+           return quiz;
+    }
+
+
+    let replacedCount = 0;
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // 1단계/2단계 판정 기준 일치율 (19%/45%)
+    const MATCH_THRESHOLD = 0.40;
+    const REPLACEMENT_THRESHOLD = 0.55;
+
+
+    const cleanJosa = (word) => {
+        if (!word) return '';
+        let cleaned = word.replace(/(에서는|으로부터|에서|으로|으므로|하므로|이므로|입니다|한다|얻어|하여|해서)+$/g, '');
+        if (cleaned.length >= 3) {
+            cleaned = cleaned.replace(/(은|는|이|가|을|를|의|에|로|와|과|도|만|고|지)+$/g, '');
+        }
+        return cleaned;
+    };
+
+    const stopWords = new Set([
+        '따라', '적는다', '적던', '맞춤법', '해당한다', '한글', '해당', '원칙이며', '원칙이지', '원칙이고', '따르면', '경우', '경우에는', '의하여', '의한', '관한', '대하여', '각각', '등은', '등등', 
+        '이상', '이하', '있다', '없다', '한다', '함은', '아니한', '하여야', '사유로', '정답', '정답은', 
+        '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당', '는', '선택지인', '규정한다',
+        '출처', '근거', '국가법령정보센터', '입니다', '이다', '다루므로', '다루므', '다른', '질문'
+    ]);
 
 // 법률명 / 조항번호 제거용
 const lawAndArticleRegex =
