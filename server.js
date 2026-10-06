@@ -397,6 +397,7 @@ function extractClauseAroundMatch(text, matchIndex, matchLength) {
 
 
     let replacedCount = 0;
+      const choiceCache = new Map(); // 원문 → 치환문
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     // 1단계/2단계 판정 기준 일치율 (19%/45%)
