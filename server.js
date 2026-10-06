@@ -376,8 +376,7 @@ function extractClauseAroundMatch(text, matchIndex, matchLength) {
     return text.slice(start, matchIndex + matchLength + endOffset);
 }
 
-
-  async function harnessSyncArticleNumber(quiz) {
+async function harnessSyncArticleNumber(quiz) {
     console.log("🔍 [시작] 조항 번호 동기화 로직 실행");
 
     if (!quiz) {
@@ -397,7 +396,7 @@ function extractClauseAroundMatch(text, matchIndex, matchLength) {
 
 
     let replacedCount = 0;
-      const choiceCache = new Map(); // 원문 → 치환문
+    const choiceCache = new Map(); // 원문 → 치환문
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     // 1단계/2단계 판정 기준 일치율 (19%/45%)
@@ -420,6 +419,202 @@ function extractClauseAroundMatch(text, matchIndex, matchLength) {
         '사항', '규정', '사람', '때에는', '모두', '어느', '하나', '해당', '는', '선택지인', '규정한다',
         '출처', '근거', '국가법령정보센터', '입니다', '이다', '다루므로', '다루므', '다른', '질문'
     ]);
+
+    // 키워드(A) x 스니펫토큰(B) 매칭 매트릭스로 일치율(0~1) 계산
+    // - targetKeywords: 해설에서 뽑아낸 문맥 키워드
+    // - compareText: 구글 검색 결과 스니펫 원문
+    const calculateMatchScore = (targetKeywords, compareText) => {
+        if (!targetKeywords || targetKeywords.length === 0 || !compareText) return 0;
+
+        const compareTokens = [...new Set(
+            compareText
+                .replace(/[^가-힣0-9\s]/g, ' ')
+                .split(/\s+/)
+                .map(w => cleanJosa(w))
+                .filter(w => w.length >= 2 && !stopWords.has(w))
+        )];
+        if (compareTokens.length === 0) return 0;
+
+        // targetKeywords 행 x compareTokens 열 매트릭스: 부분포함 매칭 시 1
+        // 짧은 범용 단어("모든","국민" 등)가 우연히 겹쳐서 점수를 부풀리는 것을 막기 위해
+        // 키워드 길이를 가중치로 사용 (길고 구체적인 단어일수록 변별력이 높다고 가정)
+        const matrix = targetKeywords.map(kw =>
+            compareTokens.map(tok => (tok.includes(kw) || kw.includes(tok)) ? 1 : 0)
+        );
+
+        let matchedWeight = 0;
+        let totalWeight = 0;
+        targetKeywords.forEach((kw, i) => {
+            const weight = kw.length; // 글자 수가 많을수록 변별력 높은 키워드로 간주
+            totalWeight += weight;
+            if (matrix[i].some(cell => cell === 1)) matchedWeight += weight;
+        });
+
+        return totalWeight > 0 ? matchedWeight / totalWeight : 0;
+    };
+
+    try {
+        const lawSuffix = '(?:헌법|법률|법|규칙|조례|령|규정|세칙|고시|세계\\s*인권\\s*선언|(?<![은는])(?:\\s[가-힣]+){0,2}\\s*협약)';
+const lawPrefix = '(?:(?:대한민국|한국어|한글|아동|권리)\\s+)?';
+
+const initialLawRegex = new RegExp(
+    `(?:[^\\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})`
+);
+
+const initialLawMatches = [...quiz.explanation.matchAll(
+    new RegExp(initialLawRegex.source, 'g')
+)];
+
+const initialLawMatch = initialLawMatches.find(
+    match => !match[1].includes('입법')
+);
+
+let anchorLaw = initialLawMatch
+    ? initialLawMatch[1].replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '').trim()
+    : (quiz.domain || '헌법');
+
+        //메모-- (?:[가-힣]{1,6}[^가-힣]{1,10}(${lawPrefix}[가-힣]{1,10}${lawSuffix}?\s*제\s*(\d+)\s*조(?:\s*제\s*(\d+)\s*항)?)|(?:(?:((?:[가-힣]{1,6}[^가-힣]{1,10})(${lawPrefix}[가-힣]{1,10}${lawSuffix})?\s*제\s*(\d+)\s*항))))
+        const articleRegex = new RegExp(`(?:(?:[^\\n가-힣0-9a-zA-Z\\s]|^|\\s*)(${lawPrefix}[가-힣]{1,10}${lawSuffix})\\s*)?제\\s*(\\d+)\\s*조(?:\\s*제\\s*(\\d+)\\s*항)?|제\\s*(\\d+)\\s*항`,'g');
+        const matches = [...quiz.explanation.matchAll(articleRegex)];
+        if (matches.length === 0) {
+            console.log("ℹ️ [조항 없음] 해설에서 '제X조/항' 패턴을 찾지 못했습니다.");
+            return quiz;
+        }
+
+        const targets = [];
+        const seen = new Set();
+        let currentArticle = '';
+
+        for (const match of matches) {
+            let rawLaw = match[1] ? match[1].replace(/^[^\w가-힣]+|[^\w가-힣]+$/g, '').trim() : '';
+              if (rawLaw) anchorLaw = rawLaw.replace(/^대한민국\s*(?=헌법)/, '');
+            
+            const articleNum = match[2] || '';
+            const paragraphNum = match[3] || '';
+            const standaloneParagraphNum = match[4] || '';
+            if (articleNum) currentArticle = articleNum;
+
+            const effectiveLaw = anchorLaw;
+            const effectiveArticle = currentArticle;
+            let targetName = '';
+            let searchTargetKey = '';
+
+            if (effectiveArticle && paragraphNum) {
+                targetName = `제${effectiveArticle}조 제${paragraphNum}항`;
+                searchTargetKey = `${effectiveLaw}_${effectiveArticle}_조_${paragraphNum}_항`;
+            } else if (effectiveArticle) {
+                targetName = `제${effectiveArticle}조`;
+                searchTargetKey = `${effectiveLaw}_${effectiveArticle}_조`;
+            } else if (standaloneParagraphNum) {
+                targetName = `제${standaloneParagraphNum}항`;
+                searchTargetKey = `${effectiveLaw}_항_${standaloneParagraphNum}`;
+            } else {
+                continue;
+            }
+
+            if (!seen.has(searchTargetKey)) {
+                seen.add(searchTargetKey);
+                const matchIndex = match.index;
+                const fullText = quiz.explanation;
+                const rawSnippet = extractClauseAroundMatch(fullText, matchIndex, match[0].length).replace(match[0], '');
+
+                const cleanedSnippet = rawSnippet
+    // [출처/ 근거: ...] 전체 제거
+    .replace(/\[출처\s*\/\s*근거\s*:[\s\S]*?\]/gi, '')
+    // URL 자체 제거
+    .replace(/https?:\/\/[^\s)\]]+/gi, '')
+    // 마크다운 링크 제거
+    .replace(/\[[^\]]*\]\([^)]+\)/g, '')
+    
+const specialOrthographyKeywords =
+    quiz.topic === '한글 맞춤법'
+        ? [
+            ...(cleanedSnippet.match(/[ㄱ-ㅎ](?:\s*,\s*[ㄱ-ㅎ])+/g) || []),
+            ...(cleanedSnippet.match(/-\s*[가-힣]+/g) || [])
+          ].map(w => w.replace(/\s+/g, '').trim())
+        : [];
+
+const normalKeywords = cleanedSnippet
+    .replace(/[ㄱ-ㅎ]/g, ' ')
+    .replace(/-\s*[가-힣]+/g, ' ')
+    .replace(/[^가-힣0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter(w => !stopWords.has(w))
+    .filter(w => !/^\d+$/.test(w))
+    .map(w => cleanJosa(w))
+    .filter(w => w.length >= 2 && !stopWords.has(w));
+
+const keywords = [
+    ...normalKeywords,
+    ...specialOrthographyKeywords
+];
+                
+                if (keywords.length > 0) {
+                    targets.push({
+                        lawName: effectiveLaw,
+                        articleNum: effectiveArticle,
+                        paragraphNum: paragraphNum,
+                        standaloneParagraphNum: standaloneParagraphNum,
+                        targetName: targetName,
+                        keywords: [...new Set(keywords)]
+                    });
+                }
+            }
+        }
+
+        const formattedList = targets.map(t => `${t.lawName} ${t.targetName}`.trim());
+        console.log(`📌 [추출 완료] 검증 대상 조항 목록 (${targets.length}개):`, formattedList);
+        if (targets.length === 0) return quiz;
+
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'Accept-Language': 'ko-KR,ko;q=0.9'
+        };
+
+        const parseSnippets = (html) => {
+            const $ = cheerio.load(html);
+            $('script, style, header, footer, nav, noscript').remove();
+            let snippetText = '';
+            $('.g, div[data-snc], #search').each((_, el) => { snippetText += $(el).text() + ' '; });
+            return (snippetText || $('body').text()).replace(/\s+/g, ' ').trim();
+        };
+
+        // 2단계에서 확정된 후보의 순서를 기억한다.
+// 같은 법률 안에서는 뒤에서 등장한 target이 앞의 조항으로 되돌아가는 것을 방지한다.
+         const lastAssignedOrderByLaw = new Map();
+
+        for (const target of targets) {
+            const hasArticleAndParagraph =
+                Boolean(target.articleNum && target.paragraphNum);
+
+            const currentMatchThreshold = hasArticleAndParagraph
+                ? MATCH_THRESHOLD + 0.05
+                : MATCH_THRESHOLD;
+
+            const currentReplacementThreshold = hasArticleAndParagraph
+                ? REPLACEMENT_THRESHOLD + 0.10
+                : REPLACEMENT_THRESHOLD;
+            const lawContext = target.lawName;
+            // 검색 쿼리 후보 선정: (1) "~다고/~하고/~받지"처럼 활용형 어미로 끝나는 동사성 표현 제외
+            //                      (2) "모든/국민"처럼 헌법 조항 전반에 범용적으로 쓰이는 명사 제외
+            //                      (3) 남은 단어 중 글자 수가 많아 변별력 있는 명사 위주로 우선 사용
+            // 검색용 키워드 선별
+// ===== 2단계 검색용 핵심 키워드 추출 =====
+// 법률명/조항번호 자체가 아니라,
+// 해설 내용에서 해당 조항을 특정할 수 있는 핵심 의미어를 추출한다.
+
+const genericQueryStop = new Set([
+    '대한민국', '한국', '헌법', '법률', '법', '규정',
+    '조항', '조문', '출처', '근거', '국가법령정보센터',
+    '한글 맞춤법', '서로', '정답', '선택지', '내용',
+    '사항', '경우', '관련', '대한', '따라', '따르면',
+    '통해', '위해', '대해', '부분', '방법', '원칙',
+    '기준', '사실', '있다', '없다', '이다', '입니다',
+    '있습니다', '없습니다', '합니다', '됩니다', '정하고', '정합니다',
+    '말합니다', '설명합니다', '의미합니다', '규정합니다', '규정하며',
+    '규정하고', '원칙'
+]);
 
 // 법률명 / 조항번호 제거용
 const lawAndArticleRegex =
@@ -871,10 +1066,7 @@ if (bestCandidate.candLaw !== lawContext) choiceCache.set(lawContext, bestCandid
     const re = new RegExp(
         [...choiceCache.keys()]
             .sort((a, b) => b.length - a.length)
-            .map(k => {
-                const e = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                return k.startsWith('제') ? `${e}(?!의\\d)` : `${e}(?=\\s*제\\s*\\d)`;
-            })
+            .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
             .join('|'),
         'g'
     );
