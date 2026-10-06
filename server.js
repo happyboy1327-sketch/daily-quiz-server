@@ -376,7 +376,8 @@ function extractClauseAroundMatch(text, matchIndex, matchLength) {
     return text.slice(start, matchIndex + matchLength + endOffset);
 }
 
-async function harnessSyncArticleNumber(quiz) {
+
+  async function harnessSyncArticleNumber(quiz) {
     console.log("🔍 [시작] 조항 번호 동기화 로직 실행");
 
     if (!quiz) {
@@ -1066,7 +1067,10 @@ if (bestCandidate.candLaw !== lawContext) choiceCache.set(lawContext, bestCandid
     const re = new RegExp(
         [...choiceCache.keys()]
             .sort((a, b) => b.length - a.length)
-            .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+            .map(k => {
+                const e = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                return k.startsWith('제') ? `${e}(?!의\\d)` : `${e}(?=\\s*제\\s*\\d)`;
+            })
             .join('|'),
         'g'
     );
