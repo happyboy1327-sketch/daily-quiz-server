@@ -1790,7 +1790,7 @@ if (!message?.content) {
                     quiz.correctAnswerText
                 ].join(" ");
 
-                if (HANJA_AND_FOREIGN_REGEX.test(fullText) && if (topic !== "한글 맞춤법")) {
+                if (HANJA_AND_FOREIGN_REGEX.test(fullText) && quiz.topic !== "한글 맞춤법") {
                     const badChars = [
                         ...new Set(
                             [...fullText].filter(c =>
