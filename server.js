@@ -2072,7 +2072,7 @@ const rawQuizzes =
             quiz.correctAnswerText
         ].join(" ");
 
-        if (HANJA_AND_FOREIGN_REGEX.test(fullText)) {
+        if (HANJA_AND_FOREIGN_REGEX.test(fullText) && quiz.topic !== "한글 맞춤법") {
             return false;
         }
 
