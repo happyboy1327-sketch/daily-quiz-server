@@ -256,7 +256,8 @@ const FEW_SHOT_DATABASE = {
         question: "올바른 표기로 적절한 것은 무엇입니까?",
         choices: ["정답 단어", "오답 단어 1", "오답 단어 2", "오답 단어 3"],
         correctAnswerIndex: 0,
-        correctAnswerText: "정답 단어"
+        correctAnswerText: "정답 단어", 
+        morpheme_check: "어근 분석 및 표준국어대사전 내 공식 발음, 받침 철자 논리를 엄격히 검증해서 단어 분해만 19자 이내 작성 (예: 맏이=맏+이[마지]/ 맏형=맏+형[마텽]) "
       })
     }
   ],
