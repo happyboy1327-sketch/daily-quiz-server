@@ -1618,7 +1618,7 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                             'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
                             'Content-Type': 'application/json'
                         },
-                        timeout: 55000
+                        timeout: 65000
                     },
                     1,
                     2500
