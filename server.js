@@ -75,7 +75,7 @@ async function postWithRetry(
 ) {
     // options에 timeout이 없으면 기본 120초(120000ms) 강제 적용
     const requestOptions = {
-        timeout: 115000,
+        timeout: 120000,
         ...options
     };
 
@@ -1280,7 +1280,7 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
                 'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            timeout: 100000
+            timeout: 110000
         });
 
         const rawText = response.data?.choices?.[0]?.message?.content;
@@ -1387,7 +1387,7 @@ async function validateQuizAccuracy(quizzes) {
             const currentIndex = index++;
             results[currentIndex] = await validateSingleQuiz(quizzes[currentIndex]);
             // 요청 간 300ms 미세 대기로 트래픽 폭주 방지
-            await new Promise(res => setTimeout(res, 480));
+            await new Promise(res => setTimeout(res, 580));
         }
     }
 
