@@ -112,7 +112,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ If uncertain about any distractor's exact background, DO NOT attempt to explain or mention that distractor.
 □ Avoid ambiguous relative descriptors (e.g., "short", "long") in explanations; use exact names, figures, and definitive facts instead.
 □ Do NOT include long statutory text dumps or detailed legal sub-clauses in the explanation. (Main article citations like "헌법 제70조" are permitted ONLY as sources).
-□ 오류 및 실수 BEST 12(**실행 시 문제에 오류가 생겨 올바른 문제의 성립 자체가 불가능합니다.**):
+□ 오류 및 실수 BEST 13(**실행 시 문제에 오류가 생겨 올바른 문제의 성립 자체가 불가능합니다.**):
 - 헌법 제41조 제2항은 국회의원의 임기를 4년으로 정하는 조항이 절대(NEVER) 아닙니다. 헌법 제41조 제2항은 "국회의원의 수는 법률로 정하되, 200인 이상으로 한다"고 규정하고 있습니다. 국회의원 임기는 헌법 제42조에서 규정하고 있습니다.
 - 대통령 임기는 헌법 제70조에 따라 5년이며 중임할 수 없다고 나와있지만 임기를 착각하는 행위
 - 한글 맞춤법 제50항은 전문 용어의 띄어쓰기에 관한 규정이며, 의존 명사의 띄어쓰기는 제42항에 규정되어 있습니다.
@@ -125,6 +125,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 - **전문 용어의 띄어쓰기는 단어별로 띄어 쓰는 것이 원칙이지만, 붙여 쓰는 것도 허용됩니다.**
 - ***세계 여러 하천 가운데 일반적으로 인정되는 유역 면적 기준으로 가장 넓은 강은 무엇입니까? 콩고강이 아니라 아마존강입니다.***
 - ***클로드 모네가 같은 대상을 여러 시간대와 계절에 걸쳐 반복적으로 그려 빛의 변화를 탐구한 대표적인 연작은 인상 해돋이, 건초더미, 수련 모두 정답이 될 수 있습니다. (⚠️ 또한, 프롬프트에 금지 명시되어 있는데도, 대표적인이라는 단어가 질문 문장에 들어갔고 복수 정답으로 출제했으므로 오류입니다.)***
+- ***한글 맞춤법이 주제일 경우, properties.morpheme_check를 비워놓은 행위.***
 
 □ ***관련없는 조항 번호는 절대로 해설에 적지 마시오.***
 □ 조항이 2개 이상 적용되는 문제일 경우, 출처에 조항을 2개 이상 병기하시오. [근거: 헌법 제86조·제87조]
@@ -547,7 +548,7 @@ ${referenceBlock}`;
         content:`선택된 분야:
 ${topic}
 Reasoning(추론) 부분을 content에 넣지 마라.
-위 분야에 맞는 중급 난도 및 새로운 소재의 퀴즈 1개를 JSON 형식으로 출제해주세요. 오류 및 실수 BEST 11에 제시된 내용은 절대 절대 절대로 출제하지 마시오.
+위 분야에 맞는 중급 난도 및 새로운 소재의 퀴즈 1개를 JSON 형식으로 출제해주세요. 오류 및 실수 BEST 13에 제시된 내용은 절대 절대 절대로 출제하지 마시오.
 이미 출제된 목록과 동일하거나 유사한 문제, 어디에나 있을 법한 단골 소재 및 주제는 절대 출제하지 말고, 다양한 세부 주제와 사실을 선택하십시오.
 ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반복하면 안됩니다. 또한, systemPrompt와 FEW_SHOT_DATABASE에서 다뤄지지 않은 새로운 소재를 사용하십시오.
 
@@ -562,7 +563,7 @@ ${previousQuestions.slice(-15).map(q =>
 }
     ],
     temperature: 0.35, 
-    max_tokens: 4900,
+    max_tokens: 4930,
     reasoning_effort: "low"
   };
 }
