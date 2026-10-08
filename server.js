@@ -256,9 +256,8 @@ function fixHangulPhonicsLogic(quiz) {
     if (!realCoda) return quiz;
 
     // 2. "끝소리가 'X'" 또는 "받침이 'X'" 형태의 환각 텍스트 탐지 및 치환
-    // 예: "'깨끗'의 끝소리가 'ㄱ'이므로" -> "'깨끗'의 끝소리가 'ㅅ'이므로"
+    // 예: "'깨끗'의 끝소리가 'ㄱ'이므로" -> "'깨끗'의 끝소리가 'ㅅ'이므로"--삭제
     quiz.explanation = quiz.explanation
-        .replace(/(끝소리가\s*')[가-힣](')/g, `$1${realCoda}$2`)
         .replace(/(받침이\s*')[가-힣](')/g, `$1${realCoda}$2`);
 
     return quiz;
