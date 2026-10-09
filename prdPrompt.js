@@ -505,9 +505,9 @@ ${referenceBlock}`;
     "correctAnswerIndex",
     "correctAnswerText"
   ];
-  //const presencePenalty =
-    //Number((Math.floor(Math.random() * 16) + 80) / 100);
-  
+  /*const presencePenalty =
+    Number((Math.floor(Math.random() * 16) + 80) / 100);
+  */
   const matchedFewShot = FEW_SHOT_DATABASE[topic] || [];
 
   // 토픽이 "한글 맞춤법"일 때만 morpheme_check 스키마 동적 주입
@@ -519,12 +519,12 @@ ${referenceBlock}`;
     required.push("morpheme_check");
   }
 
-  //const formattedPreviousList = previousQuestionsslice(-14)
-    //.map(q => {
-      //if (typeof q === "string") return `- ${q}`;
+  /*const formattedPreviousList = previousQuestionsslice(-14)
+    .map(q => {
+      if (typeof q === "string") return `- ${q}`;
     
-      // 정답 텍스트(correctAnswerText)가 있다면 함께 전달하여 정답 .filter(Boolean)
-    //.join("\n");
+       정답 텍스트(correctAnswerText)가 있다면 함께 전달하여 정답 .filter(Boolean)
+    .join("\n");*/
   
   return {
     model: MODEL_ID,
