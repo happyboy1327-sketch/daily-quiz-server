@@ -319,6 +319,9 @@ function isSeenDuplicate(q, seenQuestions = [], seenAnswers = []) {
     const ans = (q.correctAnswerText || '').trim();
     const hitQ = seenQuestions.find(s => isSimilarText(q.question, s, threshold));
     const hitA = ans ? seenAnswers.find(a => ans === a) : undefined;
+    if (q.topic === '한글 맞춤법' && (hitQ || hitA)) {
+        console.log(`[DEDUP-맞춤법] 제외 "${q.question.slice(0, 40)}"\n   ← 질문유사: "${(hitQ || '').slice(0, 40)}" / 정답일치: "${hitA || ''}"`);
+    }
     return { dup: !!(hitQ || hitA), hitQ, hitA };
 }
 
