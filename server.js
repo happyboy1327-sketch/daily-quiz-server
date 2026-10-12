@@ -313,6 +313,15 @@ function autoFixQuiz(quiz) {
     return quiz;
 }
 
+// history(seen) 중복 판정 - 생성 직후/최종 필터에서 공용
+function isSeenDuplicate(q, seenQuestions = [], seenAnswers = []) {
+    const threshold = q.topic === '한글 맞춤법' ? 0.45 : 0.3;
+    const ans = (q.correctAnswerText || '').trim();
+    const hitQ = seenQuestions.find(s => isSimilarText(q.question, s, threshold));
+    const hitA = ans ? seenAnswers.find(a => ans === a) : undefined;
+    return { dup: !!(hitQ || hitA), hitQ, hitA };
+}
+
 // 두 텍스트 간 부분 포함 관계 및 Bigram 유사도(Jaccard Index) 검사
 function isSimilarText(str1, str2, threshold = 0.36) {
     if (!str1 || !str2) return false;
@@ -1813,8 +1822,18 @@ if (!message?.content) {
                 }
 
                 // ----------------------------------------------------
-                // 7. 중복 정답/개념 검증(폐지)
+                // 7. history(seen) 중복 검사 - 팩트체크/하네스 이전에 선차단
                 // ----------------------------------------------------
+                {
+                    const { dup, hitQ, hitA } =
+                        isSeenDuplicate(quiz, excludedQuestions, excludedAnswers);
+
+                    if (dup) {
+                        throw new Error(
+                            `history 중복: 질문유사="${(hitQ || '').slice(0, 30)}" / 정답일치="${hitA || ''}"`
+                        );
+                    }
+                }
                 
 
 
@@ -2603,33 +2622,6 @@ app.post('/api/quiz', async (req, res) => {
         return res.status(503).json({
             errorCode: "DATA_UNAVAILABLE"
         });
-    }
-
-    // 새로 생성된 5개에서 history 중복 확인
-    const SPELLING_THRESHOLD = 0.45;
-
-let filtered = MASTER_QUIZ_DATA.filter(q => {
-    const isSpelling = q.topic === '한글 맞춤법';
-    const threshold = isSpelling ? SPELLING_THRESHOLD : 0.3;
-
-    const hitQ = seenQuestions.find(s => isSimilarText(q.question, s, threshold));
-    const hitA = seenAnswers.find(a => (q.correctAnswerText || '').trim() === a);
-
-    if (isSpelling && (hitQ || hitA)) {
-        console.log(`[DEDUP-맞춤법] 제외 "${q.question.slice(0, 40)}"\n   ← 질문유사: "${(hitQ || '').slice(0, 40)}" / 정답일치: "${hitA || ''}"`);
-    }
-
-    return !hitQ && !hitA;
-});
-
-    const duplicateCount = MASTER_QUIZ_DATA.length - filtered.length;
-
-    // 중복 발생 시 부족한 개수만큼 추가 생성
-    if (duplicateCount > 0) {
-        console.log(`[API] 🔄 최초 생성 중 history 중복 ${duplicateCount}개 → 추가 생성`);
-        MASTER_QUIZ_DATA = [...filtered];
-        await fetchNewQuizData(duplicateCount, seenQuestions, seenAnswers);
-        MASTER_QUIZ_DATA = [...filtered, ...MASTER_QUIZ_DATA];
     }
 
     // 최종 5개 확정
