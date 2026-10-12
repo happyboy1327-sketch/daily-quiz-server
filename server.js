@@ -313,17 +313,6 @@ function autoFixQuiz(quiz) {
     return quiz;
 }
 
-// history(seen) 중복 판정 - 생성 직후/최종 필터에서 공용
-function isSeenDuplicate(q, seenQuestions = [], seenAnswers = []) {
-    const threshold = q.topic === '한글 맞춤법' ? 0.45 : 0.3;
-    const ans = (q.correctAnswerText || '').trim();
-    const hitQ = seenQuestions.find(s => isSimilarText(q.question, s, threshold));
-    const hitA = ans ? seenAnswers.find(a => ans === a) : undefined;
-    if (q.topic === '한글 맞춤법' && (hitQ || hitA)) {
-        console.log(`[DEDUP-맞춤법] 제외 "${q.question.slice(0, 40)}"\n   ← 질문유사: "${(hitQ || '').slice(0, 40)}" / 정답일치: "${hitA || ''}"`);
-    }
-    return { dup: !!(hitQ || hitA), hitQ, hitA };
-}
 
 // 두 텍스트 간 부분 포함 관계 및 Bigram 유사도(Jaccard Index) 검사
 function isSimilarText(str1, str2, threshold = 0.36) {
