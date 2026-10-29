@@ -1216,7 +1216,7 @@ async function validateSingleQuiz(quiz) {
   Correct: '[조건을 만족하는 후보 1]'
 
 8. 헛소리할거면 걍 검증 자체를 하지마 ㅅㅂ. 그리고 문제 json 응답이 짤렸다면 false처리.
-
+사생활의 비밀 침해도 헌법에 명시되어 있다고 ㅅㅂ!!
 
  ### reason, targetSnippet 및 suggestedFix 필수 규칙
 - reason은 230자 이내로 작성하시오.
