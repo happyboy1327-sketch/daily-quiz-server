@@ -51,18 +51,31 @@ async function postWithRetry(url, payload, maxRetries = 2, baseDelayMs = 1500) {
                 },
                 timeout: 50000
             });
-        } catch (err) {
-            const status = err.response?.status;
-            const isTimeout = err.code === 'ECONNABORTED' || err.message?.includes('timeout');
+        
+} catch (err) {
+    const status = err.response?.status;
+    const isTimeout =
+        err.code === 'ECONNABORTED' ||
+        err.message?.includes('timeout');
 
-            if ((status === 429 || isTimeout) && attempt < maxRetries) {
-                const delay = baseDelayMs * Math.pow(2, attempt);
-                console.warn(`[API ${status || 'TIMEOUT'}] ${delay}ms 대기 후 재시도 (${attempt + 1}/${maxRetries})`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                continue;
-            }
-            throw err;
-        }
+    const isRetryable =
+        status === 429 ||
+        [500, 502, 503, 504].includes(status) ||
+        isTimeout;
+
+    if (isRetryable && attempt < maxRetries) {
+        const delay = baseDelayMs * Math.pow(2, attempt);
+
+        console.warn(
+            `[API ${status || 'TIMEOUT'}] ${delay}ms 대기 후 재시도 (${attempt + 1}/${maxRetries})`
+        );
+
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+    }
+
+    throw err;
+}
     }
 }
 
