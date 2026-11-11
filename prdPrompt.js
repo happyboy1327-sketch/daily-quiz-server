@@ -41,7 +41,7 @@ ${previousQuestions.slice(-5).join("\n")}
     generationConfig: { 
       responseMimeType: "application/json",
       thinkingConfig: {
-        thinkingLevel: "medium"
+        thinkingLevel: "high"
       },
       temperature: 0.3
     }
