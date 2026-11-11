@@ -109,21 +109,23 @@ async function generateSingleQuiz(topic, seenQuestions) {
         const response = await postWithRetry(API_URL, payload);
 
         const parts = response.data?.candidates?.[0]?.content?.parts;
-        if (!parts) return null;
+if (!parts) return null;
 
-        const anb = parts
-            .filter(part => typeof part.text === 'string')
-            .map(part => part.text)
-            .join('');
+// 추론 과정(thought: true)이 표시된 파트는 전부 제외
+const anb = parts
+    .filter(part =>
+        part.thought !== true &&
+        typeof part.text === 'string'
+    )
+    .map(part => part.text)
+    .join('');
 
+if (!anb.trim()) {
+    throw new Error('추론 제외 후 응답 텍스트가 없습니다.');
+}
 
-        const cleanJson = extractJsonFromText(anb);
-
-
-        const cleanedJsonText = cleanJson.trim()
-    .replace(/^```[a-z]*\n?/i, "")
-    .replace(/```$/, "")
-    .trim();
+const cleanJson = extractJsonFromText(anb);
+const cleanedJsonText = cleanJson.trim();
 
 let parsed;
 
@@ -138,15 +140,14 @@ try {
         error: err.message,
         aroundError: Number.isInteger(position)
             ? JSON.stringify(cleanedJsonText.slice(
-                Math.max(0, position - 80),
-                position + 80
+                Math.max(0, position - 90),
+                position + 90
             ))
             : cleanedJsonText
     });
 
     throw err;
 }
-
         if (!parsed.question || !parsed.choices || parsed.choices.length !== 4) return null;
 
         return {
