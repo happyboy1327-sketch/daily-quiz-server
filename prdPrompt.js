@@ -509,7 +509,14 @@ ${referenceBlock}`;
   /*const presencePenalty =
     Number((Math.floor(Math.random() * 16) + 80) / 100);
   */
-  const matchedFewShot = FEW_SHOT_DATABASE[topic] || [];
+ const matchedFewShot = (FEW_SHOT_DATABASE[topic] || []).map(item => ({
+    role: item.role === "assistant" ? "model" : "user",
+    parts: [{
+      text: typeof item.content === "string"
+        ? item.content
+        : JSON.stringify(item.content)
+    }]
+  }));
 
   // 토픽이 "한글 맞춤법"일 때만 morpheme_check 스키마 동적 주입
   if (topic === "한글 맞춤법") {
@@ -528,22 +535,11 @@ ${referenceBlock}`;
     .join("\n");*/
   
   return {
-    model: MODEL_ID,
-    response_format: {
-      type: "json_schema",
-      json_schema: {
-        name: "quiz_schema",
-        schema: {
-          type: "object",
-          properties,
-          required,
-          additionalProperties: false
-        }
-      }
+        systemInstruction: {
+     parts: [{ text: systemPrompt }]
     },
- contents : [
-  { role: "system", parts: [{text: systemPrompt}] },
-  ...matchedFewShot, // '지리'면 지리 퓨샷만 들어감
+    contents: [
+      ...matchedFewShot,
       {
         role: "user",
         parts: [{text: `선택된 분야:
