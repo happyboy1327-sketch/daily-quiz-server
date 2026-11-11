@@ -15,97 +15,7 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ History Precision: Chronological sequences, alliances, and roles must be exact (e.g., Silla allied with Tang, NOT Baekje; Kings and Generals must be accurately distinguished).
 □ Terminology & Concept Precision: When dealing with specialized knowledge (science, medicine, law, public safety), NEVER confuse or mix distinct concepts or numerical units (e.g., '실온' vs '냉장', '시간' vs '기간', '수분 섭취 간격' vs '휴식 주기').
 
-### 2. QUESTION PROMPT CONSTRAINTS
-□ NEVER use any key nouns, hints, titles, or core vocabulary from the answer inside the question prompt.
-  - If the answer includes a work title or core term (e.g., "씨름"), use abstract nouns like "이 작품", "이 그림", "다음 사건" in the prompt instead. and, 
-  - ❌ BAD: "1895년 명성황후가 시해된 을미사변의 발생 연도는?" (정답인 '1895년'이 질문에 포함됨 - 절대 금지)
-  - ⭕ GOOD: "명성황후가 시해된 '을미사변'이 발생한 연도는?"
-
-  - ❌ BAD: "관형사 '웬'을 바르게 표기하여 사용한 단어는?" (정답 '웬'이 질문에 노출됨 - 절대 금지)
-  - ⭕ GOOD: "다음 중 올바른 관형사 표기가 적용된 문장은?"
-
-  - ❌ BAD: "씨름하는 모습을 생동감 있게 그린 김홍도의 작품은?" (정답 '씨름'의 키워드가 질문에 노출됨 - 절대 금지)
-  - ⭕ GOOD: "조선 후기 김홍도가 단원풍속도첩에 남긴 그림 중, 두 사람이 겨루는 장면과 관객들의 반응을 입체적으로 묘사한 풍속화는?"
-
-□ ***NEVER use subjective or relative terms like "대표적인" (representative), "가장 ~한" (most), or "주요한" (major) in the question prompt.***
-  - ❌ WRONG: 세종대왕의 대표적인 업적은?
-  - ⭕ RIGHT: 조선 제4대 왕인 세종대왕 재위 기간에 창제된 한국어의 독자적 문자 체계는?
-□ Scope, assumptions, units, and conditions must be explicit and very rigorous when relevant.
-□ Do not ask for obscure dates or numbers EXCEPT for verified fields like HISTORY, SCIENCE, MEDICINE, and PUBLIC GUIDELINES (e.g., food safety hours, intake intervals).
-□ 정치 분야에서, 헌법 조항 번호를 특정 몇 개에 편중하지 말고, 이미 사용된 조항과 다른 조항을 우선 선택하라. 정치 분야에서 가능한 경우 기본권, 국회, 정부, 대통령, 법원, 헌법재판소, 지방자치, 헌법기관 등 서로 다른 영역을 순환하여 출제하라.
-□ Avoid unresolved controversies, time-varying political facts, and dumping detailed legal statutory texts into the question body.
-□ When generating Geography questions using superlative terms (e.g., "largest", "longest", "1st"), do not combine metrics belonging to different entities (such as basin area vs. stream length) into a single contradictory premise.
-□ For Coding: Plain text code only. Markdown code blocks within JSON strings are strictly prohibited.
-□ ANSWER TYPE MUST MATCH THE QUESTION TYPE.
-- If the question asks "무엇이라고 합니까?", "무엇입니까?", "어떤 용어입니까?", or otherwise asks for a name, term, title, concept, person, place, or entity, the correct answer MUST be the corresponding name, term, title, concept, person, place, or entity itself — NOT a definition or explanatory sentence.
-- When the answer is a term or name, all 4 choices MUST be terms or names of the same type and category.
-- NEVER use a definition sentence as a choice when the question asks for the name or term of something.
-- Conversely, if the question explicitly asks for a definition or description, the choices may be complete descriptive statements.
-[★생성 금지 지침★⚠️]
-- 단체/기관마다 기준 수치가 다른 문제(예: 적정 온도, 체온 수치, 권장 시간 등)는 절대로 출제하지 마십시오. 단 하나의 정답만 존재하는 배타적 팩트만 출제하십시오.
-- 마네의 「풀밭 위의 점심식사」와 「올랭피아」처럼 동일한 인물·작가·시대·미술적 특징을 공유하는 복수의 작품이 동시에 정답이 될 수 있는 미술 및 음악, 예술 작품 문제는 출제하지 마시오. 살롱이 들어간 문제는 걍 출제하지 마시오.
-- 미술 작품을 물을 때에는 반드시 하나의 작품만 고유하게 특정할 수 있는 구별 조건을 사용하시오.
-- 두 개 이상의 선택지가 질문의 조건을 동시에 만족하면 해당 문제를 폐기하고 완전히 다른 문제를 생성하시오.
-- 작품의 제작 연도, 사건 발생 연도 등을 절대로 사실과 다르게 질문, 정답, 해설에 서술하여 틀리지 마시오.
-- 이유, 목적을 묻는 문제가 아닌 경우, 정답 및 선택지의 문자열을 "~때문입니다"로 끝내어 서술하지 마시오.
-
-### 3. CHOICES AND CHARACTER SET CONSTRAINTS
-□ Exactly 4 choices, exactly 1 objectively correct answer.
-□ Distractor Rule: Distractors MUST belong to a DIFFERENT person, historical background, era, or concept (e.g., If the target is King Sejong, distractors MUST be achievements of other kings). NEVER list 4 true facts of the SAME entity and ask to pick one
-(Except for 한글 맞춤법).
-□ All 4 choices MUST target the EXACT same phrase structure, rule, or conceptual category.
-□ Character Set: Use ONLY standard Korean, numbers.
-□ ***FOR KOREAN GRAMMAR / SPELLING QUIZZES (CRITICAL RULE)***:
-
-* First determine whether the question asks about:
-  (A) the correct spelling/spacing of a specific expression, OR
-  (B) a rule, permitted form, grammatical category, or orthographic condition.
-
-[A] CORRECT SPELLING / SPACING QUESTIONS:
- 
-* The correct answer MUST be the one objectively correct standard form.
-* The 3 distractors MUST be objectively incorrect misspellings, spacing errors, phonetic spellings, or common typographical errors based on the target expression.
-* NEVER use another valid standard form, synonym, or grammatically correct alternative expression as a distractor.
-* Example 1 (FORMAT TEMPLATE ONLY):
-  Question: 다음 중 '[표준 표기 대상 어휘]'의 올바른 띄어쓰기는?
-  Choices: '[표준 표기]' / '[띄어쓰기 오류 있는 오표기 1]' / '[띄어쓰기 오류 있는 오표기 2]' / '[띄어쓰기 오류 있는 오표기 3]'
-  Correct: '[표준 표기]'
-* Example 2 (FORMAT TEMPLATE ONLY):
-  Question: 다음 중 '[표준 표기 대상 어휘]'의 올바른 표기는?
-  Choices: '[표준 표기]' / '[오표기 1]' / '[오표기 2]' / '[오표기 3]'
-  Correct: '[표준 표기]'
- 
-***CRITICAL - DO NOT COPY THE EXAMPLES ABOVE***: The two examples above illustrate FORMAT ONLY (question/choices/answer structure). They are placeholders, NOT real content. You MUST NOT generate a question about '할 수 있다', '수' as a dependent noun, '며칠', or any bracketed placeholder text shown above. If a "Mandatory Spelling Reference Dataset" is provided below, you MUST base the actual question content strictly on that dataset instead.
-
-[B] RULE / PERMITTED-FORM / CATEGORY QUESTIONS:
-
-* Do NOT force the 3 distractors to be misspellings of the correct answer.
-* The 4 choices MUST be different candidates belonging to the EXACT category or condition asked about.
-* EXACTLY ONE choice must satisfy the condition stated in the question.
-* The other 3 choices MUST be objectively outside that condition.
-* NEVER use another form of the same expression when that form is also explicitly permitted by the cited rule.
-* NEVER create choices where two or more choices satisfy the cited rule, even if their spelling or spacing differs.
-* The choices must represent genuinely different candidates, not merely different spellings of the same candidate.
-* Example 1:
-  Question: 한글 맞춤법 제50항에 따라 띄어 쓰는 것을 원칙으로 하되 붙여 쓰는 것도 허용하는 것은?
-  Choices: '전문 용어' / '[다른 대상 1]' / '[다른 대상 2]' / '[다른 대상 3]'
-  Correct: '전문 용어'
-  IMPORTANT: '전문용어' MUST NOT be used as a distractor because it is another permitted form of the SAME candidate.
-* Example 2:
-  Question: 다음 중 해당 규정에서 정한 조건을 만족하는 것은?
-  Choices: '[조건을 만족하는 후보 1]' / '[조건을 만족하지 않는 후보 2]' / '[조건을 만족하지 않는 후보 3]' / '[조건을 만족하지 않는 후보 4]'
-  Correct: '[조건을 만족하는 후보 1]'
-  IMPORTANT: The 3 distractors must be different candidates that fail the stated condition, not alternative forms that are also permitted by the same rule.
-  
-[CRITICAL]:
-***DO NOT COPY THE EXAMPLES ABOVE***: The two examples above illustrate FORMAT ONLY (question/choices/answer structure). They are placeholders, NOT real content. You MUST NOT generate a question about '전문 용어', '전문용어' as a dependent noun, '조건을 만족하지 않는 후보', or any bracketed placeholder text shown above. If a "Mandatory Spelling Reference Dataset" is provided below, you MUST base the actual question content strictly on that dataset instead.
-* Even if you ask a question asking whether the intent of the clause has been correctly applied, Please refrain from including non-answer choices with correct korean spelling and grammer.
-* Before finalizing ANY Korean grammar/spelling quiz, evaluate ALL 4 choices against the EXACT rule or condition being tested.
-* If two or more choices are acceptable, permitted, or correct under that rule, DISCARD the question and generate a new one.
-* The final quiz MUST have exactly ONE objectively correct choice.
-
-
-### 4. EXPLANATION AND CITATION CONSTRAINTS
+### 2. EXPLANATION AND CITATION CONSTRAINTS
 □ Explanation MUST begin EXACTLY with: 정답은 {correctAnswerText}입니다. [출처/ 근거: ...]
   - Examples: [출처/ 근거: 국립국어원(https://korean.go.kr/kornorms/m/m_regltn.do?#a)/ 한글 맞춤법 제N항], [출처/ 근거: 국가법령정보센터(law.go.kr)/ 대한민국 헌법 제68조]
 □ Explain why the correct answer is right and why each distractor is wrong using ONLY 100% verified real-world facts. Never fabricate false characteristics about a distractor.
@@ -134,19 +44,19 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ 한글 맞춤법 조항을 검증하기 위한 해설에 훈민정음, 훈민정음 해례본, 세종, 문화재 지정번호 등 해당 맞춤법 규정과 직접 관련 없는 사실을 추가하지 마시오.
 □ 한글 맞춤법 문제의 [출처]에는 국립국어원 및 해당 맞춤법 규정만 명시하고, 문화재청·국가문화유산포털 등 다른 기관이나 자료를 병기하지 마시오. 문화재청·국가문화유산포털 자료는 역사나 문화예술 분야에만 사용하시오.
 
-### 5. ACCURACY & BANNED TOPICS (POP CULTURE PROHIBITION)
+### 3. ACCURACY & BANNED TOPICS (POP CULTURE PROHIBITION)
 □ "First ever" (최초) or "record-holding" (최고) claims must be strictly verified historical milestones.
 □ STRICTLY BANNED TOPICS: Movies, Anime, Manga, Webtoons, TV Shows, Pop Culture, and Celebrities. (High risk of hallucination).
 □ If a banned topic is requested or selected, fallback strictly to academic, historical, scientific, linguistic, public safety, or legal knowledge domains.
 
-### 6. Strict Accuracy for Cultural Heritage, History, and Legal Information (High-Risk Items)
+### 4. Strict Accuracy for Cultural Heritage, History, and Legal Information (High-Risk Items)
 □ Only include cultural heritage designation types (e.g., National Treasure, Treasure, Historic Site) and designation numbers (e.g., Treasure No. 527) if you are 100% certain.
 - For example, Kim Hong-do's Danwon Pungsokdo Cheop is Treasure No. 527, whereas Shin Yun-bok's Hyewon Pungsokdo Cheop is National Treasure No. 135. Mislabeling or confusing such unique designation numbers is treated as a critical factual error.
 - If uncertain, omit designation numbers entirely and focus on the title and holding institution (e.g., National Museum of Korea).
 □ Do not cite sources using vague organization names alone (e.g., "MFDS", "KISA"). Specify the exact official document title, public notification, or glossary name.
 - Example: "KISA Personal Information Protection Glossary", "MFDS Standards for Labeling of Foods Notification"
 
-### 7. OUTPUT FORMAT
+### 5. OUTPUT FORMAT
 □ Output ONLY a single valid JSON object. No surrounding conversational text.
 (** 절대로 임의로 필드 하나라도 빼지 마시오.**)
 
