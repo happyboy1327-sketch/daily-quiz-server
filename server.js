@@ -74,24 +74,51 @@ async function generateSingleQuiz(topic, seenQuestions) {
 
     try {
         const payload = createQuizPayload(topic, seenQuestions);
+        console.log(`\n[시도] 주제: ${topic} 생성 중...`);
+        
         const response = await postWithRetry(API_URL, payload);
 
+        // 1. API 응답 전체 확인
+        console.log(`[DEBUG] API 응답 상태: ${response.status}`);
+        
         const candidate = response.data?.candidates?.[0];
         if (!candidate || !candidate.content?.parts) {
-            throw new Error("응답 파트가 없습니다.");
+            console.error(`[FAIL] 응답 구조가 이상함:`, JSON.stringify(response.data, null, 2));
+            return null;
         }
 
-        // [중요] Thinking 파트가 아닌, 실제 텍스트(JSON) 파트를 찾음
-        const textPart = candidate.content.parts.find(p => p.text);
+        // 2. 파트별 확인
+        const parts = candidate.content.parts;
+        console.log(`[DEBUG] 수신된 파트 개수: ${parts.length}`);
         
+        let textPart = null;
+        parts.forEach((p, i) => {
+            if (p.text) {
+                console.log(`[DEBUG] Part ${i} (text) 발견`);
+                textPart = p;
+            }
+            if (p.thought) console.log(`[DEBUG] Part ${i} (thought) 발견`);
+            if (p.functionCall) console.log(`[DEBUG] Part ${i} (functionCall) 발견`);
+        });
+
         if (!textPart) {
-            throw new Error("모델이 JSON 텍스트를 생성하지 못했습니다.");
+            console.error(`[FAIL] text 파트를 찾을 수 없음. 받은 파트들:`, JSON.stringify(parts, null, 2));
+            return null;
         }
 
-        // 텍스트에서 JSON만 추출하여 파싱
+        // 3. JSON 추출 및 파싱
+        console.log(`[DEBUG] 추출 전 텍스트: ${textPart.text.substring(0, 100)}...`);
         const cleanJson = extractJsonFromText(textPart.text);
+        console.log(`[DEBUG] 추출 후 JSON: ${cleanJson.substring(0, 100)}...`);
+        
         const parsed = JSON.parse(cleanJson);
 
+        if (!parsed.question || !parsed.choices || parsed.choices.length !== 4) {
+            console.error(`[FAIL] JSON 필드 부족:`, parsed);
+            return null;
+        }
+
+        console.log(`[SUCCESS] ${topic} 생성 완료!`);
         return {
             topic: parsed.topic || topic,
             question: parsed.question,
@@ -100,12 +127,17 @@ async function generateSingleQuiz(topic, seenQuestions) {
             correctAnswerText: parsed.correctAnswerText || parsed.choices[parsed.correctAnswerIndex ?? 0],
             explanation: parsed.explanation
         };
+
     } catch (err) {
-        console.error(`❌ [Error - ${topic}]:`, err.message);
+        // 에러의 진짜 이유를 출력
+        if (err.response) {
+            console.error(`❌ [API ERROR - ${topic}] Status: ${err.response.status}, Data:`, JSON.stringify(err.response.data, null, 2));
+        } else {
+            console.error(`❌ [CLIENT ERROR - ${topic}] Message: ${err.message}`);
+        }
         return null;
     }
 }
-
 // --- API 엔드포인트 ---
 const ALL_TOPICS = ["문화예술", "환경", "과학", "역사", "디지털 리터러시", "인권 리터러시", "한글 맞춤법", "코딩", "안전 및 건강상식", "경제", "지리", "정치", "심리학"];
 let MASTER_QUIZ_DATA = [];
