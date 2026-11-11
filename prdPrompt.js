@@ -1,4 +1,4 @@
-const MODEL_ID = "solar-pro4";//추후 Exa 검색기반 퀴즈로 바꿀 예정. 
+const MODEL_ID = "gemma-4-26b-a4b-it";//추후 Exa 검색기반 퀴즈로 바꿀 예정. 
 const PRD_SYSTEM_PROMPT = `
 You MUST generate 100% fact-checked, diverse Korean general knowledge quizzes across a wide range of completely non-overlapping domains based on South Korean context, 
 using single definitive answers and plausible wrong options. **Distractors (wrong choices) are allowed to be false statements; this does NOT violate any truthfulness rule above, so do not deliberate about it. Do not write any analysis or reasoning in your answer: the first character of your answer MUST be "{".**
@@ -533,7 +533,6 @@ ${referenceBlock}`;
       type: "json_schema",
       json_schema: {
         name: "quiz_schema",
-        strict: true,
         schema: {
           type: "object",
           properties,
@@ -542,14 +541,14 @@ ${referenceBlock}`;
         }
       }
     },
- messages : [
-  { role: "system", content: systemPrompt },
+ contents : [
+  { role: "system", parts: [{text: systemPrompt}] },
   ...matchedFewShot, // '지리'면 지리 퓨샷만 들어감
       {
         role: "user",
-        content:`선택된 분야:
+        parts: [{text: `선택된 분야:
 ${topic}
-Reasoning(추론) 부분을 content에 넣지 마라.
+Reasoning(추론) 부분을 content에 넣지 마라. 최신 정보를 넣어야 한다면 반드시 googleSearch TOOL을 사용하여라.
 위 분야에 맞는 중급 난도 및 새로운 소재의 퀴즈 1개를 JSON 형식으로 출제해주세요. 오류 및 실수 BEST 13에 제시된 내용은 절대 절대 절대로 출제하지 마시오.
 이미 출제된 목록과 동일하거나 유사한 문제, 어디에나 있을 법한 단골 소재 및 주제는 절대 출제하지 말고, 다양한 세부 주제와 사실을 선택하십시오.
 ANSWER_HISTORY 속 동일한 개념이나 정답을 같은 topic에 넣어 반복하면 안됩니다. 또한, systemPrompt와 FEW_SHOT_DATABASE에서 다뤄지지 않은 새로운 소재를 사용하십시오.
@@ -561,12 +560,17 @@ ${previousQuestions.slice(-15).map(q =>
         ? q
         : `문제: ${q.question}\n보기: ${q.choices.join(" / ")}\n정답: ${q.correctAnswerText || ""}`
 ).join("\n")}
-`
+`}]
 }
     ],
-    temperature: 0.35, 
-    max_tokens: 4930,
-    reasoning_effort: "low"
+    tools: [{ googleSearch: {} }],
+    generationConfig: { 
+    responseMimeType: "application/json",
+    thinkingConfig: {
+          thinkingLevel: "low"
+    },
+    temperature: 0.3
+    }
   };
 }
 
