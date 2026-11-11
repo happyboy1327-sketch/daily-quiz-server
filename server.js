@@ -4,8 +4,6 @@ const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
 
-const { createQuizPayload } = require('./prdPrompt');
-
 const app = express();
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const TOKEN_SECRET = process.env.TOKEN_SECRET || GEMINI_API_KEY || 'default-quiz-secret-key-32bytes';
@@ -34,116 +32,84 @@ app.disable('x-powered-by');
 app.use(cors());
 app.use(express.json());
 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:generateContent`;
+const MODEL = 'gemma-4-26b-a4b-it';
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;  let MASTER_QUIZ_DATA = [];  // 429 / 타임아웃 대응 지수 백오프 래퍼 async function postWithRetry(url, payload, maxRetries = 3, baseDelayMs = 2000) { for (let attempt = 0; attempt <= maxRetries; attempt++) { try { return await axios.post(url, payload, { headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY }, timeout: 60000 }); } catch (err) { const status = err.response?.status; const isTimeout = err.code === 'ECONNABORTED' \vert{}\vert{} err.message?.includes('timeout');  if ((status === 429 \vert{}\vert{} isTimeout) && attempt < maxRetries) { const delay = baseDelayMs * Math.pow(2, attempt); console.warn(`[API ${status || 'TIMEOUT'}] ${delay}ms 대기 후 재시도 (${attempt + 1}/${maxRetries})`); await new Promise(resolve => setTimeout(resolve, delay)); continue; } throw err; } } }  // 5문제를 한 번에 요청하여 429 에러를 최소화하고 배열로 파싱 async function fetchNewQuizData(requiredCount = 5, seenQuestions = []) { const promptText = `2026년 최신 정보를 기준으로 주제의 편중 없이 중급 난도의 상식 퀴즈 ${requiredCount}문제를 생성하시오.
 
-let MASTER_QUIZ_DATA = []; 
+반드시 다음 규칙을 준수하시오.
+1. 출력은 순수 JSON 배열 하나로만 구성한다.
+2. JSON 배열 앞뒤에 설명, 역할, 계획, 검증 결과를 출력하지 않는다.
+3. 마크다운 코드 블록(``` 등)을 절대 사용하지 않는다.
+4. 각 객체는 topic, question, choices, correctAnswerIndex, correctAnswerText, explanation 필드를 모두 포함한다.
+5. choices는 정확히 4개의 보기 문자열 배열이어야 한다.
+6. correctAnswerIndex는 0부터 시작한다.
+7. 해설 내엔 출처를 반드시 표기한다. 예시: [출처: ...]
+8. 이전 출제된 유사 문제는 절대 제외한다:
+${seenQuestions.slice(-5).join("\n")}
 
-// 429 / 타임아웃 대응 지수 백오프 래퍼
-async function postWithRetry(url, payload, maxRetries = 3, baseDelayMs = 2000) {
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        try {
-            return await axios.post(url, payload, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-goog-api-key': GEMINI_API_KEY
-                },
-                timeout: 60000
-            });
-        } catch (err) {
-            const status = err.response?.status;
-            const isTimeout = err.code === 'ECONNABORTED' || err.message?.includes('timeout');
+출력 형식:
+[
+  {
+    "topic": "분야명",
+    "question": "질문",
+    "choices": ["보기1", "보기2", "보기3", "보기4"],
+    "correctAnswerIndex": 0,
+    "correctAnswerText": "보기1",
+    "explanation": "해설 [출처: ...]"
+  }
+]`;
 
-            if ((status === 429 || isTimeout) && attempt < maxRetries) {
-                const delay = baseDelayMs * Math.pow(2, attempt);
-                console.warn(`[API ${status || 'TIMEOUT'}] ${delay}ms 대기 후 재시도 (${attempt + 1}/${maxRetries})`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                continue;
-            }
-            throw err;
+    const requestData = {
+        contents: [{
+            role: 'user',
+            parts: [{ text: promptText }]
+        }],
+        tools: [{ googleSearch: {} }],
+        generationConfig: { 
+            responseMimeType: "application/json",
+            thinkingConfig: {
+                thinkingLevel: "minimal"
+            },
+            temperature: 0.3
         }
-    }
-}
+    };
 
-const ALL_TOPICS = ["문화예술", "환경", "과학", "역사", "디지털 리터러시", "인권 리터러시", "한글 맞춤법", "코딩", "안전 및 건강상식", "경제", "지리", "정치", "심리학"];
-
-function extractJsonFromText(rawText) {
-    if (typeof rawText !== "string") {
-        if (typeof rawText === "object") rawText = JSON.stringify(rawText);
-        else throw new Error("응답이 문자열이 아닙니다.");
-    }
-    
-    let text = rawText.trim();
-    
-    // 마크다운 코드 블록 제거
-    if (text.includes("```")) {
-        text = text.replace(/```[a-z]*\n?/gi, "").replace(/```/g, "").trim();
-    }
-    
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
-    
-    if (start === -1 || end === -1 || end < start) {
-        console.error("❌ [JSON 추출 실패] rawText:", JSON.stringify(rawText));
-        throw new Error("JSON 객체를 찾지 못했습니다.");
-    }
-
-    return text.slice(start, end + 1);
-}
-
-async function generateSingleQuiz(topic, seenQuestions) {
     try {
-        const payload = createQuizPayload(topic, seenQuestions);
-        const response = await postWithRetry(API_URL, payload);
-        
-        const candidate = response.data?.candidates?.[0];
-        const content = candidate?.content;
-        
-        let rawText = "";
-        if (content?.parts && Array.isArray(content.parts)) {
-            // text 속성이 있는 파트를 우선 탐색
-            const textPart = content.parts.find(p => typeof p.text === 'string' && p.text.trim().length > 0);
-            if (textPart) {
-                rawText = textPart.text;
-            } else {
-                rawText = JSON.stringify(content.parts);
-            }
-        } else if (typeof content === 'string') {
-            rawText = content;
-        } else if (content?.reasoning) {
-            rawText = content.reasoning;
-        } else {
-            rawText = JSON.stringify(response.data);
+        console.log('[Gemma] 퀴즈 배치 생성 API 호출 시작');
+        const response = await postWithRetry(API_URL, requestData);
+
+        const parts = response.data?.candidates?.[0]?.content?.parts;
+        if (!parts) {
+            console.error('[Gemma] 응답에 생성 결과가 없음');
+            MASTER_QUIZ_DATA = [];
+            return;
         }
-        
-        const cleanJson = extractJsonFromText(rawText);
-        const parsed = JSON.parse(cleanJson);
-        if (!parsed.question || !parsed.choices || parsed.choices.length !== 4) return null;
 
-        return {
-            topic,
-            question: parsed.question,
-            choices: parsed.choices,
-            correctAnswerIndex: parsed.correctAnswerIndex ?? 0,
-            correctAnswerText: parsed.correctAnswerText || parsed.choices[0],
-            explanation: parsed.explanation
-        };
-    } catch (err) {
-        console.error(`[퀴즈 생성 실패 - ${topic}]`, err.message);
-        return null;
-    }
-}
+        const answer = parts
+            .filter(part => typeof part.text === 'string')
+            .map(part => part.text)
+            .join('');
 
-async function fetchNewQuizData(requiredCount = 5, seenQuestions = []) {
-    MASTER_QUIZ_DATA = [];
-    const shuffledTopics = [...ALL_TOPICS].sort(() => Math.random() - 0.5).slice(0, requiredCount);
+        const cleanedJsonText = answer.trim().replace(/^```[a-z]*\n?/i, "").replace(/```$/, "").trim();
+        const parsedArray = JSON.parse(cleanedJsonText);
 
-    for (const topic of shuffledTopics) {
-        const quiz = await generateSingleQuiz(topic, seenQuestions);
-        if (quiz) {
-            MASTER_QUIZ_DATA.push(quiz);
+        if (!Array.isArray(parsedArray)) {
+            throw new Error('JSON 배열 형식이 아닙니다.');
         }
-        // 요청 간 딜레이 주어 429 방지
-        await new Promise(res => setTimeout(res, 600));
+
+        MASTER_QUIZ_DATA = parsedArray.map((q, idx) => ({
+            id: idx + 1,
+            topic: q.topic || "일반상식",
+            question: q.question,
+            choices: q.choices,
+            correctAnswerIndex: q.correctAnswerIndex ?? 0,
+            correctAnswerText: q.correctAnswerText || q.choices[q.correctAnswerIndex ?? 0],
+            explanation: q.explanation
+        })).filter(q => q.question && q.choices && q.choices.length === 4);
+
+        console.log(`[Gemma] API 호출 성공: ${MASTER_QUIZ_DATA.length}개 퀴즈 로드됨`);
+    } catch (error) {
+        console.error('[Gemma] API 호출 실패:', error.message);
+        MASTER_QUIZ_DATA = [];
     }
 }
 
@@ -157,12 +123,8 @@ app.post('/api/quiz', async (req, res) => {
         return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
     }
 
-    MASTER_QUIZ_DATA = MASTER_QUIZ_DATA.slice(0, 5).map((q, idx) => ({
-        ...q,
-        id: idx + 1
-    }));
-
-    const sanitized = MASTER_QUIZ_DATA.map(({ correctAnswerIndex, ...q }) => ({
+    // HTML 프론트엔드가 요구하는 필드 구조 및 암호화 토큰 주입
+    const sanitized = MASTER_QUIZ_DATA.slice(0, 5).map(({ correctAnswerIndex, ...q }) => ({
         ...q,
         token: encrypt(JSON.stringify({
             id: q.id,
