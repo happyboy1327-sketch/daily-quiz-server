@@ -10,7 +10,7 @@ function createQuizPayload(topic, previousQuestions = []) {
 
 [INTERNAL PROCESS]
 1. Thinking: 문제를 만들기 전, 해당 주제의 핵심 개념을 논리적으로 설계하라.
-2. Grounding: 반드시 Google Search를 사용하여 2025-2026년 기준 최신 정보와 정확한 사실을 확인하라.
+2. Grounding: 반드시 google_search 도구를 사용하여 2025-2026년 기준 최신 정보와 정확한 사실을 확인하라.
 * 위 과정은 내부적으로만 수행하며, 절대로 텍스트로 출력하지 마라.
 
 [OUTPUT RULE - CRITICAL]
@@ -31,9 +31,8 @@ function createQuizPayload(topic, previousQuestions = []) {
 
 [CONSTRAINTS]
 - 주제 "${topic}"과 관련 없는 문제는 절대 금지.
-- 복수 정답 절대 금지
 - 코딩 문제는 주제가 "코딩"일 때만 허용.
-- 맞춤법은 현행 국립국어원 기준 준수.
+- 맞춤법은 국립국어원 기준 준수.
 - choices는 정확히 4개의 보기 문자열 배열.
 - correctAnswerIndex는 0부터 시작.
 - 이전 문제와 중복 금지:
@@ -45,11 +44,11 @@ ${previousQuestions.slice(-5).join("\n")}
       role: 'user',
       parts: [{ text: promptText }]
     }],
-    // Grounding 활성화 (자체 검색)
-    tools: [{ google_search_retrieval: {} }], 
+    // ✅ 에러 메시지에 따라 google_search로 수정함
+    tools: [{ google_search: {} }], 
     generationConfig: { 
-      // ❌ responseMimeType: "application/json" 을 삭제함 (400 에러 방지)
-      // ❌ responseSchema 를 삭제함 (400 에러 방지)
+      // ❌ responseMimeType: "application/json" 을 반드시 제거해야 400 에러가 안 납니다.
+      // 대신 프롬프트와 extractJsonFromText 함수로 JSON을 뽑아냅니다.
       thinkingConfig: {
         "thinkingLevel": "HIGH"
       },
