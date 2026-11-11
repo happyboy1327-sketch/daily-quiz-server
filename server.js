@@ -67,13 +67,16 @@ async function postWithRetry(url, payload, maxRetries = 3, baseDelayMs = 2000) {
 const ALL_TOPICS = ["문화예술", "환경", "과학", "역사", "디지털 리터러시", "인권 리터러시", "한글 맞춤법", "코딩", "안전 및 건강상식", "경제", "지리", "정치", "심리학"];
 
 function extractJsonFromText(rawText) {
-    if (typeof rawText !== "string") throw new Error("응답이 문자열이 아닙니다.");
+    if (typeof rawText !== "string") {
+        if (typeof rawText === "object") rawText = JSON.stringify(rawText);
+        else throw new Error("응답이 문자열이 아닙니다.");
+    }
     
     let text = rawText.trim();
     
-    // 마크다운 코드 블록(```json ... ```) 제거
-    if (text.startsWith("```")) {
-        text = text.replace(/^```[a-z]*\n?/i, "").replace(/```$/, "").trim();
+    // 마크다운 코드 블록 제거
+    if (text.includes("```")) {
+        text = text.replace(/```[a-z]*\n?/gi, "").replace(/```/g, "").trim();
     }
     
     const start = text.indexOf("{");
@@ -92,10 +95,28 @@ async function generateSingleQuiz(topic, seenQuestions) {
         const payload = createQuizPayload(topic, seenQuestions);
         const response = await postWithRetry(API_URL, payload);
         
-        let rawText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || response.data?.candidates?.[0]?.content;
-        if (Array.isArray(rawText)) rawText = rawText.find(p => p.type === "text")?.text;
+        const candidate = response.data?.candidates?.[0];
+        const content = candidate?.content;
         
-        const parsed = JSON.parse(extractJsonFromText(rawText));
+        let rawText = "";
+        if (content?.parts && Array.isArray(content.parts)) {
+            // text 속성이 있는 파트를 우선 탐색
+            const textPart = content.parts.find(p => typeof p.text === 'string' && p.text.trim().length > 0);
+            if (textPart) {
+                rawText = textPart.text;
+            } else {
+                rawText = JSON.stringify(content.parts);
+            }
+        } else if (typeof content === 'string') {
+            rawText = content;
+        } else if (content?.reasoning) {
+            rawText = content.reasoning;
+        } else {
+            rawText = JSON.stringify(response.data);
+        }
+        
+        const cleanJson = extractJsonFromText(rawText);
+        const parsed = JSON.parse(cleanJson);
         if (!parsed.question || !parsed.choices || parsed.choices.length !== 4) return null;
 
         return {
