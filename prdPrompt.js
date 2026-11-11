@@ -1,4 +1,3 @@
-const MODEL_ID = "gemma-4-26b-a4b-it";//추후 Exa 검색기반 퀴즈로 바꿀 예정. 
 const PRD_SYSTEM_PROMPT = `
 You MUST generate 100% fact-checked, diverse Korean general knowledge quizzes across a wide range of completely non-overlapping domains based on South Korean context, 
 using single definitive answers and plausible wrong options. **Distractors (wrong choices) are allowed to be false statements; this does NOT violate any truthfulness rule above, so do not deliberate about it. Do not write any analysis or reasoning in your answer: the first character of your answer MUST be "{".**
@@ -571,7 +570,6 @@ ${previousQuestions.slice(-15).map(q =>
 }
 
 module.exports = {
-  MODEL_ID,
   PRD_SYSTEM_PROMPT,
   createQuizPayload
 };
