@@ -76,14 +76,12 @@ ${previousQuestions.slice(-5).join("\n")}
         ]
       },
       thinkingConfig: {
-        thinkingLevel: "high"
+        "thinkingLevel": "HIGH"
       },
       temperature: 0.3
     }
   };
 }
-
-
 
 
 module.exports = {
