@@ -93,9 +93,15 @@ async function generateSingleQuiz(topic, seenQuestions) {
             explanation: parsed.explanation
         };
     } catch (err) {
-        console.error(`[퀴즈 생성 실패 - ${topic}]`, err.message);
-        return null;
-    }
+    console.error(`[퀴즈 생성 실패 - ${topic}]`, {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        errorData: err.response?.data,
+        message: err.message
+    });
+
+    return null;
+}
 }
 
 async function fetchNewQuizData(requiredCount = 5, seenQuestions = []) {
