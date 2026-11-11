@@ -6,7 +6,8 @@ function createQuizPayload(topic, previousQuestions = []) {
 다른 분야의 지식이나 문제로 대체하는 행위를 금지한다.
 특히 코딩 및 프로그래밍 문제는 주제가 "코딩"인 경우에만 허용한다.
 JSON의 topic 값도 반드시 "${topic}"으로 출력한다.
-맞춤법 문제는 정확히 현행 국립국어원 기준으로만 낼것.
+맞춤법 문제는 정확히 현행 국립국어원 기준으로만 낼것. 또한, topic이 한글 맞춤법이면 구글 검색(googleSearch) 툴로 "https://korean.go.kr/kornorms/m/m_regltn.do?#a" 에서 검색할 것.
+
 
 2026년 최신 정보를 기준으로 중급 난도 상식 퀴즈를 생성하시오.
 반드시 다음 규칙을 준수하시오.
@@ -40,7 +41,7 @@ ${previousQuestions.slice(-5).join("\n")}
     generationConfig: { 
       responseMimeType: "application/json",
       thinkingConfig: {
-        thinkingLevel: "minimal"
+        thinkingLevel: "low"
       },
       temperature: 0.3
     }
