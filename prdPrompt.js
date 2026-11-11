@@ -41,7 +41,7 @@ function createQuizPayload(topic, previousQuestions = []) {
       {
         role: "user",
         parts: [{
-          text: `선택된 분야: ${topic}\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.\n이전 출제된 유사 문제 제외:\n${previousQuestions.slice(-5).join("\n")}`
+          text: `선택된 분야: ${topic}\n위 분야에 맞는 중급 난도의 퀴즈 1개를 JSON 형식으로 출제해주세요.`
         }]
       }
     ],
