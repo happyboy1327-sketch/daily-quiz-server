@@ -34,14 +34,12 @@ app.disable('x-powered-by');
 app.use(cors());
 app.use(express.json());
 
-const MODEL = 'gemma-4-26b-a4b-it';
-const API_URL = `[https://generativelanguage.googleapis.com/v1beta/models/$](https://generativelanguage.googleapis.com/v1beta/models/$){MODEL}:generateContent`;
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:generateContent`;
 
 let MASTER_QUIZ_DATA = []; 
-const ALL_TOPICS = ["문화예술", "환경", "과학", "역사", "디지털 리터러시", "인권 리터러시", "한글 맞춤법", "코딩", "안전 및 건강상식", "경제", "지리", "정치", "심리학"];
 
 // 429 / 타임아웃 대응 지수 백오프 래퍼
-async function postWithRetry(url, payload, maxRetries = 2, baseDelayMs = 1500) {
+async function postWithRetry(url, payload, maxRetries = 3, baseDelayMs = 2000) {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
             return await axios.post(url, payload, {
@@ -49,7 +47,7 @@ async function postWithRetry(url, payload, maxRetries = 2, baseDelayMs = 1500) {
                     'Content-Type': 'application/json',
                     'x-goog-api-key': GEMINI_API_KEY
                 },
-                timeout: 50000
+                timeout: 60000
             });
         } catch (err) {
             const status = err.response?.status;
@@ -66,9 +64,120 @@ async function postWithRetry(url, payload, maxRetries = 2, baseDelayMs = 1500) {
     }
 }
 
+const ALL_TOPICS = ["문화예술", "환경", "과학", "역사", "디지털 리터러시", "인권 리터러시", "한글 맞춤법", "코딩", "안전 및 건강상식", "경제", "지리", "정치", "심리학"];
+
+function extractJsonFromText(rawText) {
+    if (typeof rawText !== "string") throw new Error("응답이 문자열이 아닙니다.");
+    
+    let text = rawText.trim();
+    
+    // 마크다운 코드 블록(```json ... ```) 제거
+    if (text.startsWith("```")) {
+        text = text.replace(/^```[a-z]*\n?/i, "").replace(/```$/, "").trim();
+    }
+    
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    
+    if (start === -1 || end === -1 || end < start) {
+        console.error("❌ [JSON 추출 실패] rawText:", JSON.stringify(rawText));
+        throw new Error("JSON 객체를 찾지 못했습니다.");
+    }
+
+    return text.slice(start, end + 1);
+}
+
 async function generateSingleQuiz(topic, seenQuestions) {
     try {
         const payload = createQuizPayload(topic, seenQuestions);
         const response = await postWithRetry(API_URL, payload);
+        
+        let rawText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || response.data?.candidates?.[0]?.content;
+        if (Array.isArray(rawText)) rawText = rawText.find(p => p.type === "text")?.text;
+        
+        const parsed = JSON.parse(extractJsonFromText(rawText));
+        if (!parsed.question || !parsed.choices || parsed.choices.length !== 4) return null;
 
-        const parts = response
+        return {
+            topic,
+            question: parsed.question,
+            choices: parsed.choices,
+            correctAnswerIndex: parsed.correctAnswerIndex ?? 0,
+            correctAnswerText: parsed.correctAnswerText || parsed.choices[0],
+            explanation: parsed.explanation
+        };
+    } catch (err) {
+        console.error(`[퀴즈 생성 실패 - ${topic}]`, err.message);
+        return null;
+    }
+}
+
+async function fetchNewQuizData(requiredCount = 5, seenQuestions = []) {
+    MASTER_QUIZ_DATA = [];
+    const shuffledTopics = [...ALL_TOPICS].sort(() => Math.random() - 0.5).slice(0, requiredCount);
+
+    for (const topic of shuffledTopics) {
+        const quiz = await generateSingleQuiz(topic, seenQuestions);
+        if (quiz) {
+            MASTER_QUIZ_DATA.push(quiz);
+        }
+        // 요청 간 딜레이 주어 429 방지
+        await new Promise(res => setTimeout(res, 600));
+    }
+}
+
+app.post('/api/quiz', async (req, res) => {
+    const history = Array.isArray(req.body?.history) ? req.body.history : [];
+    const seenQuestions = history.map(h => (h.question || '').trim()).filter(Boolean);
+
+    await fetchNewQuizData(5, seenQuestions);
+
+    if (MASTER_QUIZ_DATA.length === 0) {
+        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
+    }
+
+    MASTER_QUIZ_DATA = MASTER_QUIZ_DATA.slice(0, 5).map((q, idx) => ({
+        ...q,
+        id: idx + 1
+    }));
+
+    const sanitized = MASTER_QUIZ_DATA.map(({ correctAnswerIndex, ...q }) => ({
+        ...q,
+        token: encrypt(JSON.stringify({
+            id: q.id,
+            correctAnswerIndex
+        }))
+    }));
+
+    return res.status(200).json(sanitized);
+});
+
+app.get('/api/answer-key', async (req, res) => {
+    const tokenInput = req.query.tokens || req.query.token || req.headers['x-quiz-token'];
+    try {
+        const tokenList = Array.isArray(tokenInput) ? tokenInput : String(tokenInput).split(',');
+        const answerKey = {};
+        for (const t of tokenList) {
+            const decoded = JSON.parse(decrypt(t.trim()));
+            answerKey[decoded.id] = decoded.correctAnswerIndex;
+        }
+        return res.status(200).json(answerKey);
+    } catch (err) {
+        return res.status(400).json({ errorCode: "INVALID_TOKEN" });
+    }
+});
+
+app.post('/api/reset-quiz', (req, res) => {
+    MASTER_QUIZ_DATA = [];
+    res.json({ success: true, message: '초기화 완료' });
+});
+
+app.use(express.static(__dirname));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+
+if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+module.exports = app;
