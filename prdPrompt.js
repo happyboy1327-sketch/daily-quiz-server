@@ -33,6 +33,7 @@ function createQuizPayload(topic, previousQuestions = []) {
 - 주제 "${topic}"과 관련 없는 문제는 절대 금지.
 - 코딩 문제는 주제가 "코딩"일 때만 허용.
 - 맞춤법은 국립국어원 기준 준수.
+- 복수 정답으로 오류출제 절대 금지.
 - choices는 정확히 4개의 보기 문자열 배열.
 - correctAnswerIndex는 0부터 시작.
 - 이전 문제와 중복 금지:
