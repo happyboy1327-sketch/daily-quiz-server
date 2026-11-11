@@ -49,7 +49,7 @@ async function postWithRetry(url, payload, maxRetries = 2, baseDelayMs = 1000) {
                     'Content-Type': 'application/json',
                     'x-goog-api-key': GEMINI_API_KEY
                 },
-                timeout: 50000
+                timeout: 100000
             });
         
 } catch (err) {
