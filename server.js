@@ -1642,11 +1642,11 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
     } catch (_) {}
 }
 
-if (!message?.content) {
+if (!message?.parts) {
     throw new Error("API 응답이 비어있습니다.");
 }
 
-                let rawText = message.content;
+                let rawText = message.parts;
 
                 if (Array.isArray(rawText)) {
                     const textPart = rawText.find(
