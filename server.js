@@ -1276,7 +1276,6 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
     },
     temperature: 0.0,
     maxOutputTokens: 1400
-    }
     };
 
     try {
