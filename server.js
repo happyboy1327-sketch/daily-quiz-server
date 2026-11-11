@@ -1125,12 +1125,8 @@ function extractJsonFromText(rawText) {
  */
 async function validateSingleQuiz(quiz) {
     const payload = {
-        model: "gemma-4-26b-a4b-it",
         /*prompt_cache_key: "validate-single-quiz-v1",*/
-        response_format: { type: "json_object" },
-        contents: [
-            {
-                role: "system",
+        systemInstruction: {
                 parts: [{text: `
 [시스템 역할]
 당신은 퀴즈의 사실성과 논리적 엄밀성을 100% 검증하는 극도로 까다로운 '팩트체크 검증관'입니다.
@@ -1260,10 +1256,9 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
   "suggestedFix": string | null // 정정되어야 할 올바른 표현 또는 조항 번호 (오류 없을 시 null),
   "correctAnswerCandidates": string[] // 실제로 정답이 될 수 있는 모든 선택지
 }
-
-
-`           }]
-            },
+        `}]
+        },
+        contents: [
             {
                 role: "user",
                 parts: [{text: JSON.stringify(quiz)}]
