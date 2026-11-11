@@ -11,7 +11,7 @@ JSON의 topic 값도 반드시 "${topic}"으로 출력한다.
 반드시 다음 규칙을 준수하시오.
 1. 출력은 순수 JSON 객체 하나로만 구성한다.
 2. JSON 앞뒤에 설명, 역할, 계획, 검증 결과를 출력하지 않는다.
-3. 마크다운 코드 블록을 절대 사용하지 않는다.
+3. internal error 유발하는 마크다운 코드 블록을 절대 사용하지 않는다.
 4. 각 객체는 topic, question, choices, correctAnswerIndex, correctAnswerText, explanation 필드를 모두 포함한다.
 5. choices는 정확히 4개의 보기 문자열 배열이어야 한다.
 6. correctAnswerIndex는 0부터 시작한다.
