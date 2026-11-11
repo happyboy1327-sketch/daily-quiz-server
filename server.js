@@ -79,6 +79,30 @@ async function postWithRetry(url, payload, maxRetries = 2, baseDelayMs = 1000) {
     }
 }
 
+function extractJsonFromText(rawText) {
+    if (typeof rawText !== "string") {
+        if (typeof rawText === "object") rawText = JSON.stringify(rawText);
+        else throw new Error("응답이 문자열이 아닙니다.");
+    }
+    
+    let text = rawText.trim();
+    
+    // 마크다운 코드 블록 제거
+    if (text.includes("```")) {
+        text = text.replace(/```[a-z]*\n?/gi, "").replace(/```/g, "").trim();
+    }
+    
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    
+    if (start === -1 || end === -1 || end < start) {
+        console.error("❌ [JSON 추출 실패] rawText:", JSON.stringify(rawText));
+        throw new Error("JSON 객체를 찾지 못했습니다.");
+    }
+
+    return text.slice(start, end + 1);
+}
+
 async function generateSingleQuiz(topic, seenQuestions) {
     try {
         const payload = createQuizPayload(topic, seenQuestions);
@@ -92,7 +116,11 @@ async function generateSingleQuiz(topic, seenQuestions) {
             .map(part => part.text)
             .join('');
 
-        const cleanedJsonText = anb.trim()
+
+        const cleanJson = extractJsonFromText(anb);
+
+
+        const cleanedJsonText = anb.trim(cleanJson)
     .replace(/^```[a-z]*\n?/i, "")
     .replace(/```$/, "")
     .trim();
