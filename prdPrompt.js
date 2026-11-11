@@ -33,6 +33,7 @@ function createQuizPayload(topic, previousQuestions = []) {
         }]
       }
     ],
+   tools: [{ googleSearch: {} }],
     generationConfig: {
       responseMimeType: "application/json",
       temperature: 0.3,
