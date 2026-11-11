@@ -1,4 +1,4 @@
-
+// server.js
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -33,11 +33,16 @@ function decrypt(token) {
 }
 
 /**
- * JSON 추출 함수: 
- * 모델이 실수로 마크다운이나 텍스트를 섞더라도 JSON 부분만 찾아냄
+ * 핵심: 모델이 JSON 앞뒤에 잡담을 하거나 마크다운을 써도 
+ * { ... } 부분만 정확하게 도려내는 함수
  */
 function extractJsonFromText(rawText) {
     let text = rawText.trim();
+    // 1. 마크다운 코드 블록 제거 (```json ... ```)
+    if (text.includes("```")) {
+        text = text.replace(/```[a-z]*\n?/gi, "").replace(/```/g, "").trim();
+    }
+    // 2. 텍스트 중간에 JSON이 섞여 있을 경우를 대비해 { 와 } 사이만 추출
     const start = text.indexOf("{");
     const end = text.lastIndexOf("}");
     if (start === -1 || end === -1) throw new Error("JSON 구조를 찾을 수 없습니다.");
@@ -49,7 +54,7 @@ async function postWithRetry(url, payload, maxRetries = 2) {
         try {
             return await axios.post(url, payload, {
                 headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
-                timeout: 150000 // 검색+사고 시간을 위해 넉넉히 2.5분 설정
+                timeout: 180000 // 검색+사고 시간을 위해 3분 설정
             });
         } catch (err) {
             const status = err.response?.status;
@@ -73,26 +78,19 @@ async function generateSingleQuiz(topic, seenQuestions) {
 
         const candidate = response.data?.candidates?.[0];
         if (!candidate || !candidate.content?.parts) {
-            throw new Error("모델로부터 유효한 응답 파트를 받지 못했습니다.");
+            throw new Error("응답 파트가 없습니다.");
         }
 
-        // [충돌 방지의 핵심] 
-        // candidate.content.parts에는 'thought' 파트와 'text' 파트가 나뉘어 있음.
-        // 우리는 오직 'text' 파트(JSON이 담긴 곳)만 찾는다.
+        // [중요] Thinking 파트가 아닌, 실제 텍스트(JSON) 파트를 찾음
         const textPart = candidate.content.parts.find(p => p.text);
         
         if (!textPart) {
-            // 만약 text가 없다면 모델이 검색/사고만 하고 JSON을 안 뱉은 것임
-            throw new Error("모델이 JSON 응답을 생성하지 못했습니다. (사고/검색 단계에서 멈춤)");
+            throw new Error("모델이 JSON 텍스트를 생성하지 못했습니다.");
         }
 
+        // 텍스트에서 JSON만 추출하여 파싱
         const cleanJson = extractJsonFromText(textPart.text);
         const parsed = JSON.parse(cleanJson);
-
-        // 데이터 검증
-        if (!parsed.question || !parsed.choices || parsed.choices.length !== 4) {
-            throw new Error("JSON 데이터 형식이 유효하지 않습니다.");
-        }
 
         return {
             topic: parsed.topic || topic,
@@ -102,7 +100,6 @@ async function generateSingleQuiz(topic, seenQuestions) {
             correctAnswerText: parsed.correctAnswerText || parsed.choices[parsed.correctAnswerIndex ?? 0],
             explanation: parsed.explanation
         };
-
     } catch (err) {
         console.error(`❌ [Error - ${topic}]:`, err.message);
         return null;
@@ -123,15 +120,13 @@ app.post('/api/quiz', async (req, res) => {
     const shuffledTopics = [...ALL_TOPICS].sort(() => Math.random() - 0.5).slice(0, 5);
     MASTER_QUIZ_DATA = [];
 
-    // 병렬 처리를 통해 속도 향상 (Promise.all)
+    // 병렬 처리로 속도 향상
     const quizPromises = shuffledTopics.map(topic => generateSingleQuiz(topic, seenQuestions));
     const results = await Promise.all(quizPromises);
     
     MASTER_QUIZ_DATA = results.filter(q => q !== null);
 
-    if (MASTER_QUIZ_DATA.length === 0) {
-        return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
-    }
+    if (MASTER_QUIZ_DATA.length === 0) return res.status(503).json({ errorCode: "DATA_UNAVAILABLE" });
 
     const sanitized = MASTER_QUIZ_DATA.map((q, idx) => {
         const { correctAnswerIndex, ...rest } = q;
