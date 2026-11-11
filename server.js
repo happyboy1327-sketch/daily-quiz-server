@@ -92,15 +92,19 @@ async function generateSingleQuiz(topic, seenQuestions) {
             .map(part => part.text)
             .join('');
 
-        const cleanedJsonText = anb.trim()
+        cconst cleanedJsonText = anb.trim()
     .replace(/^```[a-z]*\n?/i, "")
     .replace(/```$/, "")
     .trim();
 
+let parsed;
+
 try {
-    const parsed = JSON.parse(cleanedJsonText);
+    parsed = JSON.parse(cleanedJsonText);
 } catch (err) {
-    const position = Number(err.message.match(/position (\d+)/)?.[1]);
+    const position = Number(
+        err.message.match(/position (\d+)/)?.[1]
+    );
 
     console.error('[JSON 파싱 실패]', {
         error: err.message,
