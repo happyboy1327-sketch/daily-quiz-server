@@ -87,12 +87,12 @@ async function generateSingleQuiz(topic, seenQuestions) {
         const parts = response.data?.candidates?.[0]?.content?.parts;
         if (!parts) return null;
 
-        const answer = parts
+        const anb = parts
             .filter(part => typeof part.text === 'string')
             .map(part => part.text)
             .join('');
 
-        const cleanedJsonText = answer.trim()
+        const cleanedJsonText = anb.trim()
     .replace(/^```[a-z]*\n?/i, "")
     .replace(/```$/, "")
     .trim();
