@@ -41,7 +41,7 @@ let MASTER_QUIZ_DATA = [];
 const ALL_TOPICS = ["문화예술", "환경", "과학", "역사", "디지털 리터러시", "인권 리터러시", "한글 맞춤법", "코딩", "안전 및 건강상식", "경제", "지리", "정치", "심리학"];
 
 // 429 및 타임아웃 대응 지수 백오프 래퍼
-async function postWithRetry(url, payload, maxRetries = 2, baseDelayMs = 1500) {
+async function postWithRetry(url, payload, maxRetries = 2, baseDelayMs = 1000) {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
             return await axios.post(url, payload, {
@@ -92,8 +92,28 @@ async function generateSingleQuiz(topic, seenQuestions) {
             .map(part => part.text)
             .join('');
 
-        const cleanedJsonText = answer.trim().replace(/^```[a-z]*\n?/i, "").replace(/```$/, "").trim();
-        const parsed = JSON.parse(cleanedJsonText);
+        const cleanedJsonText = answer.trim()
+    .replace(/^```[a-z]*\n?/i, "")
+    .replace(/```$/, "")
+    .trim();
+
+try {
+    const parsed = JSON.parse(cleanedJsonText);
+} catch (err) {
+    const position = Number(err.message.match(/position (\d+)/)?.[1]);
+
+    console.error('[JSON 파싱 실패]', {
+        error: err.message,
+        aroundError: Number.isInteger(position)
+            ? JSON.stringify(cleanedJsonText.slice(
+                Math.max(0, position - 80),
+                position + 80
+            ))
+            : cleanedJsonText
+    });
+
+    throw err;
+}
 
         if (!parsed.question || !parsed.choices || parsed.choices.length !== 4) return null;
 
