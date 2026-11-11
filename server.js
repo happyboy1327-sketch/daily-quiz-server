@@ -92,7 +92,7 @@ async function generateSingleQuiz(topic, seenQuestions) {
             .map(part => part.text)
             .join('');
 
-        cconst cleanedJsonText = anb.trim()
+        const cleanedJsonText = anb.trim()
     .replace(/^```[a-z]*\n?/i, "")
     .replace(/```$/, "")
     .trim();
