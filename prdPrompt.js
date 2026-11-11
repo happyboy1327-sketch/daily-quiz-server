@@ -12,7 +12,7 @@ JSON의 topic 값도 반드시 "${topic}"으로 출력한다.
 2026년 최신 정보를 기준으로 중급 난도 상식 퀴즈를 생성하시오.
 반드시 다음 규칙을 준수하시오.
 1. 출력은 순수 JSON 객체 하나로만 구성한다.
-2. JSON 앞뒤에 설명, 역할, 계획, 검증 결과를 출력하지 않는다.
+2. **JSON 앞뒤에 설명, 역할, 계획, 검증 결과와 부가 내용을 절대 절대로 출력하지 않는다.** (분명 하지 말라 했다!! 안하면 뒤진다)
 3. internal error 유발하는 마크다운 코드 블록을 절대 사용하지 않는다.
 4. 각 객체는 topic, question, choices, correctAnswerIndex, correctAnswerText, explanation 필드를 모두 포함한다.
 5. choices는 정확히 4개의 보기 문자열 배열이어야 한다.
