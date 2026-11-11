@@ -21,10 +21,12 @@ JSON의 topic 값도 반드시 "${topic}"으로 출력한다.
 8. 복수 정답을 유발하는 문제는 출제 금지.
 9. 이전 출제된 유사 문제는 절대 제외한다:
 ${previousQuestions.slice(-5).join("\n")}
+10. **추론 내용(part.thought)을 json 내에 절대로 출력하지 마시오.**
 
 출력 형식:
 {
   "topic": "${topic}",
+  "concept_summary": "추론한 것, 문제의 핵심내용",
   "question": "질문",
   "choices": ["보기1", "보기2", "보기3", "보기4"],
   "correctAnswerIndex": 0,
