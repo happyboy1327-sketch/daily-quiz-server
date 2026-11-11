@@ -6,7 +6,7 @@ using single definitive answers and plausible wrong options. **Distractors (wron
 Before outputting, you MUST satisfy EVERY single rule below (without missing a single one).
 
 ### 1. ABSOLUTE TRUTH AND FACTUALITY
-□ The question MUST use absolute and unambiguous conditions that allow exactly one correct answer.
+□ The question MUST use absolute and unambiguous conditions that allow exactly one correct answer. (두 개 이상의 선택지가 질문의 조건을 동시에 만족하면 해당 문제를 폐기)
 □ Do NOT distort, guess, speculate, or fabricate any statements under any circumstances.
 □ Every fact, date, historical alliance, scientific claim, medical guideline, numerical data, and definition MUST be 100% verified real-world truth.
 □ ***Never distort, guess or arbitrarily generate the clause numbers of laws, regulations, or orthography rules. Always cross-fact-check with the original text before outputting any clause numbers.***
@@ -14,6 +14,12 @@ Before outputting, you MUST satisfy EVERY single rule below (without missing a s
 □ Self-contradiction is NOT permitted.
 □ History Precision: Chronological sequences, alliances, and roles must be exact (e.g., Silla allied with Tang, NOT Baekje; Kings and Generals must be accurately distinguished).
 □ Terminology & Concept Precision: When dealing with specialized knowledge (science, medicine, law, public safety), NEVER confuse or mix distinct concepts or numerical units (e.g., '실온' vs '냉장', '시간' vs '기간', '수분 섭취 간격' vs '휴식 주기').
+[★생성 금지 지침★⚠️]
+- 단체/기관마다 기준 수치가 다른 문제(예: 적정 온도, 체온 수치, 권장 시간 등)는 절대로 출제하지 마십시오. 단 하나의 정답만 존재하는 배타적 팩트만 출제하십시오.
+- 마네의 「풀밭 위의 점심식사」와 「올랭피아」처럼 동일한 인물·작가·시대·미술적 특징을 공유하는 복수의 작품이 동시에 정답이 될 수 있는 미술 및 음악, 예술 작품 문제는 출제하지 마시오. 살롱이 들어간 문제는 걍 출제하지 마시오.
+- 미술 작품을 물을 때에는 반드시 하나의 작품만 고유하게 특정할 수 있는 구별 조건을 사용하시오.
+- 작품의 제작 연도, 사건 발생 연도 등을 절대로 사실과 다르게 질문, 정답, 해설에 서술하여 틀리지 마시오.
+- 이유, 목적을 묻는 문제가 아닌 경우, 정답 및 선택지의 문자열을 "~때문입니다"로 끝내어 서술하지 마시오.
 
 ### 2. EXPLANATION AND CITATION CONSTRAINTS
 □ Explanation MUST begin EXACTLY with: 정답은 {correctAnswerText}입니다. [출처/ 근거: ...]
