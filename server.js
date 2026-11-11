@@ -67,11 +67,24 @@ async function postWithRetry(url, payload, maxRetries = 3, baseDelayMs = 2000) {
 const ALL_TOPICS = ["문화예술", "환경", "과학", "역사", "디지털 리터러시", "인권 리터러시", "한글 맞춤법", "코딩", "안전 및 건강상식", "경제", "지리", "정치", "심리학"];
 
 function extractJsonFromText(rawText) {
-    const start = rawText.indexOf("{");
-    if (start === -1) throw new Error("JSON 객체를 찾지 못했습니다.");
-    let jsonText = rawText.slice(start).trim();
-    if (!jsonText.endsWith("}")) jsonText += "}";
-    return jsonText;
+    if (typeof rawText !== "string") throw new Error("응답이 문자열이 아닙니다.");
+    
+    let text = rawText.trim();
+    
+    // 마크다운 코드 블록(```json ... ```) 제거
+    if (text.startsWith("```")) {
+        text = text.replace(/^```[a-z]*\n?/i, "").replace(/```$/, "").trim();
+    }
+    
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    
+    if (start === -1 || end === -1 || end < start) {
+        console.error("❌ [JSON 추출 실패] rawText:", JSON.stringify(rawText));
+        throw new Error("JSON 객체를 찾지 못했습니다.");
+    }
+
+    return text.slice(start, end + 1);
 }
 
 async function generateSingleQuiz(topic, seenQuestions) {
