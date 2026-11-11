@@ -18,11 +18,11 @@ const app = express();
 
 
 
-const UPSTAGE_API_KEY = process.env.UPSTAGE_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 
 
-const TOKEN_SECRET = process.env.TOKEN_SECRET || UPSTAGE_API_KEY || 'default-quiz-secret-key-32bytes';
+const TOKEN_SECRET = process.env.TOKEN_SECRET || GEMINI_API_KEY || 'default-quiz-secret-key-32bytes';
 const ENCRYPTION_KEY = crypto.createHash('sha256').update(String(TOKEN_SECRET)).digest();
 const ALGORITHM = 'aes-256-gcm';
 
@@ -54,7 +54,7 @@ app.use((req, res, next) => {
     next();
 });
 
-const API_URL = "https://api.upstage.ai/v1/chat/completions";
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:generateContent`;
 const ONE_HOUR = 3600000; 
 
 let MASTER_QUIZ_DATA = []; 
@@ -1125,13 +1125,13 @@ function extractJsonFromText(rawText) {
  */
 async function validateSingleQuiz(quiz) {
     const payload = {
-        model: "solar-pro4",
-        prompt_cache_key: "validate-single-quiz-v1",
+        model: "gemma-4-26b-a4b-it",
+        /*prompt_cache_key: "validate-single-quiz-v1",*/
         response_format: { type: "json_object" },
-        messages: [
+        contents: [
             {
                 role: "system",
-                content: `
+                parts: [{text: `
 [시스템 역할]
 당신은 퀴즈의 사실성과 논리적 엄밀성을 100% 검증하는 극도로 까다로운 '팩트체크 검증관'입니다.
 속도보다 정확성을 최우선하며, 조금이라도 오류·결함·모호함·예외 가능성이 있으면 REJECT{valid: false} 처리합니다.
@@ -1266,24 +1266,31 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
             },
             {
                 role: "user",
-                content: JSON.stringify(quiz)
+                parts: [{text: JSON.stringify(quiz)}]
             }
+        }
         ],
-        temperature: 0,
-        max_tokens: 1400
+        generationConfig: { 
+    responseMimeType: "application/json",
+    thinkingConfig: {
+          thinkingLevel: "low"
+    },
+    temperature: 0.0,
+    maxOutputTokens: 1400
+    }
     };
 
     try {
         // postWithRetry 적용
         const response = await postWithRetry(API_URL, payload, {
             headers: {
-                'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'x-goog-api-key': GEMINI_API_KEY
             },
             timeout: 110000
         });
 
-        const rawText = response.data?.choices?.[0]?.message?.content;
+        const rawText = response.data?.candidates?.[0]?.content?.parts;
         
         console.log("[AI RAW RESPONSE]", JSON.stringify(rawText));
         
@@ -1544,8 +1551,8 @@ console.log(
 // Node.js 실행 테스트
 
 async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], excludedAnswers = []) {
-    if (!UPSTAGE_API_KEY) {
-        console.error("[ERROR] UPSTAGE_API_KEY 환경변수가 설정되지 않았습니다.");
+    if (!GEMINI_API_KEY) {
+        console.error("[ERROR] GEMINI_API_KEY 환경변수가 설정되지 않았습니다.");
         return false;
     }
 
@@ -1615,8 +1622,8 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                     payload,
                     {
                         headers: {
-                            'Authorization': `Bearer ${UPSTAGE_API_KEY}`,
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'x-goog-api-key': GEMINI_API_KEY
                         },
                         timeout: 65000
                     },
@@ -1625,13 +1632,13 @@ async function fetchNewQuizData(requiredCount = 5, excludedQuestions = [], exclu
                 );
                 
 
-                const message = response.data?.choices?.[0]?.message;
+                const message = response.data?.candidates?.[0]?.content;
 
-                if (!message?.content && message?.reasoning) {
+                if (!message?.parts && message?.reasoning) {
     try {
         const cand = extractJsonFromText(message.reasoning);
         JSON.parse(cand);
-        message.content = cand;
+        message.parts = cand;
     } catch (_) {}
 }
 
