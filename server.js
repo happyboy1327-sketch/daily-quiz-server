@@ -1268,7 +1268,6 @@ Return ONLY a valid, raw JSON object without markdown code blocks, code fences, 
                 role: "user",
                 parts: [{text: JSON.stringify(quiz)}]
             }
-        }
         ],
         generationConfig: { 
     responseMimeType: "application/json",
