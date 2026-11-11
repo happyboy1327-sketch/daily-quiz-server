@@ -120,7 +120,7 @@ async function generateSingleQuiz(topic, seenQuestions) {
         const cleanJson = extractJsonFromText(anb);
 
 
-        const cleanedJsonText = anb.trim(cleanJson)
+        const cleanedJsonText = cleanJson.trim
     .replace(/^```[a-z]*\n?/i, "")
     .replace(/```$/, "")
     .trim();
