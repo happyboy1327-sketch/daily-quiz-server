@@ -1,3 +1,4 @@
+// prdPrompt.js
 
 function createQuizPayload(topic, previousQuestions = []) {
   const promptText = `
@@ -7,23 +8,34 @@ function createQuizPayload(topic, previousQuestions = []) {
 [TASK]
 주제 "${topic}"에 대한 중급 난도 상식 퀴즈를 생성하라.
 
-[INTERNAL PROCESS - DO NOT OUTPUT]
+[INTERNAL PROCESS]
 1. Thinking: 문제를 만들기 전, 해당 주제의 핵심 개념을 논리적으로 설계하라.
-2. Grounding: 반드시 Google Search를 사용하여 2025-2026년 기준 최신 정보와 정확한 사실(특히 맞춤법, 법률, 과학적 사실)을 확인하라.
+2. Grounding: 반드시 Google Search를 사용하여 2025-2026년 기준 최신 정보와 정확한 사실을 확인하라.
 * 위 과정은 내부적으로만 수행하며, 절대로 텍스트로 출력하지 마라.
 
-[OUTPUT RULE - STRICT]
-1. 오직 지정된 JSON 스키마 형식으로만 응답하라.
-2. JSON 외에 어떠한 설명, 인사말, 생각 과정, 검색 결과 요약도 포함하지 마라.
-3. JSON 형식이 깨지면 시스템이 즉시 중단되므로, 문법을 완벽하게 준수하라.
+[OUTPUT RULE - CRITICAL]
+1. 반드시 아래의 JSON 형식을 준수하여 응답하라.
+2. **JSON 외에 어떠한 설명, 인사말, 생각 과정, 검색 결과 요약도 포함하지 마라.**
+3. **오직 순수한 JSON 객체 하나만 출력하라.**
+
+[JSON SCHEMA]
+{
+  "topic": "지정된 주제",
+  "concept_summary": "문제의 핵심 내용 요약",
+  "question": "퀴즈 질문",
+  "choices": ["보기1", "보기2", "보기3", "보기4"],
+  "correctAnswerIndex": 0,
+  "correctAnswerText": "정답 텍스트",
+  "explanation": "해설 [출처: ...]"
+}
 
 [CONSTRAINTS]
 - 주제 "${topic}"과 관련 없는 문제는 절대 금지.
+- 복수 정답 절대 금지
 - 코딩 문제는 주제가 "코딩"일 때만 허용.
-- 맞춤법은 국립국어원 기준 준수.
+- 맞춤법은 현행 국립국어원 기준 준수.
 - choices는 정확히 4개의 보기 문자열 배열.
 - correctAnswerIndex는 0부터 시작.
-- 해설 내에 반드시 [출처: ...]를 포함할 것.
 - 이전 문제와 중복 금지:
 ${previousQuestions.slice(-5).join("\n")}
 `;
@@ -33,32 +45,15 @@ ${previousQuestions.slice(-5).join("\n")}
       role: 'user',
       parts: [{ text: promptText }]
     }],
-    // Grounding 사용: 모델이 알아서 검색하고 결과만 가져옴 (충돌 방지의 핵심)
+    // Grounding 활성화 (자체 검색)
     tools: [{ google_search_retrieval: {} }], 
     generationConfig: { 
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: "OBJECT",
-        properties: {
-          topic: { type: "STRING" },
-          concept_summary: { type: "STRING" },
-          question: { type: "STRING" },
-          choices: {
-            type: "ARRAY",
-            items: { type: "STRING" },
-            minItems: 4,
-            maxItems: 4
-          },
-          correctAnswerIndex: { type: "INTEGER" },
-          correctAnswerText: { type: "STRING" },
-          explanation: { type: "STRING" }
-        },
-        required: ["topic", "concept_summary", "question", "choices", "correctAnswerIndex", "correctAnswerText", "explanation"]
-      },
+      // ❌ responseMimeType: "application/json" 을 삭제함 (400 에러 방지)
+      // ❌ responseSchema 를 삭제함 (400 에러 방지)
       thinkingConfig: {
-        "thinkingLevel": "HIGH" // 깊은 사고 허용
+        "thinkingLevel": "HIGH"
       },
-      temperature: 0.2 // 일관성을 위해 온도를 낮춤
+      temperature: 0.2 
     }
   };
 }
