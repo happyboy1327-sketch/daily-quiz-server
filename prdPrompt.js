@@ -36,6 +36,10 @@ ${previousQuestions.slice(-5).join("\n")}
 
   return {
     contents: [{
+      role: 'system',
+      parts: [{ text: `제미나이 개새끼가 절대로 하지 말라했으니까 난 너한테 추론 과정 표출 금지를 요구한다. ㅅㅂ`}]
+  },
+      {
       role: 'user',
       parts: [{ text: promptText }]
     }],
