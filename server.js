@@ -98,7 +98,7 @@ async function postWithRetry(url, payload, apiKey, maxRetries = 1) {
                     'Content-Type': 'application/json',
                     'x-goog-api-key': apiKey
                 },
-                timeout: 180000
+                timeout: 200000
             });
 
         } catch (err) {
@@ -129,7 +129,7 @@ console.error('[GEMINI API DEBUG]', {
                 (status === 429 || status >= 500) &&
                 attempt < maxRetries
             ) {
-                const delay = 1900 * Math.pow(2, attempt);
+                const delay = 2300 * Math.pow(2, attempt);
 
                 console.warn(
                     `[${delay}ms 재시도] ${attempt + 1}/${maxRetries}`
