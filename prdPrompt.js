@@ -6,12 +6,12 @@ function createQuizPayload(topic, previousQuestions = []) {
 너는 전문적인 퀴즈 생성 에이전트이다.
 
 [TASK]
-주제 "${topic}"에 대한 중급 난도 상식 퀴즈를 생성하라.
+${topic}에 대한 중급 난도 상식 퀴즈를 생성하라.
 
 [INTERNAL PROCESS]
-1. Thinking: 문제를 만들기 전, 해당 주제의 핵심 개념을 논리적으로 설계하라.
+1. Thinking: 문제 생성 전, 해당 주제의 핵심 개념을 논리적으로 설계하라.
 2. Grounding: 반드시 google_search 도구를 사용하여 2025-2026년 기준 최신 정보와 정확한 사실을 확인하라.
-* 위 과정은 내부적으로만 수행하며, 절대로 텍스트로 출력하지 마라.
+* 위 과정은 내부에서만 수행하여야 하며, 절대로 텍스트로 출력 금지.
 
 [OUTPUT RULE - CRITICAL]
 1. 반드시 아래의 JSON 형식을 준수하여 응답하라.
@@ -20,9 +20,9 @@ function createQuizPayload(topic, previousQuestions = []) {
 
 [JSON SCHEMA]
 {
-  "topic": "지정된 주제",
+  "topic": "주제",
   "concept_summary": "문제의 핵심 내용 요약",
-  "question": "퀴즈 질문",
+  "question": "질문",
   "choices": ["보기1", "보기2", "보기3", "보기4"],
   "correctAnswerIndex": 0,
   "correctAnswerText": "정답 텍스트",
@@ -30,14 +30,13 @@ function createQuizPayload(topic, previousQuestions = []) {
 }
 
 [CONSTRAINTS]
-- 주제 "${topic}"과 관련 없는 문제는 절대 금지.
-- 코딩 문제는 주제가 "코딩"일 때만 허용.
+- ${topic}과 관련 없는 문제는 절대 금지.
 - 맞춤법은 국립국어원 기준 준수.
 - 복수 정답으로 오류출제 절대 금지.
 - choices는 정확히 4개의 보기 문자열 배열.
 - correctAnswerIndex는 0부터 시작.
 - 이전 문제와 중복 금지:
-${previousQuestions.slice(-5).join("\n")}
+${previousQuestions.slice(-3).join("\n")}
 `;
 
   return {
