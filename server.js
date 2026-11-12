@@ -104,6 +104,27 @@ async function postWithRetry(url, payload, apiKey, maxRetries = 2) {
         } catch (err) {
             const status = err.response?.status;
 
+console.error('[GEMINI API DEBUG]', {
+    timestamp: new Date().toISOString(),
+    attempt: attempt + 1,
+    url,
+    model: url.split('/models/')[1]?.split(':')[0],
+    status,
+    axiosCode: err.code,
+    responseStatus: err.response?.statusText,
+    errorStatus: err.response?.data?.error?.status,
+    errorMessage: err.response?.data?.error?.message,
+    errorCode: err.response?.data?.error?.code,
+    responseHeaders: {
+        requestId:
+            err.response?.headers?.['x-request-id'] ||
+            err.response?.headers?.['request-id'] ||
+            err.response?.headers?.['x-goog-request-id'],
+        retryAfter: err.response?.headers?.['retry-after']
+    },
+    payloadBytes: Buffer.byteLength(JSON.stringify(payload), 'utf8')
+});
+
             if (
                 (status === 429 || status >= 500) &&
                 attempt < maxRetries
