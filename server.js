@@ -301,16 +301,19 @@ async function runWorker(worker, topics, seenQuestions) {
         return [];
     }
 
-    // 각 워커에 배정된 퀴즈를 비동기로 병렬 생성
-    const results = await Promise.all(
-        topics.map(topic =>
-            generateSingleQuiz(topic, seenQuestions, worker)
-        )
-    );
+    const successfulResults = [];
 
-    const successfulResults = results.filter(
-        result => result !== null
-    );
+    for (const topic of topics) {
+        const result = await generateSingleQuiz(
+            topic,
+            seenQuestions,
+            worker
+        );
+
+        if (result !== null) {
+            successfulResults.push(result);
+        }
+    }
 
     console.log(
         `[${worker.name}] 완료: ${successfulResults.length}/${topics.length}`
@@ -387,21 +390,31 @@ app.post('/api/quiz', async (req, res) => {
         console.log('================================');
 
         // ----------------------------------
-        // 워커 1, 2 실행 (워커 2는 15초 뒤 시작)
-        // ----------------------------------
+// 워커 1, 2 실행 (워커 2는 15초 뒤 시작)
+// ----------------------------------
 
-        const workerResults = await Promise.all(
-            WORKERS.map(async (worker, index) => {
-                if (index === 1) {
-                    await new Promise(resolve => setTimeout(resolve, 15000));
-                }
-                return runWorker(
-                    worker,
-                    workerTasks[index],
-                    seenQuestions
-                );
-            })
-        );
+// WORKER-1 즉시 시작
+const worker1Promise = runWorker(
+    WORKERS[0],
+    workerTasks[0],
+    seenQuestions
+);
+
+// WORKER-1 시작 후 15초 대기
+await new Promise(resolve => setTimeout(resolve, 15000));
+
+// WORKER-2 시작
+const worker2Promise = runWorker(
+    WORKERS[1],
+    workerTasks[1],
+    seenQuestions
+);
+
+// 두 워커 모두 완료될 때까지 대기
+const workerResults = await Promise.all([
+    worker1Promise,
+    worker2Promise
+]);
 
         // ----------------------------------
         // 결과 통합
