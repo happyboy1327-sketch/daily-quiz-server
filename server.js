@@ -90,7 +90,7 @@ function extractJsonFromText(rawText) {
 // 4. API 재시도
 // ==========================================
 
-async function postWithRetry(url, payload, apiKey, maxRetries = 2) {
+async function postWithRetry(url, payload, apiKey, maxRetries = 1) {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
             return await axios.post(url, payload, {
