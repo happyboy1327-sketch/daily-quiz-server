@@ -366,17 +366,20 @@ app.post('/api/quiz', async (req, res) => {
         console.log('================================');
 
         // ----------------------------------
-        // 워커 1, 2 동시 실행
+        // 워커 1, 2 실행 (워커 2는 15초 뒤 시작)
         // ----------------------------------
 
         const workerResults = await Promise.all(
-            WORKERS.map((worker, index) =>
-                runWorker(
+            WORKERS.map(async (worker, index) => {
+                if (index === 1) {
+                    await new Promise(resolve => setTimeout(resolve, 15000));
+                }
+                return runWorker(
                     worker,
                     workerTasks[index],
                     seenQuestions
-                )
-            )
+                );
+            })
         );
 
         // ----------------------------------
