@@ -370,14 +370,15 @@ app.post('/api/quiz', async (req, res) => {
         // ----------------------------------
 
         const workerResults = await Promise.all(
-            WORKERS.map((worker, index) =>
-                runWorker(
-                    worker,
-                    workerTasks[index],
-                    seenQuestions
-                )
-            )
-        );
+  WORKERS.map(async (worker, index) => {
+    // Worker 2는 Worker 1 시작 후 13초 대기
+    if (index === 1) {
+      await new Promise(resolve => setTimeout(resolve, 13000));
+    }
+
+    return runWorker(worker, worker.topics, seenQuestions);
+  })
+);
 
         // ----------------------------------
         // 결과 통합
