@@ -253,7 +253,7 @@ async function generateSingleQuiz(topic, seenQuestions, worker) {
         );
 
         return {
-            topic: parsed.topic || topic,
+            topic: topic,
             question: parsed.question,
             choices: parsed.choices,
             correctAnswerIndex: parsed.correctAnswerIndex ?? 0,
