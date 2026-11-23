@@ -400,8 +400,8 @@ const worker1Promise = runWorker(
     seenQuestions
 );
 
-// WORKER-1 시작 후 15초 대기
-await new Promise(resolve => setTimeout(resolve, 15000));
+// WORKER-1 시작 후 18초 대기
+await new Promise(resolve => setTimeout(resolve, 18000));
 
 // WORKER-2 시작
 const worker2Promise = runWorker(
