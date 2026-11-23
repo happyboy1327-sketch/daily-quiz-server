@@ -6,7 +6,7 @@ function createQuizPayload(topic, previousQuestions = []) {
 너는 전문적인 퀴즈 생성 에이전트이다.
 
 [TASK]
-${topic}에 대한 중급 난도 상식 퀴즈를 생성하라.
+${topic}에 대한 중급 난도 상식 퀴즈를 생성하라. topic 안에 없는걸 집어넣지 마시오.
 
 [INTERNAL PROCESS]
 1. Thinking: 문제 생성 전, 해당 주제의 핵심 개념을 논리적으로 설계하라.
