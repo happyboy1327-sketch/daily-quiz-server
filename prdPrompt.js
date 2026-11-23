@@ -22,7 +22,7 @@ ${topic}에 대한 중급 난도 상식 퀴즈를 생성하라. topic 필드에�
 [JSON SCHEMA]
 {
   "topic": "${topic}",
-  "concept_summary": "문제의 핵심 내용 요약",
+  "concept_summary": "문제의 핵심 내용 짧게 1줄 요약",
   "question": "질문",
   "choices": ["보기1", "보기2", "보기3", "보기4"],
   "correctAnswerIndex": 0,
