@@ -21,7 +21,7 @@ ${topic}에 대한 중급 난도 상식 퀴즈를 생성하라. topic 필드에�
 
 [JSON SCHEMA]
 {
-  "topic": "선택 분야명",
+  "topic": "${topic}",
   "concept_summary": "문제의 핵심 내용 요약",
   "question": "질문",
   "choices": ["보기1", "보기2", "보기3", "보기4"],
@@ -36,8 +36,8 @@ ${topic}에 대한 중급 난도 상식 퀴즈를 생성하라. topic 필드에�
 - 복수 정답으로 오류출제 절대 금지.
 - choices는 정확히 4개의 보기 문자열 배열.
 - correctAnswerIndex는 0부터 시작.
-- 이전 문제와 중복 금지:
-${previousQuestions.slice(-3).join("\n")}
+- 이전 문제와 중복 금지: ${previousQuestions.slice(-3).join("\n")}
+
 `;
 
   return {
