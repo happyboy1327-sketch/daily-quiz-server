@@ -90,7 +90,7 @@ function extractJsonFromText(rawText) {
 // 4. API 재시도
 // ==========================================
 
-async function postWithRetry(url, payload, apiKey, maxRetries = 1) {
+async function postWithRetry(url, payload, apiKey, maxRetries = 2) {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
             return await axios.post(url, payload, {
@@ -98,7 +98,7 @@ async function postWithRetry(url, payload, apiKey, maxRetries = 1) {
                     'Content-Type': 'application/json',
                     'x-goog-api-key': apiKey
                 },
-                timeout: 200000
+                timeout: 150000
             });
 
         } catch (err) {
@@ -129,7 +129,7 @@ console.error('[GEMINI API DEBUG]', {
                 (status === 429 || status >= 500) &&
                 attempt < maxRetries
             ) {
-                const delay = 2400 * Math.pow(2, attempt);
+                const delay = 3000 * Math.pow(2, attempt);
 
                 console.warn(
                     `[${delay}ms 재시도] ${attempt + 1}/${maxRetries}`
@@ -309,6 +309,8 @@ async function runWorker(worker, topics, seenQuestions) {
             seenQuestions,
             worker
         );
+
+        await new Promise(r => setTimeout(r, 4000));
 
         if (result !== null) {
             successfulResults.push(result);
