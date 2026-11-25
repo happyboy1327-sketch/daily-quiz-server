@@ -310,7 +310,7 @@ async function runWorker(worker, topics, seenQuestions) {
             worker
         );
 
-        await new Promise(r => setTimeout(r, 4000));
+        await new Promise(r => setTimeout(r, 5500));
 
         if (result !== null) {
             successfulResults.push(result);
