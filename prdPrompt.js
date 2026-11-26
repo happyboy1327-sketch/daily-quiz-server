@@ -9,7 +9,7 @@ function createQuizPayload(topic, previousQuestions = []) {
 ${topic}에 대한 중급 난도 상식 퀴즈를 생성하라. topic 필드에는 반드시 입력받은 주제 문자열을 그대로 넣을 것.
 
 [INTERNAL PROCESS]
-1. Thinking: 문제 생성 전, 해당 주제의 핵심 개념을 논리적으로 설계하라.
+1. Thinking: 문제 생성 전, 해당 주제의 새로운 소재를 다루는 핵심 개념을 논리적으로 설계하라.
 2. Grounding: 반드시 google_search 도구를 사용하여 2025-2026년 기준 최신 정보와 정확한 사실을 확인하라.
 * 위 과정은 내부에서만 수행하여야 하며, 절대로 텍스트로 출력 금지.
 
