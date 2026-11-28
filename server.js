@@ -129,7 +129,10 @@ console.error('[GEMINI API DEBUG]', {
                 (status === 429 || status >= 500) &&
                 attempt < maxRetries
             ) {
-                const delay = 3000 * Math.pow(2, attempt);
+                const minDelay = 2000;
+                const maxDelay = 3000;
+                const delay =
+                    minDelay + Math.floor(Math.random() * (maxDelay - minDelay + 1));
 
                 console.warn(
                     `[${delay}ms 재시도] ${attempt + 1}/${maxRetries}`
