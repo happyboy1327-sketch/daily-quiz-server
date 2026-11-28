@@ -98,7 +98,7 @@ async function postWithRetry(url, payload, apiKey, maxRetries = 2) {
                     'Content-Type': 'application/json',
                     'x-goog-api-key': apiKey
                 },
-                timeout: 150000
+                timeout: 160000
             });
 
         } catch (err) {
@@ -129,10 +129,10 @@ console.error('[GEMINI API DEBUG]', {
                 (status === 429 || status >= 500) &&
                 attempt < maxRetries
             ) {
-                const minDelay = 2000;
+                const minDelay = 2500;
                 const maxDelay = 3000;
                 const delay =
-                    minDelay + Math.floor(Math.random() * (maxDelay - minDelay + 1));
+                    minDelay + Math.floor(Math.random() * (maxDelay - minDelay));
 
                 console.warn(
                     `[${delay}ms 재시도] ${attempt + 1}/${maxRetries}`
@@ -405,8 +405,8 @@ const worker1Promise = runWorker(
     seenQuestions
 );
 
-// WORKER-1 시작 후 18초 대기
-await new Promise(resolve => setTimeout(resolve, 18000));
+// WORKER-1 시작 후 22초 대기
+await new Promise(resolve => setTimeout(resolve, 22000));
 
 // WORKER-2 시작
 const worker2Promise = runWorker(
